@@ -48,3 +48,14 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Setup
+Backend Folder:
+- npm i express@5.1.0 @neondatabase/serverless@1.0.0 cors@2.8.5 dotenv@16.5.0 drizzle-orm@0.44.2 cron@4.3.0
+- npm nodemon@3.1.10
+- npm run dev
+
+Mobile Folder:
+- npm i expo@54.0.5
+- npm i @clerk/clerk-expo@2.15.3
+- npx expo
