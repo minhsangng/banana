@@ -19,7 +19,7 @@ import { authStyles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 
 const SignInScreen = () => {
-  const router = useRouter();
+  /* const router = useRouter();
 
   const { signIn, setActive, isLoaded } = useSignIn();
 
@@ -56,10 +56,11 @@ const SignInScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }; */
 
   return (
-    <View style={authStyles.container}>
+  <>
+    {/* <View style={authStyles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={authStyles.keyboardView}
@@ -79,9 +80,7 @@ const SignInScreen = () => {
 
           <Text style={authStyles.title}>Welcome Back</Text>
 
-          {/* FORM CONTAINER */}
-          <View style={authStyles.formContainer}>
-            {/* Email Input */}
+          {/* <View style={authStyles.formContainer}>
             <View style={authStyles.inputContainer}>
               <TextInput
                 style={authStyles.textInput}
@@ -92,10 +91,9 @@ const SignInScreen = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-            </View>
+            </View> */}
 
-            {/* PASSWORD INPUT */}
-            <View style={authStyles.inputContainer}>
+            {/* <<View style={authStyles.inputContainer}>
               <TextInput
                 style={authStyles.textInput}
                 placeholder="Enter password"
@@ -126,7 +124,6 @@ const SignInScreen = () => {
               <Text style={authStyles.buttonText}>{loading ? "Signing In..." : "Sign In"}</Text>
             </TouchableOpacity>
 
-            {/* Sign Up Link */}
             <TouchableOpacity
               style={authStyles.linkContainer}
               onPress={() => router.push("/(auth)/sign-up")}
@@ -138,7 +135,9 @@ const SignInScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </View> */}
+    <Text>Home</Text>
+    </>
   );
 };
 export default SignInScreen;

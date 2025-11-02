@@ -34,6 +34,15 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/DFVN-Modak.ttf",
+            "./assets/fonts/DFVN-GochiHand.ttf"
+          ]
+        }
+      ],
       "expo-secure-store",
       "expo-web-browser"
     ],
