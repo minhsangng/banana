@@ -10,7 +10,7 @@ const lightTheme = {
   button: "#B87C4C",
   border: "#D5D8DC",
   white: "#FFFFFF",
-  textLight: "#7F8C8D",
+  textLight: "#F9F9F9",
   card: "#FFFFFF",
   shadow: "#00000033",
 };

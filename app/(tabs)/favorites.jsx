@@ -1,5 +1,5 @@
 import { View, Text, Alert, ScrollView, TouchableOpacity, FlatList } from "react-native";
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useEffect, useState } from "react";
 import { API_URL } from "../../constants/api";
 import { favoritesStyles } from "../../assets/styles/favorites.styles";
@@ -10,7 +10,6 @@ import NoFavoritesFound from "../../components/NoFavoritesFound";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const FavoritesScreen = () => {
-  const { signOut } = useClerk();
   const { user } = useUser();
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,13 +40,6 @@ const FavoritesScreen = () => {
     loadFavorites();
   }, [user.id]);
 
-  const handleSignOut = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Logout", style: "destructive", onPress: signOut },
-    ]);
-  };
-
   if (loading) return <LoadingSpinner message="Loading your favorites..." />;
 
   return (
@@ -55,7 +47,7 @@ const FavoritesScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={favoritesStyles.header}>
           <Text style={favoritesStyles.title}>Favorites</Text>
-          <TouchableOpacity style={favoritesStyles.logoutButton} onPress={handleSignOut}>
+          <TouchableOpacity style={favoritesStyles.logoutButton}>
             <Ionicons name="log-out-outline" size={22} color={COLORS.text} />
           </TouchableOpacity>
         </View>

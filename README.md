@@ -51,11 +51,27 @@ Join our community of developers creating universal apps.
 
 ## Setup
 Backend Folder:
-- npm i express@5.1.0 @neondatabase/serverless@1.0.0 cors@2.8.5 dotenv@16.5.0 drizzle-orm@0.44.2 cron@4.3.0
-- npm nodemon@3.1.10
-- npm run dev
+```bash
+npm i express@5.1.0 @neondatabase/serverless@1.0.0 cors@2.8.5 dotenv@16.5.0 drizzle-orm@0.44.2 cron@4.3.0
+```
+
+```bash
+npm nodemon@3.1.10
+```
+
+```bash
+npm run dev
+```
 
 Mobile Folder:
-- npm i expo@54.0.5
-- npm i @clerk/clerk-expo@2.15.3
-- npx expo
+```bash
+npm i expo@54.0.5
+```
+
+```bash
+npm i @clerk/clerk-expo@2.15.3
+```
+
+```bash
+npx expo
+```

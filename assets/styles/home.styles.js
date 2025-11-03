@@ -1,189 +1,117 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
 
 export const homeStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  welcomeSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  welcomeText: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: COLORS.text,
-    letterSpacing: -0.5,
-  },
-  featuredSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  featuredCard: {
-    borderRadius: 24,
-    overflow: "hidden",
-    backgroundColor: COLORS.card,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  featuredImageContainer: {
-    height: 240,
     backgroundColor: COLORS.primary,
     position: "relative",
   },
-  featuredImage: {
-    width: "100%",
-    height: "100%",
+  header: {
+    width,
+    height,
+    paddingTop: 52,
+    paddingHorizontal: 35,
   },
-  featuredOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "space-between",
-    padding: 20,
-  },
-  featuredBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-  },
-  featuredBadgeText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  featuredContent: {
-    justifyContent: "flex-end",
-  },
-  featuredTitle: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: COLORS.white,
-    marginBottom: 12,
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  featuredMeta: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  metaItem: {
+  headerContent: {
+    width,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    position: "relative",
   },
-  metaText: {
+  main: {
+    position: "absolute",
+    bottom: 0,
+    width,
+    height: height * 0.7,
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
+  searchInput: {
+    backgroundColor: COLORS.textLight,
+    width: 200,
+    borderRadius: 30,
+    paddingHorizontal: 14,
     fontSize: 14,
-    color: COLORS.white,
-    fontWeight: "600",
+    fontFamily: "GochiHand",
   },
-  recipesSection: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  sectionHeader: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: COLORS.text,
-    letterSpacing: -0.5,
-  },
-  recipesGrid: {
-    gap: 16,
-  },
-  row: {
-    justifyContent: "space-between",
-    gap: 16,
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 64,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyDescription: {
-    fontSize: 14,
+  searchIcon: {
+    position: "absolute",
+    top: 6,
+    left: 164,
+    height: 28,
+    width: 28,
+    backgroundColor: COLORS.heading,
     color: COLORS.textLight,
-    textAlign: "center",
-  },
-  categoryFilterContainer: {
-    marginVertical: 16,
-  },
-  categoryFilterScrollContent: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  categoryButton: {
-    flexDirection: "column",
-    alignItems: "center",
+    padding: 4,
+    borderRadius: 50,
+    fontSize: 18,
+    flex: 1,
     justifyContent: "center",
-    backgroundColor: COLORS.card,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    minWidth: 80,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    alignItems: "center",
   },
-  selectedCategory: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-    shadowOpacity: 0.15,
+  rightHeader: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    position: "absolute",
+    right: 50
   },
-  categoryImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginBottom: 4,
-    backgroundColor: COLORS.border,
+  rightIcon: {
+    backgroundColor: COLORS.textLight,
+    color: COLORS.heading,
+    padding: 2,
+    marginHorizontal: 4,
+    borderRadius: 10,
+    fontSize: 28
   },
-  selectedCategoryImage: {
-    borderWidth: 2,
-    borderColor: COLORS.white,
+  headerMessage: {
+    width,
+    paddingTop: 12
+  },
+  heading: {
+    fontSize: 32,
+    fontFamily: "Modak",
+    color: COLORS.textLight,
+  },
+  title: {
+    fontSize: 12,
+    lineHeight: 12,
+    fontFamily: "GochiHand",
+    color: COLORS.heading
+  },
+  categories: {
+    width: width - 60,
+    marginHorizontal: "auto",
+    marginTop: 40,
+    paddingBottom: 10,
+    borderBottomColor: COLORS.background2,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  categorySelected: {
+    backgroundColor: COLORS.background3,
+    color: COLORS.heading,
+    padding: 6,
+    borderRadius: 50,
+    fontSize: 40
+  },
+  categoryIcon: {
+    backgroundColor: COLORS.background2,
+    color: COLORS.heading,
+    padding: 6,
+    borderRadius: 50,
+    fontSize: 40
   },
   categoryText: {
+    marginTop: 4,
     fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.text,
-    textAlign: "center",
-  },
-  selectedCategoryText: {
-    color: COLORS.white,
+    fontFamily: "GochiHand",
   },
 });
 

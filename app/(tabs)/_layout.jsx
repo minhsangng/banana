@@ -11,38 +11,53 @@ const TabsLayout = () => {
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textLight,
         tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopColor: COLORS.border,
-          borderTopWidth: 1,
+          backgroundColor: COLORS.heading,
           paddingBottom: 8,
           paddingTop: 8,
           height: 80,
+          borderTopLeftRadius: 30,
+          borderTopRightRadius: 30,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: "600",
+          fontFamily: "GochiHand",
+          fontWeight: "600"
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Recipes",
-          tabBarIcon: ({ color, size }) => <Ionicons name="restaurant" size={size} color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="order"
         options={{
-          title: "Search",
-          tabBarIcon: ({ color, size }) => <Ionicons name="search" size={size} color={color} />,
+          title: "Order",
+          tabBarIcon: ({ color, size }) => <Ionicons name="bag-check-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
           title: "Favorites",
-          tabBarIcon: ({ color, size }) => <Ionicons name="heart" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="support"
+        options={{
+          title: "Support",
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />,
         }}
       />
     </Tabs>
