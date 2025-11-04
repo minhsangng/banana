@@ -36,8 +36,10 @@ export const homeStyles = StyleSheet.create({
     width: 200,
     borderRadius: 30,
     paddingHorizontal: 14,
+    paddingVertical: 10,
     color: COLORS.text,
     fontSize: 14,
+    lineHeight: 20,
     fontFamily: "GochiHand",
   },
   searchIcon: {

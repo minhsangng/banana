@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import { router } from "expo-router";
 import { useFonts } from "expo-font";
 import { homeStyles } from "../../assets/styles/home.styles";
 import { COLORS } from "../../constants/colors";
@@ -12,7 +13,7 @@ const HomeScreen = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [greeting, setGreeting] = useState("");
+  const [greeting, setGreeting] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(0);
   const [fontLoader] = useFonts({
     "Modak": require("../../assets/fonts/DFVN-Modak.ttf"),
@@ -109,14 +110,14 @@ const HomeScreen = () => {
     let hour = new Date().getHours();
 
     if (hour >= 6 && hour <= 10)
-      setGreeting("Chào buổi sáng");
+      setGreeting(["Chào buổi sáng", "Đừng bỏ bữa sáng bạn nhé!"]);
     else if (hour > 10 && hour <= 13)
-      setGreeting("Chào buổi trưa");
+      setGreeting(["Chào buổi trưa", "Đặt hàng trước, tan học nhận ngay!"]);
     else if (hour > 13 && hour <= 18)
-      setGreeting("Chào buổi chiều");
+      setGreeting(["Chào buổi chiều", "Nạp ngay năng lượng nào!"]);
     else if (hour > 18 && hour <= 22)
-      setGreeting("Chào buổi tối");
-    else setGreeting("Chúc ngủ ngon");
+      setGreeting(["Chào buổi tối", "Căn tin sẽ mở lại vào ngày mai bạn nhé!"]);
+    else setGreeting(["Chúc ngủ ngon", "Ngày mai ăn nhớ sáng nhé!"]);
   };
 
   if ((loading && !refreshing) || !fontLoader) return <LoadingSpinner message="Chờ xíu..." />;
@@ -125,20 +126,23 @@ const HomeScreen = () => {
     <View style={homeStyles.container}>
       <View style={homeStyles.header}>
         <View style={homeStyles.headerContent}>
-          <TextInput placeholder="Bạn tìm món gì?" style={homeStyles.searchInput} />
+          <TextInput placeholder="Bạn tìm món gì?" style={homeStyles.searchInput} returnKeyType="search"/>
+          <ScrollView>
+            <Text></Text>
+          </ScrollView>
           <Ionicons name="options-outline" style={homeStyles.searchIcon}></Ionicons>
           <View style={homeStyles.rightHeader}>
             <Ionicons name="cart-outline" style={homeStyles.rightIcon}></Ionicons>
             <Ionicons name="notifications-outline" style={homeStyles.rightIcon}></Ionicons>
-            <Ionicons name="person-outline" style={homeStyles.rightIcon}></Ionicons>
+            <Ionicons name="person-outline" style={homeStyles.rightIcon} onPress={() => router.replace("../(auth)/sign-in")}></Ionicons>
           </View>
         </View>
         <View style={homeStyles.headerMessage}>
-          <Text style={homeStyles.heading}>{greeting}</Text>
-          <Text style={homeStyles.title}>Thức dậy thôi, đến giờ ăn sáng rồi!</Text>
+          <Text style={homeStyles.heading}>{greeting[0]}</Text>
+          <Text style={homeStyles.title}>{greeting[1]}</Text>
         </View>
       </View>
-      <ScrollView style={homeStyles.main}>
+      <View style={homeStyles.main}>
         <View style={homeStyles.categories}>
           {categories.map((item, index) => (
             <TouchableOpacity key={item.id} style={{ alignItems: "center" }} onPress={() => setCurrentCategory(item.id)}>
@@ -148,114 +152,116 @@ const HomeScreen = () => {
           ))}
         </View>
 
-        <View style={homeStyles.bestSellerSection}>
-          <View style={homeStyles.bestSellerTop}>
-            <Text style={homeStyles.bestSellerTitle}>Best seller</Text>
-            <Text style={homeStyles.bestSellerSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+        <ScrollView>
+          <View style={homeStyles.bestSellerSection}>
+            <View style={homeStyles.bestSellerTop}>
+              <Text style={homeStyles.bestSellerTitle}>Best seller</Text>
+              <Text style={homeStyles.bestSellerSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+            </View>
+            <View style={homeStyles.bestSellerDishes}>
+              <View style={homeStyles.bestSellerCard}>
+                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                </ImageBackground>
+              </View>
+              <View style={homeStyles.bestSellerCard}>
+                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                </ImageBackground>
+              </View>
+              <View style={homeStyles.bestSellerCard}>
+                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                </ImageBackground>
+              </View>
+              <View style={homeStyles.bestSellerCard}>
+                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                </ImageBackground>
+              </View>
+            </View>
           </View>
-          <View style={homeStyles.bestSellerDishes}>
-            <View style={homeStyles.bestSellerCard}>
-              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
-              </ImageBackground>
-            </View>
-            <View style={homeStyles.bestSellerCard}>
-              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
-              </ImageBackground>
-            </View>
-            <View style={homeStyles.bestSellerCard}>
-              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
-              </ImageBackground>
-            </View>
-            <View style={homeStyles.bestSellerCard}>
-              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
-              </ImageBackground>
-            </View>
-          </View>
-        </View>
 
-        <View>
-          <FlatList style={{ width: width - 60, marginHorizontal: "auto" }}
-            data={slides}
-            ref={flatListRef}
-            horizontal
-            onScroll={handleScroll}
-            pagingEnabled
-            decelerationRate="fast"
-            snapToAlignment="center"
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={homeStyles.advertiseSection}>
-                <ImageBackground source={slides[currentIndex].image} style={homeStyles.advertiseImage}>
-                  <View style={{ position: "absolute", top: 30, left: 15, alignItems: "center" }}>
-                    <Text style={{ fontSize: 16, fontFamily: "GochiHand", color: COLORS.textLight }}>{slides[currentIndex].heading}</Text>
-                    <Text style={{ fontSize: 40, fontFamily: "Modak", color: COLORS.textLight }}>{slides[currentIndex].discount}</Text>
+          <View>
+            <FlatList style={{ width: width - 60, marginHorizontal: "auto" }}
+              data={slides}
+              ref={flatListRef}
+              horizontal
+              onScroll={handleScroll}
+              pagingEnabled
+              decelerationRate="fast"
+              snapToAlignment="center"
+              showsHorizontalScrollIndicator={false}
+              scrollEventThrottle={16}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={homeStyles.advertiseSection}>
+                  <ImageBackground source={slides[currentIndex].image} style={homeStyles.advertiseImage}>
+                    <View style={{ position: "absolute", top: 30, left: 15, alignItems: "center" }}>
+                      <Text style={{ fontSize: 16, fontFamily: "GochiHand", color: COLORS.textLight }}>{slides[currentIndex].heading}</Text>
+                      <Text style={{ fontSize: 40, fontFamily: "Modak", color: COLORS.textLight }}>{slides[currentIndex].discount}</Text>
+                    </View>
+                  </ImageBackground>
+
+                  <View style={homeStyles.dotsContainer}>
+                    {slides.map((_, index) => (
+                      <View
+                        key={index}
+                        style={[
+                          homeStyles.dot,
+                          { opacity: index === currentIndex ? 1 : 0.3 },
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </View>
+              )}
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
+            >
+            </FlatList>
+          </View>
+
+          <View style={homeStyles.recommendSection}>
+            <View style={homeStyles.recommendTop}>
+              <Text style={homeStyles.recommendTitle}>Dành cho bạn</Text>
+              <Text style={homeStyles.recommendSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+            </View>
+            <View style={homeStyles.recommendDishes}>
+              <View style={homeStyles.recommendCard}>
+                <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
+                  <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <View style={homeStyles.rateContainer}>
+                      <Text style={homeStyles.rate}>5.0</Text>
+                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
+                    </View>
+                    <View style={homeStyles.favoritesContainer}>
+                      <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
+                    </View>
                   </View>
                 </ImageBackground>
-
-                <View style={homeStyles.dotsContainer}>
-                  {slides.map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        homeStyles.dot,
-                        { opacity: index === currentIndex ? 1 : 0.3 },
-                      ]}
-                    />
-                  ))}
-                </View>
               </View>
-            )}
-            getItemLayout={(data, index) => ({
-              length: width,
-              offset: width * index,
-              index,
-            })}
-          >
-          </FlatList>
-        </View>
 
-        <View style={homeStyles.recommendSection}>
-          <View style={homeStyles.recommendTop}>
-            <Text style={homeStyles.recommendTitle}>Dành cho bạn</Text>
-            <Text style={homeStyles.recommendSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
-          </View>
-          <View style={homeStyles.recommendDishes}>
-            <View style={homeStyles.recommendCard}>
-              <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
-                <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <View style={homeStyles.rateContainer}>
-                    <Text style={homeStyles.rate}>5.0</Text>
-                    <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
+              <View style={homeStyles.recommendCard}>
+                <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
+                  <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <View style={homeStyles.rateContainer}>
+                      <Text style={homeStyles.rate}>5.0</Text>
+                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
+                    </View>
+                    <View style={homeStyles.favoritesContainer}>
+                      <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
+                    </View>
                   </View>
-                  <View style={homeStyles.favoritesContainer}>
-                    <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
-                  </View>
-                </View>
-              </ImageBackground>
-            </View>
-            
-            <View style={homeStyles.recommendCard}>
-              <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
-                <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <View style={homeStyles.rateContainer}>
-                    <Text style={homeStyles.rate}>5.0</Text>
-                    <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
-                  </View>
-                  <View style={homeStyles.favoritesContainer}>
-                    <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
-                  </View>
-                </View>
-              </ImageBackground>
+                </ImageBackground>
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 };

@@ -73,5 +73,13 @@ npm i @clerk/clerk-expo@2.15.3
 ```
 
 ```bash
+npm i react-native-easy-grid
+```
+
+```bash
+npm i zustand
+```
+
+```bash
 npx expo
 ```

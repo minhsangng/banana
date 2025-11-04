@@ -76,7 +76,7 @@ const SearchScreen = () => {
     handleSearch();
   }, [debouncedSearchQuery, initialLoading]);
 
-  if (initialLoading) return <LoadingSpinner message="Loading recipes..." />;
+  if (initialLoading) return <LoadingSpinner message="Chờ xíu..." />;
 
   return (
     <View style={searchStyles.container}>
