@@ -113,8 +113,8 @@ export const homeStyles = StyleSheet.create({
   bestSellerSection: {
     width: width - 60,
     marginHorizontal: "auto",
+    marginTop: 24,
     height: "auto",
-    paddingTop: 10,
   },
   bestSellerTop: {
     flexDirection: "row",
@@ -176,7 +176,7 @@ export const homeStyles = StyleSheet.create({
   dotsContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 8
+    marginTop: 8,
   },
   dot: {
     width: 24,
@@ -184,5 +184,67 @@ export const homeStyles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: COLORS.heading,
     marginHorizontal: 2,
+  },
+  recommendSection: {
+    width: width - 60,
+    height: "auto",
+    marginHorizontal: "auto",
+    marginTop: 24,
+    marginBottom: 40,
+  },
+  recommendTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  recommendTitle: {
+    fontSize: 24,
+    fontFamily: "Modak",
+    color: COLORS.text,
+  },
+  recommendSeeAll: {
+    fontSize: 16,
+    fontFamily: "GochiHand",
+    color: COLORS.heading,
+  },
+  recommendDishes: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingTop: 6,
+  },
+  recommendCard: {
+    width: "48%",
+    height: 160,
+    borderWidth: 1,
+    borderColor: COLORS.background3,
+    borderRadius: 20,
+  },
+  recommendImage: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+  },
+  rateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: COLORS.textLight,
+    borderRadius: 30,
+    borderWidth: 0.5,
+    borderColor: COLORS.accent,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+  },
+  rate: {
+    fontSize: 14,
+    fontFamily: "GochiHand",
+    color: COLORS.text,
+  },
+  favoritesContainer: {
+    backgroundColor: COLORS.textLight,
+    borderRadius: 30,
+    borderWidth: 0.5,
+    borderColor: COLORS.accent,
+    padding: 4,
   },
 });

@@ -17,21 +17,21 @@ const { width, height } = Dimensions.get("window");
 export default function FirstOnboard() {
     const slides = [
         {
-            id: "1",
+            id: "0",
             icon: "document-attach-outline",
             heading: "Đặt hàng tiện lợi",
             title: "Chỉ với vài thao tác đơn giản",
             image: require("../../assets/images/first_onboard.png"),
         },
         {
-            id: "2",
+            id: "1",
             icon: "wallet-outline",
             heading: "Thanh toán dễ dàng",
             title: "Hỗ trợ tiền mặt và chuyển khoản",
             image: require("../../assets/images/second_onboard.png"),
         },
         {
-            id: "3",
+            id: "2",
             icon: "bicycle-outline",
             heading: "Giao hàng tận nơi",
             title: "Không cần phải di chuyển",
