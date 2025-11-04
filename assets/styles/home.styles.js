@@ -2,7 +2,6 @@ import { StyleSheet, Dimensions } from "react-native";
 import { COLORS } from "../../constants/colors";
 
 const { width, height } = Dimensions.get("window");
-const cardWidth = (width - 48) / 2;
 
 export const homeStyles = StyleSheet.create({
   container: {
@@ -14,11 +13,12 @@ export const homeStyles = StyleSheet.create({
     width,
     height,
     paddingTop: 52,
-    paddingHorizontal: 35,
   },
   headerContent: {
-    width,
+    width: width - 60,
+    marginHorizontal: "auto",
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     position: "relative",
   },
@@ -36,6 +36,7 @@ export const homeStyles = StyleSheet.create({
     width: 200,
     borderRadius: 30,
     paddingHorizontal: 14,
+    color: COLORS.text,
     fontSize: 14,
     fontFamily: "GochiHand",
   },
@@ -57,20 +58,19 @@ export const homeStyles = StyleSheet.create({
   rightHeader: {
     flexDirection: "row",
     justifyContent: "space-around",
-    position: "absolute",
-    right: 50
   },
   rightIcon: {
     backgroundColor: COLORS.textLight,
     color: COLORS.heading,
     padding: 2,
     marginHorizontal: 4,
-    borderRadius: 10,
-    fontSize: 28
+    borderRadius: 12,
+    fontSize: 28,
   },
   headerMessage: {
-    width,
-    paddingTop: 12
+    width: width - 60,
+    marginHorizontal: "auto",
+    paddingTop: 12,
   },
   heading: {
     fontSize: 32,
@@ -81,7 +81,7 @@ export const homeStyles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12,
     fontFamily: "GochiHand",
-    color: COLORS.heading
+    color: COLORS.heading,
   },
   categories: {
     width: width - 60,
@@ -92,93 +92,97 @@ export const homeStyles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
-  },
-  categorySelected: {
-    backgroundColor: COLORS.background3,
-    color: COLORS.heading,
-    padding: 6,
-    borderRadius: 50,
-    fontSize: 40
+    alignItems: "center",
   },
   categoryIcon: {
     backgroundColor: COLORS.background2,
     color: COLORS.heading,
-    padding: 6,
+    padding: 10,
     borderRadius: 50,
-    fontSize: 40
+    fontSize: 32,
+  },
+  categorySelected: {
+    backgroundColor: COLORS.background3,
   },
   categoryText: {
     marginTop: 4,
     fontSize: 12,
     fontFamily: "GochiHand",
-  },
-});
-
-export const recipeCardStyles = StyleSheet.create({
-  container: {
-    width: cardWidth,
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: "hidden",
-  },
-  imageContainer: {
-    position: "relative",
-    height: 140,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: COLORS.border,
-  },
-  content: {
-    padding: 12,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "700",
     color: COLORS.text,
-    marginBottom: 4,
-    lineHeight: 20,
   },
-  description: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    marginBottom: 8,
-    lineHeight: 16,
+  bestSellerSection: {
+    width: width - 60,
+    marginHorizontal: "auto",
+    height: "auto",
+    paddingTop: 10,
   },
-  footer: {
+  bestSellerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  timeContainer: {
+  bestSellerTitle: {
+    fontSize: 24,
+    fontFamily: "Modak",
+    color: COLORS.text,
+  },
+  bestSellerSeeAll: {
+    fontSize: 16,
+    fontFamily: "GochiHand",
+    color: COLORS.heading,
+  },
+  bestSellerDishes: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingTop: 4,
   },
-  timeText: {
-    fontSize: 11,
+  bestSellerCard: {
+    borderColor: COLORS.background3,
+    borderWidth: 1,
+    borderRadius: 20,
+    width: "23%",
+    height: 110,
+  },
+  bestSellerImage: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+  },
+  bestSellerNameDish: {
+    position: "absolute",
+    bottom: 10,
+    right: -1,
+    backgroundColor: COLORS.heading,
     color: COLORS.textLight,
-    marginLeft: 4,
-    fontWeight: "500",
+    borderTopLeftRadius: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 8,
+    textAlign: "right",
+    width: 45,
+    fontSize: 14,
+    fontFamily: "GochiHand",
   },
-  servingsContainer: {
+  advertiseSection: {
+    width: width - 60,
+    marginHorizontal: "auto",
+    marginTop: 24,
+  },
+  advertiseImage: {
+    position: "relative",
+    width: "100%",
+    height: 128,
+  },
+  dotsContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8
   },
-  servingsText: {
-    fontSize: 11,
-    color: COLORS.textLight,
-    marginLeft: 4,
-    fontWeight: "500",
+  dot: {
+    width: 24,
+    height: 8,
+    borderRadius: 5,
+    backgroundColor: COLORS.heading,
+    marginHorizontal: 2,
   },
 });

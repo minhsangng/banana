@@ -1,13 +1,12 @@
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
+import { View, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "expo-router";
 import { homeStyles } from "../../assets/styles/home.styles";
-import { Image } from "expo-image";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import CategoryFilter from "../../components/CategoryFilter";
-import RecipeCard from "../../components/RecipeCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
+
+const { width, height } = Dimensions.get("window");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -16,29 +15,61 @@ const HomeScreen = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [greeting, setGreeting] = useState("");
+  const [currentCategory, setCurrentCategory] = useState(0);
 
   const categoryLists = [
     {
-      id: 1,
+      id: 0,
       name: "Ăn vặt",
       icon: "fast-food-outline",
     },
     {
-      id: 2,
+      id: 1,
       name: "Món chính",
       icon: "restaurant-outline",
     },
     {
-      id: 3,
+      id: 2,
       name: "Tráng miệng",
       icon: "ice-cream-outline",
     },
     {
-      id: 4,
+      id: 3,
       name: "Thức uống",
       icon: "wine-outline",
     }
   ]
+
+  const slides = [
+    {
+      id: 0,
+      heading: "Thử ngay món mới",
+      discount: "-30%",
+      image: require("../../assets/images/bannerAds.png")
+    },
+    {
+      id: 1,
+      heading: "Happy hour",
+      discount: "-25%",
+      image: require("../../assets/images/bannerAds.png")
+    }
+  ]
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+
+  const handleScroll = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / width);
+    setCurrentIndex(index);
+  };
+
+  const handleNext = () => {
+    const nextIndex = (currentIndex + 1) % slides.length;
+    flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
+    setCurrentIndex(nextIndex);
+  };
 
   const loadData = async () => {
     try {
@@ -60,9 +91,34 @@ const HomeScreen = () => {
 
   useEffect(() => {
     loadData();
+
+    const slideInterval = setInterval(() => {
+      handleNext();
+    }, 3000);
+
+    updateGreeting();
+    const greetingInterval = setInterval(updateGreeting, 60 * 1000);
+    return () => {
+      clearInterval(slideInterval);
+      clearInterval(greetingInterval);
+    };
   }, []);
 
-  if (loading && !refreshing) return <LoadingSpinner message="Chờ em xíu..." />;
+  const updateGreeting = () => {
+    let hour = new Date().getHours();
+
+    if (hour >= 6 && hour <= 10)
+      setGreeting("Chào buổi sáng");
+    else if (hour > 10 && hour <= 13)
+      setGreeting("Chào buổi trưa");
+    else if (hour > 13 && hour <= 18)
+      setGreeting("Chào buổi chiều");
+    else if (hour > 18 && hour <= 22)
+      setGreeting("Chào buổi tối");
+    else setGreeting("Chúc ngủ ngon");
+  };
+
+  if (loading && !refreshing) return <LoadingSpinner message="Chờ xíu..." />;
 
   return (
     <View style={homeStyles.container}>
@@ -77,19 +133,89 @@ const HomeScreen = () => {
           </View>
         </View>
         <View style={homeStyles.headerMessage}>
-          <Text style={homeStyles.heading}>Chào Buổi Sáng</Text>
+          <Text style={homeStyles.heading}>{greeting}</Text>
           <Text style={homeStyles.title}>Thức dậy thôi, đến giờ ăn sáng rồi!</Text>
         </View>
       </View>
       <View style={homeStyles.main}>
         <View style={homeStyles.categories}>
-          {categoryLists.map((item, index) => (
-            <TouchableOpacity key={item.id} style={{ alignItems: "center" }}>
-              <Ionicons style={item.id != 1 ? homeStyles.categoryIcon : homeStyles.categorySelected} name={item.icon}></Ionicons>
+          {categories.map((item, index) => (
+            <TouchableOpacity key={item.id} style={{ alignItems: "center" }} onPress={() => setCurrentCategory(item.id)}>
+              <Ionicons style={[homeStyles.categoryIcon, item.id === currentCategory ? homeStyles.categorySelected : ""]} name={item.icon}></Ionicons>
               <Text style={homeStyles.categoryText}>{item.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
+
+        <View style={homeStyles.bestSellerSection}>
+          <View style={homeStyles.bestSellerTop}>
+            <Text style={homeStyles.bestSellerTitle}>Best seller</Text>
+            <Text style={homeStyles.bestSellerSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+          </View>
+          <View style={homeStyles.bestSellerDishes}>
+            <View style={homeStyles.bestSellerCard}>
+              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+              </ImageBackground>
+            </View>
+            <View style={homeStyles.bestSellerCard}>
+              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+              </ImageBackground>
+            </View>
+            <View style={homeStyles.bestSellerCard}>
+              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+              </ImageBackground>
+            </View>
+            <View style={homeStyles.bestSellerCard}>
+              <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
+                <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+              </ImageBackground>
+            </View>
+          </View>
+        </View>
+
+        <FlatList style={{ width: width - 60, marginHorizontal: "auto" }}
+          data={slides}
+          ref={flatListRef}
+          horizontal
+          onScroll={handleScroll}
+          pagingEnabled
+          decelerationRate="fast"
+          snapToAlignment="center"
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={homeStyles.advertiseSection}>
+              <ImageBackground source={slides[currentIndex].image} style={homeStyles.advertiseImage}>
+                <View style={{ position: "absolute", top: 30, left: 15, alignItems: "center" }}>
+                  <Text style={{ fontSize: 16, fontFamily: "GochiHand", color: COLORS.textLight }}>{slides[currentIndex].heading}</Text>
+                  <Text style={{ fontSize: 40, fontFamily: "Modak", color: COLORS.textLight }}>{slides[currentIndex].discount}</Text>
+                </View>
+              </ImageBackground>
+
+              <View style={homeStyles.dotsContainer}>
+                {slides.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      homeStyles.dot,
+                      { opacity: index === currentIndex ? 1 : 0.3 },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+          getItemLayout={(data, index) => ({
+            length: width,
+            offset: width * index,
+            index,
+          })}
+        >
+        </FlatList>
       </View>
     </View>
   );

@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../constants/colors";
-import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
@@ -43,15 +42,6 @@ export default function FirstOnboard() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef(null);
 
-    const [fontsLoaded] = useFonts({
-        Modak: require("../../assets/fonts/DFVN-Modak.ttf"),
-        GochiHand: require("../../assets/fonts/DFVN-GochiHand.ttf"),
-    });
-
-    if (!fontsLoaded) {
-        return null;
-    }
-
     const handleScroll = (event) => {
         const offsetX = event.nativeEvent.contentOffset.x;
         const index = Math.round(offsetX / width);
@@ -65,9 +55,18 @@ export default function FirstOnboard() {
             router.replace("/(tabs)/");
         }
     };
+    
+    const handleSkip = () => {
+        router.replace("/(tabs)/");
+    };
 
     return (
         <View style={styles.container}>
+            {currentIndex < slides.length - 1 ? 
+                <TouchableOpacity onPress={handleSkip} style={{ position: "absolute", top: 50, right: 20, zIndex: 999, flexDirection: "row", alignItems: "center" }}>
+                    <Text style={{ color: COLORS.primary, fontSize: 18, fontFamily: "GochiHand" }}>Bỏ qua</Text>
+                    <Ionicons name="chevron-forward-outline" style={{color: COLORS.primary, fontSize: 18}}></Ionicons>
+                </TouchableOpacity> : ""}
             <ImageBackground
                 source={slides[currentIndex].image}
                 style={{ width, height }}
