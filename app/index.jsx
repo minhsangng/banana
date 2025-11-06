@@ -10,7 +10,6 @@ export default function Splash() {
   const router = useRouter();
   const [sound, setSound] = useState(null);
 
-  // Hàm phát âm thanh
   const playSound = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
@@ -26,17 +25,14 @@ export default function Splash() {
   useEffect(() => {
     playSound();
 
-    // Chuyển trang sau 3.2 giây
     const timer = setTimeout(() => {
       router.replace("../onboard/");
     }, 3200);
 
-    // Dọn dẹp timer khi component unmount
     return () => clearTimeout(timer);
-  }, [router]); // thêm router vào dependency để không báo ESLint
+  }, [router]);
 
   useEffect(() => {
-    // Dọn dẹp âm thanh khi component unmount hoặc sound thay đổi
     return () => {
       if (sound) {
         sound.unloadAsync();
@@ -57,6 +53,6 @@ const styles = StyleSheet.create({
     height,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background1,
   },
 });

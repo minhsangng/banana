@@ -1,150 +1,45 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export const homeStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    position: "relative",
-  },
-  header: {
-    width,
-    height,
-    paddingTop: 52,
-  },
-  headerContent: {
-    width: width - 60,
-    marginHorizontal: "auto",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    position: "relative",
-  },
   main: {
-    position: "absolute",
-    bottom: 0,
-    width,
-    height: height * 0.7,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.background2,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
   },
   searchInput: {
     backgroundColor: COLORS.textLight,
-    width: 200,
-    borderRadius: 30,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
     color: COLORS.text,
-    fontSize: 14,
     lineHeight: 20,
     fontFamily: "GochiHand",
   },
   searchIcon: {
-    position: "absolute",
-    top: 6,
-    left: 164,
-    height: 28,
-    width: 28,
     backgroundColor: COLORS.heading,
     color: COLORS.textLight,
-    padding: 4,
-    borderRadius: 50,
-    fontSize: 18,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  rightHeader: {
-    flexDirection: "row",
-    justifyContent: "space-around",
   },
   rightIcon: {
     backgroundColor: COLORS.textLight,
     color: COLORS.heading,
-    padding: 2,
-    marginHorizontal: 4,
-    borderRadius: 12,
-    fontSize: 28,
-  },
-  headerMessage: {
-    width: width - 60,
-    marginHorizontal: "auto",
-    paddingTop: 12,
-  },
-  heading: {
-    fontSize: 32,
-    fontFamily: "Modak",
-    color: COLORS.textLight,
   },
   title: {
     fontSize: 12,
     lineHeight: 12,
-    fontFamily: "GochiHand",
     color: COLORS.heading,
-  },
-  categories: {
-    width: width - 60,
-    marginHorizontal: "auto",
-    marginTop: 40,
-    paddingBottom: 10,
-    borderBottomColor: COLORS.background2,
-    borderBottomWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
   categoryIcon: {
-    backgroundColor: COLORS.background2,
+    backgroundColor: COLORS.background3,
     color: COLORS.heading,
-    padding: 10,
-    borderRadius: 50,
-    fontSize: 32,
   },
   categorySelected: {
-    backgroundColor: COLORS.background3,
-  },
-  categoryText: {
-    marginTop: 4,
-    fontSize: 12,
-    fontFamily: "GochiHand",
-    color: COLORS.text,
-  },
-  bestSellerSection: {
-    width: width - 60,
-    marginHorizontal: "auto",
-    marginTop: 24,
-    height: "auto",
-  },
-  bestSellerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  bestSellerTitle: {
-    fontSize: 24,
-    fontFamily: "Modak",
-    color: COLORS.text,
+    backgroundColor: COLORS.background4,
   },
   bestSellerSeeAll: {
-    fontSize: 16,
-    fontFamily: "GochiHand",
     color: COLORS.heading,
-  },
-  bestSellerDishes: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingTop: 4,
   },
   bestSellerCard: {
     borderColor: COLORS.background3,
-    borderWidth: 1,
-    borderRadius: 20,
-    width: "23%",
-    height: 110,
   },
   bestSellerImage: {
     width: "100%",
@@ -182,7 +77,7 @@ export const homeStyles = StyleSheet.create({
   },
   dot: {
     width: 24,
-    height: 8,
+    height: 6,
     borderRadius: 5,
     backgroundColor: COLORS.heading,
     marginHorizontal: 2,
@@ -198,11 +93,6 @@ export const homeStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  recommendTitle: {
-    fontSize: 24,
-    fontFamily: "Modak",
-    color: COLORS.text,
   },
   recommendSeeAll: {
     fontSize: 16,

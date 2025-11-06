@@ -64,8 +64,8 @@ export default function FirstOnboard() {
         <View style={styles.container}>
             {currentIndex < slides.length - 1 ? 
                 <TouchableOpacity onPress={handleSkip} style={{ position: "absolute", top: 50, right: 20, zIndex: 999, flexDirection: "row", alignItems: "center" }}>
-                    <Text style={{ color: COLORS.primary, fontSize: 18, fontFamily: "GochiHand" }}>Bỏ qua</Text>
-                    <Ionicons name="chevron-forward-outline" style={{color: COLORS.primary, fontSize: 18}}></Ionicons>
+                    <Text style={{ color: COLORS.background1, fontSize: 18, fontFamily: "GochiHand" }}>Bỏ qua</Text>
+                    <Ionicons name="chevron-forward-outline" style={{color: COLORS.background1, fontSize: 18}}></Ionicons>
                 </TouchableOpacity> : ""}
             <ImageBackground
                 source={slides[currentIndex].image}
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
         width,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.background2,
         position: "absolute",
         bottom: 0,
         alignItems: "center",
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     },
     dot: {
         width: 24,
-        height: 8,
+        height: 6,
         borderRadius: 5,
         backgroundColor: COLORS.heading,
         marginHorizontal: 2
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     buttonText: {
-        color: COLORS.background,
+        color: COLORS.textLight,
         fontFamily: "Modak",
         fontSize: 18
     }

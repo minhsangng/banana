@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { router } from "expo-router";
-import { useFonts } from "expo-font";
+import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { homeStyles } from "../../assets/styles/home.styles";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const HomeScreen = () => {
   const [categories, setCategories] = useState([]);
@@ -15,10 +15,6 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [greeting, setGreeting] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(0);
-  const [fontLoader] = useFonts({
-    "Modak": require("../../assets/fonts/DFVN-Modak.ttf"),
-    "GochiHand": require("../../assets/fonts/DFVN-GochiHand.ttf"),
-  });
 
   const categoryLists = [
     {
@@ -110,71 +106,71 @@ const HomeScreen = () => {
     let hour = new Date().getHours();
 
     if (hour >= 6 && hour <= 10)
-      setGreeting(["Chào buổi sáng", "Đừng bỏ bữa sáng bạn nhé!"]);
+      setGreeting(["Chào buổi sáng", "Lạng quạng trễ học"]);
     else if (hour > 10 && hour <= 13)
-      setGreeting(["Chào buổi trưa", "Đặt hàng trước, tan học nhận ngay!"]);
+      setGreeting(["Chào buổi trưa", "Tà tưa gì hôn"]);
     else if (hour > 13 && hour <= 18)
-      setGreeting(["Chào buổi chiều", "Nạp ngay năng lượng nào!"]);
+      setGreeting(["Chào buổi chiều", "Khiều khiều tí đơn"]);
     else if (hour > 18 && hour <= 22)
-      setGreeting(["Chào buổi tối", "Căn tin sẽ mở lại vào ngày mai bạn nhé!"]);
-    else setGreeting(["Chúc ngủ ngon", "Ngày mai ăn nhớ sáng nhé!"]);
+      setGreeting(["Chào buổi tối", "Tối rồi lại sáng"]);
+    else setGreeting(["Chúc ngủ ngon", "Không ngon thì thôi"]);
   };
 
-  if ((loading && !refreshing) || !fontLoader) return <LoadingSpinner message="Chờ xíu..." />;
+  if ((loading && !refreshing)) return <LoadingSpinner message="Chờ xíu..." />;
 
   return (
-    <View style={homeStyles.container}>
-      <View style={homeStyles.header}>
-        <View style={homeStyles.headerContent}>
-          <TextInput placeholder="Bạn tìm món gì?" style={homeStyles.searchInput} returnKeyType="search"/>
+    <View style={[LAYOUT.container, LAYOUT.positive]}>
+      <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter, LAYOUT.positive, homeStyles.headerContent]}>
+          <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" onSubmitEditing={() => router.replace("../search")}/>
           <ScrollView>
             <Text></Text>
           </ScrollView>
-          <Ionicons name="options-outline" style={homeStyles.searchIcon}></Ionicons>
-          <View style={homeStyles.rightHeader}>
-            <Ionicons name="cart-outline" style={homeStyles.rightIcon}></Ionicons>
-            <Ionicons name="notifications-outline" style={homeStyles.rightIcon}></Ionicons>
-            <Ionicons name="person-outline" style={homeStyles.rightIcon} onPress={() => router.replace("../(auth)/sign-in")}></Ionicons>
+          <Ionicons name="options-outline" style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.alignCenter, TEXT.size(18), homeStyles.searchIcon]}></Ionicons>
+          <View style={[LAYOUT.row, LAYOUT.justifyAround]}>
+            <Ionicons name="cart-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
+            <Ionicons name="notifications-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
+            <Ionicons name="person-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]} onPress={() => router.replace("../(auth)/sign-in")}></Ionicons>
           </View>
         </View>
-        <View style={homeStyles.headerMessage}>
-          <Text style={homeStyles.heading}>{greeting[0]}</Text>
-          <Text style={homeStyles.title}>{greeting[1]}</Text>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(12)]}>
+          <Text style={TEXT.heading}>{greeting[0]}</Text>
+          <Text style={[TEXT.subText, homeStyles.title]}>{greeting[1]}</Text>
         </View>
       </View>
-      <View style={homeStyles.main}>
-        <View style={homeStyles.categories}>
+      <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter, homeStyles.categories]}>
           {categories.map((item, index) => (
-            <TouchableOpacity key={item.id} style={{ alignItems: "center" }} onPress={() => setCurrentCategory(item.id)}>
-              <Ionicons style={[homeStyles.categoryIcon, item.id === currentCategory ? homeStyles.categorySelected : ""]} name={item.icon}></Ionicons>
-              <Text style={homeStyles.categoryText}>{item.name}</Text>
+            <TouchableOpacity key={item.id} style={LAYOUT.alignCenter} onPress={() => setCurrentCategory(item.id)}>
+              <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.id === currentCategory ? homeStyles.categorySelected : ""]} name={item.icon}></Ionicons>
+              <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <ScrollView>
-          <View style={homeStyles.bestSellerSection}>
-            <View style={homeStyles.bestSellerTop}>
-              <Text style={homeStyles.bestSellerTitle}>Best seller</Text>
-              <Text style={homeStyles.bestSellerSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+          <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
+            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter]}>
+              <Text style={TEXT.subHeading}>Best seller</Text>
+              <Text style={[LAYOUT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
-            <View style={homeStyles.bestSellerDishes}>
-              <View style={homeStyles.bestSellerCard}>
+            <View style={[LAYOUT.mt(4), LAYOUT.row, LAYOUT.justifyBetween]}>
+              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
                   <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
                 </ImageBackground>
               </View>
-              <View style={homeStyles.bestSellerCard}>
+              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
                   <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
                 </ImageBackground>
               </View>
-              <View style={homeStyles.bestSellerCard}>
+              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
                   <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
                 </ImageBackground>
               </View>
-              <View style={homeStyles.bestSellerCard}>
+              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
                   <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
                 </ImageBackground>
@@ -227,7 +223,7 @@ const HomeScreen = () => {
 
           <View style={homeStyles.recommendSection}>
             <View style={homeStyles.recommendTop}>
-              <Text style={homeStyles.recommendTitle}>Dành cho bạn</Text>
+              <Text style={TEXT.subHeading}>Dành cho bạn</Text>
               <Text style={homeStyles.recommendSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
             <View style={homeStyles.recommendDishes}>
@@ -236,7 +232,7 @@ const HomeScreen = () => {
                   <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
                     <View style={homeStyles.rateContainer}>
                       <Text style={homeStyles.rate}>5.0</Text>
-                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
+                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
                     <View style={homeStyles.favoritesContainer}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
@@ -250,7 +246,7 @@ const HomeScreen = () => {
                   <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
                     <View style={homeStyles.rateContainer}>
                       <Text style={homeStyles.rate}>5.0</Text>
-                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.primary }}></Ionicons>
+                      <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
                     <View style={homeStyles.favoritesContainer}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
