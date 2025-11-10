@@ -77,9 +77,5 @@ npm i react-native-easy-grid
 ```
 
 ```bash
-npm i zustand
-```
-
-```bash
 npx expo
 ```

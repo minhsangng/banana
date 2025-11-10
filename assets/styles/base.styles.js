@@ -68,7 +68,7 @@ export const LAYOUT = StyleSheet.create({
   justifyAround: {
     justifyContent: "space-around",
   },
-  alignCenter: {
+  itemsCenter: {
     alignItems: "center",
   },
   header: {

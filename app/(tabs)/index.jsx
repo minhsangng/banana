@@ -14,7 +14,7 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [greeting, setGreeting] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState(0);
+  const [currentCategory, setCurrentCategory] = useState(-1);
 
   const categoryLists = [
     {
@@ -122,20 +122,17 @@ const HomeScreen = () => {
     <View style={[LAYOUT.container, LAYOUT.positive]}>
       <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter, LAYOUT.positive, homeStyles.headerContent]}>
-          <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" onSubmitEditing={() => router.replace("../search")}/>
-          <ScrollView>
-            <Text></Text>
-          </ScrollView>
-          <Ionicons name="options-outline" style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.alignCenter, TEXT.size(18), homeStyles.searchIcon]}></Ionicons>
-          <View style={[LAYOUT.row, LAYOUT.justifyAround]}>
-            <Ionicons name="cart-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
-            <Ionicons name="notifications-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
-            <Ionicons name="person-outline" style={[LAYOUT.p(2), LAYOUT.mx(4), LAYOUT.rounded(12), TEXT.size(28), homeStyles.rightIcon]} onPress={() => router.replace("../(auth)/sign-in")}></Ionicons>
+          <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" onSubmitEditing={() => router.replace("./search")}/>
+          <Ionicons name="options-outline" onPress={() => router.replace("./search")} style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.alignCenter, TEXT.size(18), homeStyles.searchIcon]}></Ionicons>
+          <View style={[LAYOUT.row, LAYOUT.justifyAround, {gap: 4}]}>
+            <Ionicons name="cart-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
+            <Ionicons name="notifications-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
+            <Ionicons name="person-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => router.replace("./(auth)/sign-in")}></Ionicons>
           </View>
         </View>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(12)]}>
           <Text style={TEXT.heading}>{greeting[0]}</Text>
-          <Text style={[TEXT.subText, homeStyles.title]}>{greeting[1]}</Text>
+          <Text style={[TEXT.paragraph, homeStyles.title]}>{greeting[1]}</Text>
         </View>
       </View>
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
@@ -152,27 +149,27 @@ const HomeScreen = () => {
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter]}>
               <Text style={TEXT.subHeading}>Best seller</Text>
-              <Text style={[LAYOUT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+              <Text style={[TEXT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
             <View style={[LAYOUT.mt(4), LAYOUT.row, LAYOUT.justifyBetween]}>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={homeStyles.bestSellerImage} source={require("../../assets/images/lamb.png")} >
-                  <Text style={homeStyles.bestSellerNameDish}>Cơm...</Text>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
             </View>
@@ -191,21 +188,20 @@ const HomeScreen = () => {
               scrollEventThrottle={16}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <View style={homeStyles.advertiseSection}>
-                  <ImageBackground source={slides[currentIndex].image} style={homeStyles.advertiseImage}>
-                    <View style={{ position: "absolute", top: 30, left: 15, alignItems: "center" }}>
-                      <Text style={{ fontSize: 16, fontFamily: "GochiHand", color: COLORS.textLight }}>{slides[currentIndex].heading}</Text>
-                      <Text style={{ fontSize: 40, fontFamily: "Modak", color: COLORS.textLight }}>{slides[currentIndex].discount}</Text>
+                <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
+                  <ImageBackground source={slides[currentIndex].image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(128), homeStyles.advertiseImage]}>
+                    <View style={[LAYOUT.absolute, LAYOUT.top(30), LAYOUT.left(15), LAYOUT.itemsCenter]}>
+                      <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.textLight }]}>{slides[currentIndex].heading}</Text>
+                      <Text style={[TEXT.heading, { color: COLORS.textLight }]}>{slides[currentIndex].discount}</Text>
                     </View>
                   </ImageBackground>
 
-                  <View style={homeStyles.dotsContainer}>
+                  <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.mt(8)]}>
                     {slides.map((_, index) => (
                       <View
                         key={index}
-                        style={[
-                          homeStyles.dot,
-                          { opacity: index === currentIndex ? 1 : 0.3 },
+                        style={[LAYOUT.w(24), LAYOUT.h(6), LAYOUT.rounded(10), LAYOUT.mx(2), 
+                          { opacity: index === currentIndex ? 1 : 0.3, backgroundColor: COLORS.heading },
                         ]}
                       />
                     ))}
@@ -221,34 +217,34 @@ const HomeScreen = () => {
             </FlatList>
           </View>
 
-          <View style={homeStyles.recommendSection}>
-            <View style={homeStyles.recommendTop}>
+          <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24), LAYOUT.mb(40)]}>
+            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
               <Text style={TEXT.subHeading}>Dành cho bạn</Text>
-              <Text style={homeStyles.recommendSeeAll}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
+              <Text style={[TEXT.paragraph, homeStyles.recommendSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
-            <View style={homeStyles.recommendDishes}>
-              <View style={homeStyles.recommendCard}>
-                <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
-                  <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <View style={homeStyles.rateContainer}>
-                      <Text style={homeStyles.rate}>5.0</Text>
+            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pt(6)]}>
+              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
+                  <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
+                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
+                      <Text style={TEXT.subText}>5.0</Text>
                       <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
-                    <View style={homeStyles.favoritesContainer}>
+                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.p(4), homeStyles.favoritesContainer]}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
                     </View>
                   </View>
                 </ImageBackground>
               </View>
 
-              <View style={homeStyles.recommendCard}>
-                <ImageBackground style={homeStyles.recommendImage} source={require("../../assets/images/chicken.png")}>
-                  <View style={{ position: "absolute", top: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <View style={homeStyles.rateContainer}>
-                      <Text style={homeStyles.rate}>5.0</Text>
+              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
+                  <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
+                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
+                      <Text style={TEXT.subText}>5.0</Text>
                       <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
-                    <View style={homeStyles.favoritesContainer}>
+                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.p(4), homeStyles.favoritesContainer]}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
                     </View>
                   </View>
