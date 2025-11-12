@@ -77,5 +77,9 @@ npm i react-native-easy-grid
 ```
 
 ```bash
+npm i react-native-paper
+```
+
+```bash
 npx expo
 ```

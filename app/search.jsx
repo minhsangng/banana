@@ -8,7 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
 
-const HomeScreen = () => {
+const SearchScreen = (query) => {
+  const { results } = query.params;
 
   return (
     <View style={[LAYOUT.container, LAYOUT.relative]}>
@@ -18,20 +19,20 @@ const HomeScreen = () => {
       </View>
       <View style={[LAYOUT.main, { height: height * 0.85 }]}>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32)]}>
-          <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(5)]}>Kết quả tìm kiếm cho: <Text style={[TEXT.underline]}>sinh tố</Text></Text>
+          <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(5)]}>Kết quả tìm kiếm cho: <Text style={[TEXT.underline]}>{results}</Text></Text>
           <ScrollView>
             <View style={[LAYOUT.wFull, LAYOUT.h(120), LAYOUT.row, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(10), LAYOUT.mt(20)]}>
               <ImageBackground source={require("../assets/images/favicon.png")} style={[LAYOUT.rounded(20), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.accent)]}></ImageBackground>
               <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.w(width - 60 - 80)]}>
                 <View style={[]}>
                   <Text style={[TEXT.subHeading]}>Sinh tố dâu</Text>
-                  <Text style={[TEXT.text, {color: COLORS.accent}]}>A Food</Text>
+                  <Text style={[TEXT.text, { color: COLORS.accent }]}>A Food</Text>
                   <Text style={[TEXT.text, { color: COLORS.heading }]}>50,000</Text>
                 </View>
                 <View style={[LAYOUT.w("fit-content")]}>
                   <TouchableOpacity>
-                    <Ionicons name="cart-outline" style={[TEXT.size(22), {color: COLORS.paragraph}]}></Ionicons>
-                    <Text style={[TEXT.subText, {color: COLORS.paragraph}]}>Thêm</Text>
+                    <Ionicons name="cart-outline" style={[TEXT.size(22), { color: COLORS.paragraph }]}></Ionicons>
+                    <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Thêm</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -41,13 +42,13 @@ const HomeScreen = () => {
               <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.w(width - 60 - 80)]}>
                 <View style={[]}>
                   <Text style={[TEXT.subHeading]}>Sinh tố bưởi</Text>
-                  <Text style={[TEXT.text, {color: COLORS.accent}]}>B Food</Text>
+                  <Text style={[TEXT.text, { color: COLORS.accent }]}>B Food</Text>
                   <Text style={[TEXT.text, { color: COLORS.heading }]}>45,000</Text>
                 </View>
                 <View style={[LAYOUT.w("fit-content")]}>
                   <TouchableOpacity>
-                    <Ionicons name="cart-outline" style={[TEXT.size(22), {color: COLORS.paragraph}]}></Ionicons>
-                    <Text style={[TEXT.subText, {color: COLORS.paragraph}]}>Thêm</Text>
+                    <Ionicons name="cart-outline" style={[TEXT.size(22), { color: COLORS.paragraph }]}></Ionicons>
+                    <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Thêm</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -58,4 +59,4 @@ const HomeScreen = () => {
     </View>
   );
 };
-export default HomeScreen;
+export default SearchScreen;

@@ -129,6 +129,18 @@ export const LAYOUT = StyleSheet.create({
   rounded: (v) => ({
     borderRadius: v,
   }),
+  roundedtl: (v) => ({
+    borderTopLeftRadius: v,
+  }),
+  roundedtr: (v) => ({
+    borderTopRightRadius: v,
+  }),
+  roundedbr: (v) => ({
+    borderBottomRightRadius: v,
+  }),
+  roundedbl: (v) => ({
+    borderBottomLeftRadius: v,
+  }),
   wFull: {
     width: "100%",
   },

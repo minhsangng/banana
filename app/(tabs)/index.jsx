@@ -1,15 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { router } from "expo-router";
+import { Portal } from "react-native-paper";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { homeStyles } from "../../assets/styles/home.styles";
+import { API_URL } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import SubMenu from "../../components/SubMenu";
 
 const { width, height } = Dimensions.get("window");
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -116,17 +119,71 @@ const HomeScreen = () => {
     else setGreeting(["Chúc ngủ ngon", "Không ngon thì thôi"]);
   };
 
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuData, setMenuData] = useState({ header: null, content: null });
+
+  const openMenu = (type) => {
+    let header, content;
+
+    header = <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.pt(22)]}>
+      <Ionicons name="cart-outline" style={[LAYOUT.rounded(44), LAYOUT.p(4), LAYOUT.mr(20), TEXT.size(30), { backgroundColor: COLORS.textLight, color: COLORS.heading }]}></Ionicons>
+      <Text style={[TEXT.heading]}>{type === "cart" ? "Giỏ Hàng" : "Thông Báo"}</Text>
+    </View>;
+    content = <View style={[LAYOUT.pt(12)]}>
+      <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>Chưa có món nào được chọn</Text>
+      <View style={[LAYOUT.wFull, LAYOUT.h(height - 200), LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+        <TouchableOpacity style={[LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+          <Ionicons name="add-circle-outline" style={[TEXT.size(92), LAYOUT.pb(12), { color: COLORS.textLight }]}></Ionicons>
+          <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>Lựa món</Text>
+        </TouchableOpacity>
+      </View>
+    </View>;
+
+    content = <View style={[LAYOUT.pt(12)]}>
+      <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>{type === "cart" ? "Chưa có món nào được chọn" : "Chưa có thông báo"}</Text>
+      {type === "cart" ?
+        <View style={[LAYOUT.wFull, LAYOUT.h(height - 200), LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+          <TouchableOpacity style={[LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+            <Ionicons name="add-circle-outline" style={[TEXT.size(92), LAYOUT.pb(12), { color: COLORS.textLight }]}></Ionicons>
+            <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>Lựa món</Text>
+          </TouchableOpacity>
+        </View>
+        : ""
+      }
+    </View>;
+
+    setMenuData({ header, content });
+    setMenuVisible(true);
+  };
+
+  const [query, setQuery] = useState('');
+
+  const handleSubmit = async () => {
+    try {
+      // Thêm query trực tiếp vào URL
+      const response = await fetch(`${API_URL}/search/${query}`);
+
+      const data = await response.json();
+      console.log(data);
+
+      /* navigation.navigate('SearchScreen', { results: data }); */
+    } catch (error) {
+      console.log('Lỗi', 'Không thể kết nối API');
+      console.error(error);
+    }
+  };
+
   if ((loading && !refreshing)) return <LoadingSpinner message="Chờ xíu..." />;
 
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
       <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter, LAYOUT.positive, homeStyles.headerContent]}>
-          <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" onSubmitEditing={() => router.replace("./search")}/>
-          <Ionicons name="options-outline" onPress={() => router.replace("./search")} style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.alignCenter, TEXT.size(18), homeStyles.searchIcon]}></Ionicons>
-          <View style={[LAYOUT.row, LAYOUT.justifyAround, {gap: 4}]}>
-            <Ionicons name="cart-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
-            <Ionicons name="notifications-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}></Ionicons>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.positive, homeStyles.headerContent]}>
+          <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" value={query} onChangeText={setQuery} onSubmitEditing={handleSubmit} />
+          <Ionicons name="options-outline" onPress={() => router.replace("./search")} style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.itemsCenter, TEXT.size(18), homeStyles.searchIcon]}></Ionicons>
+          <View style={[LAYOUT.row, LAYOUT.justifyAround, { gap: 4 }]}>
+            <Ionicons name="cart-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => openMenu("cart")}></Ionicons>
+            <Ionicons name="notifications-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => openMenu("notify")}></Ionicons>
             <Ionicons name="person-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => router.replace("./(auth)/sign-in")}></Ionicons>
           </View>
         </View>
@@ -134,11 +191,14 @@ const HomeScreen = () => {
           <Text style={TEXT.heading}>{greeting[0]}</Text>
           <Text style={[TEXT.paragraph, homeStyles.title]}>{greeting[1]}</Text>
         </View>
+        <Portal>
+          <SubMenu visible={menuVisible} setVisible={setMenuVisible} header={menuData.header} content={menuData.content} />
+        </Portal>
       </View>
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter, homeStyles.categories]}>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
           {categories.map((item, index) => (
-            <TouchableOpacity key={item.id} style={LAYOUT.alignCenter} onPress={() => setCurrentCategory(item.id)}>
+            <TouchableOpacity key={item.id} style={LAYOUT.itemsCenter} onPress={() => setCurrentCategory(item.id)}>
               <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.id === currentCategory ? homeStyles.categorySelected : ""]} name={item.icon}></Ionicons>
               <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.name}</Text>
             </TouchableOpacity>
@@ -147,29 +207,29 @@ const HomeScreen = () => {
 
         <ScrollView>
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
-            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.alignCenter]}>
+            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
               <Text style={TEXT.subHeading}>Best seller</Text>
               <Text style={[TEXT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
             <View style={[LAYOUT.mt(4), LAYOUT.row, LAYOUT.justifyBetween]}>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
               <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10),LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
+                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
                 </ImageBackground>
               </View>
             </View>
@@ -200,8 +260,8 @@ const HomeScreen = () => {
                     {slides.map((_, index) => (
                       <View
                         key={index}
-                        style={[LAYOUT.w(24), LAYOUT.h(6), LAYOUT.rounded(10), LAYOUT.mx(2), 
-                          { opacity: index === currentIndex ? 1 : 0.3, backgroundColor: COLORS.heading },
+                        style={[LAYOUT.w(24), LAYOUT.h(6), LAYOUT.rounded(10), LAYOUT.mx(2),
+                        { opacity: index === currentIndex ? 1 : 0.3, backgroundColor: COLORS.heading },
                         ]}
                       />
                     ))}
