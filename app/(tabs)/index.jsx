@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigation } from '@react-navigation/native';
 import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { Portal } from "react-native-paper";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { homeStyles } from "../../assets/styles/home.styles";
-import { API_URL } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -12,7 +12,7 @@ import SubMenu from "../../components/SubMenu";
 
 const { width, height } = Dimensions.get("window");
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -157,16 +157,20 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const [query, setQuery] = useState('');
+  const navigation = useNavigation();
 
   const handleSubmit = async () => {
     try {
       // Thêm query trực tiếp vào URL
-      const response = await fetch(`${API_URL}/search/${query}`);
+      const response = await fetch(`https://cfo-app.onrender.com/api/search/${query}`);
 
       const data = await response.json();
-      console.log(data);
-
-      /* navigation.navigate('SearchScreen', { results: data }); */
+      
+      router.push({
+        pathname: "/search",
+        params: {data: JSON.stringify(data)}
+      });
+      /* navigation.navigate('Search', { results: data }); */
     } catch (error) {
       console.log('Lỗi', 'Không thể kết nối API');
       console.error(error);

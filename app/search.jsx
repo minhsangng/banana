@@ -1,15 +1,20 @@
 import { useEffect, useState, useRef } from "react";
-import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, Dimensions } from "react-native";
-import { router } from "expo-router";
+import { View, ScrollView, Text, ImageBackground, TouchableOpacity, Dimensions } from "react-native";
+import { router, useSearchParams } from "expo-router";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
-import { homeStyles } from "../assets/styles/home.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
 
-const SearchScreen = (query) => {
-  const { results } = query.params;
+const SearchScreen = () => {
+  const { data } = useSearchParams();
+  useEffect(() => {
+    if (data) {
+      const parsedData = JSON.parse(data);
+      console.log(parsedData);
+    }
+  }, [data]);
 
   return (
     <View style={[LAYOUT.container, LAYOUT.relative]}>
@@ -19,7 +24,7 @@ const SearchScreen = (query) => {
       </View>
       <View style={[LAYOUT.main, { height: height * 0.85 }]}>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32)]}>
-          <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(5)]}>Kết quả tìm kiếm cho: <Text style={[TEXT.underline]}>{results}</Text></Text>
+          <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(5)]}>Kết quả tìm kiếm cho: <Text style={[TEXT.underline]}>aaa</Text></Text>
           <ScrollView>
             <View style={[LAYOUT.wFull, LAYOUT.h(120), LAYOUT.row, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(10), LAYOUT.mt(20)]}>
               <ImageBackground source={require("../assets/images/favicon.png")} style={[LAYOUT.rounded(20), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.accent)]}></ImageBackground>
