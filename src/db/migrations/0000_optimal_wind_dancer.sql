@@ -1,4 +1,4 @@
-CREATE TABLE "favorites" (
+CREATE TABLE "dishes" (
 	"dish_id" numeric PRIMARY KEY NOT NULL,
 	"dish_name" varchar NOT NULL,
 	"menu_id" integer NOT NULL,

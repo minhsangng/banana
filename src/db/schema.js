@@ -1,6 +1,6 @@
 import { pgTable, numeric, varchar, integer } from "drizzle-orm/pg-core";
 
-export const dishes = pgTable("favorites", {
+export const dishes = pgTable("dishes", {
   dishId: numeric("dish_id").primaryKey(),
   dishName: varchar("dish_name").notNull(),
   menuId: integer("menu_id").notNull(),
