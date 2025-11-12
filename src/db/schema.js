@@ -1,12 +1,12 @@
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, numeric, varchar, integer } from "drizzle-orm/pg-core";
 
-export const favoritesTable = pgTable("favorites", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  recipeId: integer("recipe_id").notNull(),
-  title: text("title").notNull(),
-  image: text("image"),
-  cookTime: text("cook_time"),
-  servings: text("servings"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const dishes = pgTable("favorites", {
+  dishId: numeric("dish_id").primaryKey(),
+  dishName: varchar("dish_name").notNull(),
+  menuId: integer("menu_id").notNull(),
+  categoryId: integer("category_id").notNull(),
+  price: numeric("price"),
+  description: varchar("description"),
+  imageUrl: varchar("image_url"),
+  status: varchar("status"),
 });

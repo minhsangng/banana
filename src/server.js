@@ -1,7 +1,7 @@
 import express from "express";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
-import { favoritesTable } from "./db/schema.js";
+import { dishes } from "./db/schema.js";
 import { eq, and } from "drizzle-orm";
 import job from "./config/cron.js";
 
@@ -43,16 +43,16 @@ app.post("/api/favorites", async (req, res) => {
   }
 });
 
-app.get("/api/favorites/:userId", async (req, res) => {
+app.get("/api/search/:query", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { query } = req.params;
 
-    const userFavorites = await db
+    const resultsSearch = await db
       .select()
-      .from(favoritesTable)
-      .where(eq(favoritesTable.userId, userId));
+      .from(dishes)
+      .where(eq(dishes.dishName, query));
 
-    res.status(200).json(userFavorites);
+    res.status(200).json(resultsSearch);
   } catch (error) {
     console.log("Error fetching the favorites", error);
     res.status(500).json({ error: "Something went wrong" });

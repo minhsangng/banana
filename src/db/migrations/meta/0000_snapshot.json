@@ -1,5 +1,5 @@
 {
-  "id": "0019fb4b-17b6-48eb-a5ff-171e0c5ed208",
+  "id": "85d43d01-61f6-4b97-a5fe-546ec43f498e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,54 +8,53 @@
       "name": "favorites",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "dish_id": {
+          "name": "dish_id",
+          "type": "numeric",
           "primaryKey": true,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
+        "dish_name": {
+          "name": "dish_name",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
-        "recipe_id": {
-          "name": "recipe_id",
+        "menu_id": {
+          "name": "menu_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
-          "type": "text",
+        "category_id": {
+          "name": "category_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "image": {
-          "name": "image",
-          "type": "text",
+        "price": {
+          "name": "price",
+          "type": "numeric",
           "primaryKey": false,
           "notNull": false
         },
-        "cook_time": {
-          "name": "cook_time",
-          "type": "text",
+        "description": {
+          "name": "description",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
-        "servings": {
-          "name": "servings",
-          "type": "text",
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
+        "status": {
+          "name": "status",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
+          "notNull": false
         }
       },
       "indexes": {},
