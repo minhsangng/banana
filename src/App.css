@@ -1,13 +1,35 @@
+@font-face {
+  font-family: "Modak";
+  src: url("../assets/fonts/DFVN-Modak.ttf") format(truetype);
+}
+
+@font-face {
+  font-family: "GochiHand";
+  src: url("../assets/fonts/DFVN-GochiHand.ttf") format(truetype);
+}
+
+* {
+  font-family: "GochiHand";
+}
+
 .app {
   display: flex;
   min-height: 100vh;
 }
 
 .sidebar {
-  width: 220px;
-  background: #1f1f1f;
-  color: white;
-  padding: 20px;
+  width: 200px;
+  background: #F7F4EA;
+  color: #E95322;
+  padding: 70px 20px 20px;
+  box-shadow: 10px 10px 10px #000000;
+}
+
+.sidebar h2 {
+  font: 2rem "Modak";
+  margin: 1rem 0;
+  text-align: center;
+  border-bottom: 2px solid #F4DA1F;
 }
 
 .sidebar ul {
@@ -16,23 +38,19 @@
 }
 
 .sidebar a {
-  display: block;
-  color: white;
+  display: flex;
+  align-items: center;
+  color: #E95322;
   text-decoration: none;
   margin: 10px 0;
+  gap: .5rem;
+  font: 1.2rem "GochiHand";
 }
 
 .main-content {
   flex: 1;
   background: #f5f5f5;
-  padding: 20px;
-}
-
-.navbar {
-  background: white;
-  padding: 10px 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #ddd;
+  padding: 70px 20px 20px;
 }
 
 /* Header */
@@ -42,7 +60,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: azure;
+  background-color: #F4DA1F;
   position: fixed;
   top: 0;
   left: 0;

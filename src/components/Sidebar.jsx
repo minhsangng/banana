@@ -5,9 +5,9 @@ export default function Sidebar() {
         <div className="sidebar">
             <h2>Admin</h2>
             <ul>
-                <li><Link to="/">Dashboard</Link></li>
-                <li><Link to="/users">Users</Link></li>
-                <li><Link to="/products">Products</Link></li>
+                <li><Link to="/"><ion-icon name="speedometer-outline"></ion-icon><span>Dashboard</span></Link></li>
+                <li><Link to="/users"><ion-icon name="person-outline"></ion-icon><span>Users</span></Link></li>
+                <li><Link to="/stores"><ion-icon name="storefront-outline"></ion-icon><span>Stores</span></Link></li>
             </ul>
         </div>
     );

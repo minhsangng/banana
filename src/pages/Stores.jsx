@@ -23,7 +23,7 @@ export default function Products() {
 
     return (
         <div>
-            <h1>Products</h1>
+            <h1>Stores</h1>
             <div>
                 {content.length > 0 && content.map((item, index) => (
                     <div key={index}>
