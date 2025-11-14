@@ -44,17 +44,17 @@ function App() {
 
         <div className="main-content">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/stores" element={<Stores />} />
+            <Route path="/" element={<Dashboard isLogin={isLogin} />} />
+            <Route path="/users" element={<Users isLogin={isLogin} />} />
+            <Route path="/stores" element={<Stores isLogin={isLogin} />} />
             <Route path="/login" element={<Login isLogin={handleLogin} />} />
           </Routes>
         </div>
       </div>
 
       <footer>
-        <p style={{ textAlign: "center", color: "var(--paragraph)" }}>
-          &copy; 2025 | Bản quyền thuộc về <a href="https://github.com/minhsangng" className="italic underline">minhsangng.</a>
+        <p className="text-center text-[var(--paragraph)] italic">
+          &copy; 2025 | Bản quyền thuộc về <a href="https://github.com/minhsangng" className="underline text-[var(--heading)]">minhsangng</a>.
         </p>
       </footer>
     </BrowserRouter>

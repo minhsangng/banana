@@ -1,25 +1,27 @@
 import { useState, useEffect } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from "recharts";
 
-export default function Dashboard() {
+export default function Dashboard({ isLogin }) {
     const [data, setData] = useState([]);
 
     useEffect(() => {
         const fakeData = [
             { name: "Tháng 1", orders: 400, revenue: 2400 },
             { name: "Tháng 2", orders: 300, revenue: 1398 },
-            { name: "Tháng 3", orders: 500, revenue: 9800 },
+            { name: "Tháng 3", orders: 1023, revenue: 9800 },
             { name: "Tháng 4", orders: 200, revenue: 3908 },
             { name: "Tháng 5", orders: 350, revenue: 4800 },
             { name: "Tháng 6", orders: 350, revenue: 7466 },
-            { name: "Tháng 7", orders: 350, revenue: 6800 },
+            { name: "Tháng 7", orders: 943, revenue: 6800 },
             { name: "Tháng 8", orders: 350, revenue: 4800 },
-            { name: "Tháng 9", orders: 350, revenue: 4344 },
-            { name: "Tháng 10", orders: 350, revenue: 8930 },
-            { name: "Tháng 11", orders: 350, revenue: 4500 },
-            { name: "Tháng 12", orders: 350, revenue: 5600 },
+            { name: "Tháng 9", orders: 345, revenue: 4344 },
+            { name: "Tháng 10", orders: 532, revenue: 8930 },
+            { name: "Tháng 11", orders: 234, revenue: 4500 },
+            { name: "Tháng 12", orders: 456, revenue: 5600 },
         ];
         setData(fakeData);
+        
+        if (!isLogin) window.location.href = "/login";
     }, []);
 
     return (

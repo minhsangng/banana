@@ -95,6 +95,10 @@ body {
   background-color: var(--background3);
 }
 
+.sidebar-item.active {
+  background-color: var(--light);
+}
+
 /* Header */
 .header {
   width: 100%;
@@ -271,4 +275,8 @@ ion-icon {
   padding: 70px 20px 20px;
   height: auto;
   width: 100%;
+}
+
+button {
+  cursor: pointer;
 }

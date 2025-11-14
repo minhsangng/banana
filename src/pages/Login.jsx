@@ -47,7 +47,7 @@ export default function Login({ isLogin }) {
 
     return (
         <div className="login pt-6">
-            <h1 className="font-bold text-3xl">Login</h1>
+            <h1 className="font-bold text-3xl pb-2 mb-4 border-b border-[var(--background3)]">Login</h1>
             <form method={"POST"} onSubmit={submitForm}>
                 <table>
                     <tbody>

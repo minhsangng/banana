@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function Products() {
+export default function Stores ({ isLogin }) {
     const [content, setContent] = useState([]);
 
     async function showDishes() {
@@ -17,6 +17,7 @@ export default function Products() {
     };
 
     useEffect(() => {
+        if (!isLogin) window.location.href = "/login";
         showDishes();
     }, []);
 
