@@ -6,17 +6,12 @@ CREATE TABLE "categories" (
 CREATE TABLE "dishes" (
 	"dish_id" integer PRIMARY KEY NOT NULL,
 	"dish_name" varchar NOT NULL,
-	"menu_id" integer NOT NULL,
+	"store_id" integer NOT NULL,
 	"category_id" integer NOT NULL,
 	"price" numeric(10, 2) NOT NULL,
 	"description" varchar,
 	"image_url" varchar,
 	"status" varchar DEFAULT 'Active' NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "menus" (
-	"menu_id" integer PRIMARY KEY NOT NULL,
-	"store_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (

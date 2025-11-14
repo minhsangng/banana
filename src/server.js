@@ -1,7 +1,7 @@
 import express from "express";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
-import { dishes, menus, categories, users, stores, orders, orderItems } from "./db/schema.js";
+import { dishes, categories, users, stores, orders, orderItems } from "./db/schema.js";
 import { eq, and } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
@@ -22,7 +22,7 @@ app.get("/api/banana", (req, res) => {
 /* Insert into dishes table */
 app.post("/api/dishes", async (req, res) => {
   try {
-    const { dishName, menuId, categoryId, price, description, imageUrl, status } = req.body;
+    const { dishName, storeId, categoryId, price, description, imageUrl, status } = req.body;
 
     if (!userId || !recipeId || !title) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -32,7 +32,7 @@ app.post("/api/dishes", async (req, res) => {
       .insert(dishes)
       .values({
         dishName,
-        menuId,
+        storeId,
         categoryId,
         price,
         description,

@@ -3,17 +3,12 @@ import { pgTable, numeric, varchar, integer, timestamp } from "drizzle-orm/pg-co
 export const dishes = pgTable("dishes", {
   dishId: integer("dish_id").primaryKey(),
   dishName: varchar("dish_name").notNull(),
-  menuId: integer("menu_id").notNull(),
+  storeId: integer("store_id").notNull(),
   categoryId: integer("category_id").notNull(),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   description: varchar("description"),
   imageUrl: varchar("image_url"),
   status: varchar("status").notNull().default("Active"),
-});
-
-export const menus = pgTable("menus", {
-  menuId: integer("menu_id").primaryKey(),
-  storeId: integer("store_id").notNull(),
 });
 
 export const categories = pgTable("categories", {

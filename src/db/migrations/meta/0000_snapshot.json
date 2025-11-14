@@ -1,5 +1,5 @@
 {
-  "id": "8b4f766c-73bb-425f-a4de-c6d3ef5c0fe1",
+  "id": "7f4cb9b2-8886-4145-84c1-224ab43003f8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -45,8 +45,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "menu_id": {
-          "name": "menu_id",
+        "store_id": {
+          "name": "store_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -81,31 +81,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Active'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.menus": {
-      "name": "menus",
-      "schema": "",
-      "columns": {
-        "menu_id": {
-          "name": "menu_id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "store_id": {
-          "name": "store_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
