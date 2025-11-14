@@ -76,7 +76,62 @@ app.get("/api/dishes", async (req, res) => {
     console.log("Error fetching the dishes", error);
     res.status(500).json({ error: "Something went wrong" });
   }
-})
+});
+
+/* Select stores table */
+app.get("/api/stores", async (req, res) => {
+  try {
+    const results = await db.select().from(stores);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Select users table */
+app.get("/api/users", async (req, res) => {
+  try {
+    const results = await db
+      .select()
+      .from(users);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the users", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Login */
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const results = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.email, email),
+          eq(users.password, password)
+        )
+      );
+
+    if (results.length === 0) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: results[0],
+    });
+  } catch (error) {
+    console.log("Error fetching the users", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
 
 /* Delete dishes table */
 app.delete("/api/dishes/:dishId", async (req, res) => {
