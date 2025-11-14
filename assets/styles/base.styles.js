@@ -170,11 +170,12 @@ export const LAYOUT = StyleSheet.create({
 export const BUTTON = StyleSheet.create({
   primary: {
     backgroundColor: COLORS.button,
+    color: COLORS.textLight,
     borderRadius: 50,
-    fontFamily: TEXT.heading,
+    fontFamily: "Modak",
+    fontSize: 22,
     textAlign: "center",
-    height: 45,
-    paddingHorizontal: 18,
+    paddingHorizontal: 6,
     paddingVertical: 12,
   },
   secondary: {
