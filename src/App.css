@@ -17,7 +17,7 @@
   --background4: #F5CB58;
   --text: #391713;
   --textLight: #F9F9F9;
-  --paragraph: rgba(0, 0 , 0, 0.6);
+  --paragraph: rgba(0, 0, 0, 0.6);
   --button: #E95322;
   --border: #D5D8DC;
   --light: #FFFFFF;
@@ -136,7 +136,8 @@ ion-icon {
   cursor: pointer;
 }
 
-.menuIcon, .personIcon {
+.menuIcon,
+.personIcon {
   font-size: 42px;
 }
 
@@ -177,8 +178,13 @@ ion-icon {
   transition: all 1s ease-out;
 }
 
-.notifyIcon:hover .navbar {
+.notifyIcon:hover .navbar,
+.userIcon:hover .navbar {
   display: block;
+}
+
+.userIcon .navbar::before {
+  right: 10%;
 }
 
 .navbar ul {

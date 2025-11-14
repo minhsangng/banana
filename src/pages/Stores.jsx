@@ -5,12 +5,11 @@ export default function Products() {
 
     async function showDishes() {
         try {
-            const response = await fetch(`http://localhost:5001/api/search/a`);
+            const response = await fetch(`http://localhost:5001/api/stores`);
 
             const data = await response.json();
 
             setContent(data);
-            console.log(content);
         } catch (error) {
             console.log('Lỗi', 'Không thể kết nối API');
             console.error(error);
@@ -27,8 +26,8 @@ export default function Products() {
             <div>
                 {content.length > 0 && content.map((item, index) => (
                     <div key={index}>
-                        <h3>{item.dishName}</h3>
-                        <p>{item.price}</p>
+                        <h3>{item.storeName}</h3>
+                        <p>{item.location}</p>
                     </div>
                 ))}
             </div>
