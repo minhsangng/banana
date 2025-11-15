@@ -32,40 +32,61 @@ export default function ForgetPassScreen() {
 
             {/* Main Body */}
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82), LAYOUT.pt(32), LAYOUT.px(24)]}>
-                {/* Password */}
-                <Text style={[TEXT.text, LAYOUT.mb(8)]}>Mật khẩu</Text>
-                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.rounded(12), LAYOUT.px(14), LAYOUT.py(6), LAYOUT.mb(10), {backgroundColor: COLORS.background3}]}>
+                {/* Old Password */}
+                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Mật khẩu hiện tại</Text>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.rounded(12), LAYOUT.pl(14), LAYOUT.pr(34), LAYOUT.py(6), LAYOUT.mb(10), {backgroundColor: COLORS.background3}]}>
                     <TextInput
                         placeholder="********"
                         placeholderTextColor={COLORS.paragraph}
                         secureTextEntry={!showPassword}
-                        style={[LAYOUT.wFull, TEXT.paragraph, LAYOUT.rounded(12)]}
+                        style={[LAYOUT.wFull, TEXT.paragraph]}
                     />
 
                     <TouchableOpacity
                         onPress={() => setShowPassword(!showPassword)}
-                        style={[]}
                     >
                         <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
                     </TouchableOpacity>
                 </View>
                 
-                {/* Password */}
-                <Text style={[TEXT.text, LAYOUT.mb(8)]}>Nhập lại mật khẩu</Text>
-                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.rounded(12), LAYOUT.px(14), LAYOUT.py(6), LAYOUT.mb(10), LAYOUT.rounded(12), {backgroundColor: COLORS.background3}]}>
+                {/* New Password */}
+                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Mật khẩu mới</Text>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.rounded(12), LAYOUT.pl(14), LAYOUT.pr(34), LAYOUT.py(6), LAYOUT.mb(10), {backgroundColor: COLORS.background3}]}>
                     <TextInput
                         placeholder="********"
                         placeholderTextColor={COLORS.paragraph}
                         secureTextEntry={!showPassword}
-                        style={[LAYOUT.wFull, TEXT.paragraph, LAYOUT.rounded(12)]}
+                        style={[LAYOUT.wFull, TEXT.paragraph]}
                     />
 
                     <TouchableOpacity
                         onPress={() => setShowPassword(!showPassword)}
-                        style={[LAYOUT.pr(40)]}
                     >
                         <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
                     </TouchableOpacity>
+                </View>
+                
+                {/* Re New Password */}
+                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Nhập lại mật khẩu mới</Text>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.rounded(12), LAYOUT.pl(14), LAYOUT.pr(34), LAYOUT.py(6), LAYOUT.mb(10), {backgroundColor: COLORS.background3}]}>
+                    <TextInput
+                        placeholder="********"
+                        placeholderTextColor={COLORS.paragraph}
+                        secureTextEntry={!showPassword}
+                        style={[LAYOUT.wFull, TEXT.paragraph]}
+                    />
+
+                    <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                    >
+                        <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
+                    </TouchableOpacity>
+                </View>
+                
+                <View>
+                    <Text style={[TEXT.subText,TEXT.size(14), {color: COLORS.heading}]}>Mật khẩu phải: </Text>
+                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Có ít nhất 8 kí tự.</Text>
+                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Có ít nhất 1 kí tự đặc biệt.</Text>
                 </View>
                 
                 <TouchableOpacity style={[LAYOUT.mt(44)]}>

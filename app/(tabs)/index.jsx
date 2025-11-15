@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigation } from '@react-navigation/native';
 import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { Portal } from "react-native-paper";
@@ -9,6 +8,8 @@ import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import SubMenu from "../../components/SubMenu";
+import PopupSearch from "../../components/PopupSearch";
+import CategoryFilter from "../../components/CategoryFilter";
 
 const { width, height } = Dimensions.get("window");
 
@@ -19,28 +20,20 @@ const HomeScreen = () => {
   const [greeting, setGreeting] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(-1);
 
-  const categoryLists = [
-    {
-      id: 0,
-      name: "Ăn vặt",
-      icon: "fast-food-outline",
-    },
-    {
-      id: 1,
-      name: "Món chính",
-      icon: "restaurant-outline",
-    },
-    {
-      id: 2,
-      name: "Tráng miệng",
-      icon: "ice-cream-outline",
-    },
-    {
-      id: 3,
-      name: "Thức uống",
-      icon: "wine-outline",
+  const loadCategories = async () => {
+    try {
+      const response = await fetch(`http://192.168.1.171:5001/api/categories`);
+
+      const results = await response.json();
+
+      if (results) {
+        setCategories(results);
+      }
+    } catch (error) {
+      console.log('Lỗi', 'Không thể kết nối API');
+      console.error(error);
     }
-  ]
+  }
 
   const slides = [
     {
@@ -53,6 +46,12 @@ const HomeScreen = () => {
       id: 1,
       heading: "Happy hour",
       discount: "-25%",
+      image: require("../../assets/images/bannerAds.png")
+    },
+    {
+      id: 2,
+      heading: "Supper Sale",
+      discount: "-50%",
       image: require("../../assets/images/bannerAds.png")
     }
   ]
@@ -75,8 +74,8 @@ const HomeScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      onRefresh();
 
-      setCategories(categoryLists);
     } catch (error) {
       console.log("Error loading the data", error);
     } finally {
@@ -87,18 +86,17 @@ const HomeScreen = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
+    await loadCategories();
     setRefreshing(false);
   };
 
   useEffect(() => {
     loadData();
-
-    const slideInterval = setInterval(() => {
-      handleNext();
-    }, 3000);
-
+    loadCategories();
     updateGreeting();
+    const slideInterval = setInterval(handleNext, 3000);
     const greetingInterval = setInterval(updateGreeting, 60 * 1000);
+
     return () => {
       clearInterval(slideInterval);
       clearInterval(greetingInterval);
@@ -156,21 +154,18 @@ const HomeScreen = () => {
     setMenuVisible(true);
   };
 
-  const [query, setQuery] = useState('');
-  const navigation = useNavigation();
+  const [query, setQuery] = useState("");
+  const [data, setData] = useState([]);
+  const [isShowSearch, setIsShowSearch] = useState(false);
 
   const handleSubmit = async () => {
     try {
-      // Thêm query trực tiếp vào URL
-      const response = await fetch(`https://cfo-app.onrender.com/api/search/${query}`);
+      const response = await fetch(`http://192.168.1.171:5001/api/search/${query}`);
 
-      const data = await response.json();
-      
-      router.push({
-        pathname: "/search",
-        params: {data: JSON.stringify(data)}
-      });
-      /* navigation.navigate('Search', { results: data }); */
+      const results = await response.json();
+
+      setData(results);
+      setIsShowSearch(true);
     } catch (error) {
       console.log('Lỗi', 'Không thể kết nối API');
       console.error(error);
@@ -202,9 +197,9 @@ const HomeScreen = () => {
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
           {categories.map((item, index) => (
-            <TouchableOpacity key={item.id} style={LAYOUT.itemsCenter} onPress={() => setCurrentCategory(item.id)}>
-              <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.id === currentCategory ? homeStyles.categorySelected : ""]} name={item.icon}></Ionicons>
-              <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.name}</Text>
+            <TouchableOpacity key={item.categoryId} style={LAYOUT.itemsCenter} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
+              <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.categoryId === currentCategory ? homeStyles.categorySelected : ""]} name={item.categoryIcon}></Ionicons>
+              <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.categoryName}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -240,23 +235,23 @@ const HomeScreen = () => {
           </View>
 
           <View>
-            <FlatList style={{ width: width - 60, marginHorizontal: "auto" }}
+            <FlatList
+              style={{ width: width - 60, marginHorizontal: "auto" }}
               data={slides}
               ref={flatListRef}
               horizontal
-              onScroll={handleScroll}
               pagingEnabled
               decelerationRate="fast"
               snapToAlignment="center"
               showsHorizontalScrollIndicator={false}
               scrollEventThrottle={16}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
-                  <ImageBackground source={slides[currentIndex].image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(128), homeStyles.advertiseImage]}>
+                  <ImageBackground source={item.image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(128), homeStyles.advertiseImage]}>
                     <View style={[LAYOUT.absolute, LAYOUT.top(30), LAYOUT.left(15), LAYOUT.itemsCenter]}>
-                      <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.textLight }]}>{slides[currentIndex].heading}</Text>
-                      <Text style={[TEXT.heading, { color: COLORS.textLight }]}>{slides[currentIndex].discount}</Text>
+                      <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.textLight }]}>{item.heading}</Text>
+                      <Text style={[TEXT.heading, { color: COLORS.textLight }]}>{item.discount}</Text>
                     </View>
                   </ImageBackground>
 
@@ -277,8 +272,7 @@ const HomeScreen = () => {
                 offset: width * index,
                 index,
               })}
-            >
-            </FlatList>
+            />
           </View>
 
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24), LAYOUT.mb(40)]}>
@@ -318,7 +312,18 @@ const HomeScreen = () => {
           </View>
         </ScrollView>
       </View>
+
+      {isShowSearch && (
+        <PopupSearch
+          visible={isShowSearch}
+          query={query}
+          data={data}
+          onClose={() => setIsShowSearch(false)}
+        />
+      )}
+      <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
     </View>
+
   );
 };
 export default HomeScreen;
