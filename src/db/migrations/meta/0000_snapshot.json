@@ -1,5 +1,5 @@
 {
-  "id": "7f4cb9b2-8886-4145-84c1-224ab43003f8",
+  "id": "d901c3c4-603c-4bd9-8c30-45cf16dc003c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -19,6 +19,12 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
+        },
+        "category_icon": {
+          "name": "category_icon",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -81,6 +87,37 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Active'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.favorites": {
+      "name": "favorites",
+      "schema": "",
+      "columns": {
+        "favorite_id": {
+          "name": "favorite_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "dish_id": {
+          "name": "dish_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -285,6 +322,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Customer'"
         },
         "status": {
           "name": "status",

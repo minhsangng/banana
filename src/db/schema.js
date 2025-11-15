@@ -14,6 +14,7 @@ export const dishes = pgTable("dishes", {
 export const categories = pgTable("categories", {
   categoryId: integer("category_id").primaryKey(),
   categoryName: varchar("category_name").notNull(),
+  categoryIcon: varchar("category_icon"),
 });
 
 export const users = pgTable("users", {
@@ -23,6 +24,7 @@ export const users = pgTable("users", {
   phoneNumber: varchar("phone_number").notNull().unique(),
   password: varchar("password").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  role: varchar("role").notNull().default("Customer"),
   status: varchar("status").notNull().default("Active"),
 });
 
@@ -50,4 +52,10 @@ export const orderItems = pgTable("order_items", {
   orderItemId: integer("order_item_id").primaryKey(),
   orderId: integer("order_id").notNull(),
   dishId: integer("dish_id").notNull(),
+});
+
+export const favorites = pgTable("favorites", {
+  favoriteId: integer("favorite_id").primaryKey(),
+  dishId: integer("dish_id").notNull(),
+  userId: integer("user_id").notNull(),
 });

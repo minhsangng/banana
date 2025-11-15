@@ -1,6 +1,7 @@
 CREATE TABLE "categories" (
 	"category_id" integer PRIMARY KEY NOT NULL,
-	"category_name" varchar NOT NULL
+	"category_name" varchar NOT NULL,
+	"category_icon" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "dishes" (
@@ -12,6 +13,12 @@ CREATE TABLE "dishes" (
 	"description" varchar,
 	"image_url" varchar,
 	"status" varchar DEFAULT 'Active' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "favorites" (
+	"favorite_id" integer PRIMARY KEY NOT NULL,
+	"dish_id" integer NOT NULL,
+	"user_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
@@ -48,6 +55,7 @@ CREATE TABLE "users" (
 	"phone_number" varchar NOT NULL,
 	"password" varchar NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
+	"role" varchar DEFAULT 'Customer' NOT NULL,
 	"status" varchar DEFAULT 'Active' NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "users_phone_number_unique" UNIQUE("phone_number")

@@ -2,7 +2,7 @@ import express from "express";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
 import { dishes, categories, users, stores, orders, orderItems } from "./db/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ilike } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 
@@ -53,13 +53,31 @@ app.post("/api/dishes", async (req, res) => {
 app.get("/api/search/:query", async (req, res) => {
   try {
     const { query } = req.params;
+    const q = `%${query}%`;
 
     const resultsSearch = await db
       .select()
       .from(dishes)
-      .where(eq(dishes.dishName.toLocaleLowerCase(), query.toLocaleLowerCase()));
+      .where(ilike(dishes.dishName, q));
 
     res.status(200).json(resultsSearch);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Filter dish by category */
+app.get("/api/category/:categoryId", async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    const results = await db
+      .select()
+      .from(dishes)
+      .where(eq(dishes.categoryId, parseInt(categoryId)));
+
+    res.status(200).json(results);
   } catch (error) {
     console.log("Error fetching the dishes", error);
     res.status(500).json({ error: "Something went wrong" });
@@ -74,6 +92,18 @@ app.get("/api/dishes", async (req, res) => {
     res.status(200).json(results);
   } catch (error) {
     console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Select categories table */
+app.get("/api/categories", async (req, res) => {
+  try {
+    const results = await db.select().from(categories);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the categories", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
