@@ -12,6 +12,7 @@ CREATE TABLE "dishes" (
 	"price" numeric(10, 2) NOT NULL,
 	"description" varchar,
 	"image_url" varchar,
+	"selled" integer DEFAULT 0 NOT NULL,
 	"status" varchar DEFAULT 'Active' NOT NULL
 );
 --> statement-breakpoint
@@ -44,6 +45,7 @@ CREATE TABLE "stores" (
 	"phone_number" varchar NOT NULL,
 	"logo_url" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
+	"rate_star" numeric DEFAULT 0 NOT NULL,
 	"status" varchar DEFAULT 'Active' NOT NULL,
 	CONSTRAINT "stores_phone_number_unique" UNIQUE("phone_number")
 );

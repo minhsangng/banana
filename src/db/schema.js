@@ -8,6 +8,7 @@ export const dishes = pgTable("dishes", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   description: varchar("description"),
   imageUrl: varchar("image_url"),
+  selled: integer("selled").notNull().default(0),
   status: varchar("status").notNull().default("Active"),
 });
 
@@ -35,6 +36,7 @@ export const stores = pgTable("stores", {
   phoneNumber: varchar("phone_number").notNull().unique(),
   logoUrl: varchar("logo_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  rateStar: numeric("rate_star").notNull().default(0.0), 
   status: varchar("status").notNull().default("Active"),
 });
 

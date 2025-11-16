@@ -1,5 +1,5 @@
 {
-  "id": "d901c3c4-603c-4bd9-8c30-45cf16dc003c",
+  "id": "9b3a1eb5-c09c-478c-8406-2fdf950c3376",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -80,6 +80,13 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
+        },
+        "selled": {
+          "name": "selled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "status": {
           "name": "status",
@@ -257,6 +264,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "rate_star": {
+          "name": "rate_star",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "status": {
           "name": "status",
