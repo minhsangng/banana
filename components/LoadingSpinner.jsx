@@ -28,5 +28,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.text,
     textAlign: "center",
+    fontFamily: "GochiHand",
   },
 });

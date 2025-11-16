@@ -1,6 +1,5 @@
 const lightTheme = {
   heading: "#E95322",
-  accent: "#A8BBA3",
   background1: "#F4DA1F",
   background2: "#F7F4EA",
   background3: "#F3E9B5",

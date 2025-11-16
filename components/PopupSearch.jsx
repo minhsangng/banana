@@ -9,13 +9,43 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
+import { useState, useEffect } from "react";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const { width, height } = Dimensions.get("window");
 
-export default function PopupSearch({ visible, query, data = [], onClose }) {
+export default function PopupSearch({ visible, query, onClose }) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadDataSearch = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://192.168.1.171:5001/api/search/${query}`);
+
+        const results = await response.json();
+
+        setData(results);
+        setLoading(false);
+      } catch (error) {
+        console.log("Lỗi", "Không thể kết nối API", error);
+      }
+    };
+
+    loadDataSearch();
+  }, [query]);
+
+  if (loading)
+    return (
+      <View style={[LAYOUT.main, { height: height * 0.92 }]}>
+        <LoadingSpinner message="Đợi móc con API cái..." />
+      </View>
+    );
+
   function formatPrice(price) {
     if (price === null || price === undefined || price === "") return "";
 
@@ -66,21 +96,27 @@ export default function PopupSearch({ visible, query, data = [], onClose }) {
                   ]}
                 >
                   <ImageBackground
-                    source={typeof d.imageUrl === "string" ? { uri: d.imageUrl } : d.imageUrl}
-                    style={[LAYOUT.rounded(12), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.accent)]}
+                    source={
+                      d.imageUrl
+                        ? typeof d.imageUrl === "string"
+                          ? { uri: d.imageUrl }
+                          : d.imageUrl
+                        : require("../assets/images/food-default-portrait.png")
+                    }
+                    resizeMode="cover"
+                    style={[LAYOUT.rounded(12), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.border)]}
                     imageStyle={{ borderRadius: 12 }}
                   />
 
                   <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, { width: width - 60 - 80 - 20 }]}>
-                    <View>
-                      <Text style={[TEXT.text]} numberOfLines={1}>{d.dishName}</Text>
-                      <Text style={[TEXT.subText, { color: COLORS.accent }]}>A Food</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.dishName}</Text>
+                      <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Đã mua {d.selled}</Text>
                       <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
                     </View>
 
-                    <TouchableOpacity style={styles.addButton}>
-                      <Ionicons name="cart-outline" size={22} color={COLORS.paragraph} />
-                      <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Thêm</Text>
+                    <TouchableOpacity style={[LAYOUT.pl(12)]}>
+                      <Ionicons name="cart-outline" size={22} color={COLORS.paragraph} style={[LAYOUT.p(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button, color: COLORS.light }]} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -106,10 +142,5 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingVertical: 12,
     overflow: "hidden",
-  },
-  addButton: {
-    alignItems: "center",
-    gap: 6,
-    paddingLeft: 12,
   },
 });

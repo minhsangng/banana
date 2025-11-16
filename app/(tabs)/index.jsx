@@ -19,8 +19,14 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [greeting, setGreeting] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(-1);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuData, setMenuData] = useState({ header: null, content: null });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+  const [query, setQuery] = useState("");
+  const [isShowSearch, setIsShowSearch] = useState(false);
 
-  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [resultsSearch, setResultsSearch] = useState("");
 
   const loadCategories = async () => {
     try {
@@ -58,9 +64,6 @@ const HomeScreen = () => {
     }
   ]
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
-
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / width);
@@ -70,7 +73,7 @@ const HomeScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      await loadCategories();   // chỉ gọi 1 lần
+      await loadCategories();
     } catch (error) {
       console.log("Error loading the data", error);
     } finally {
@@ -109,9 +112,6 @@ const HomeScreen = () => {
     else setGreeting(["Chúc ngủ ngon", "Không ngon thì thôi"]);
   };
 
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuData, setMenuData] = useState({ header: null, content: null });
-
   const openMenu = (type) => {
     let header, content;
 
@@ -146,27 +146,14 @@ const HomeScreen = () => {
     setMenuVisible(true);
   };
 
-  const [query, setQuery] = useState("");
-  const [data, setData] = useState([]);
-  const [isShowSearch, setIsShowSearch] = useState(false);
-
-  const handleSubmit = async () => {
-    try {
-      setLoadingSearch(true);
-      const response = await fetch(`http://192.168.1.171:5001/api/search/${query}`);
-
-      const results = await response.json();
-
-      setData(results);
+  const handleSubmit = () => {
+    if (query !== "") {
       setIsShowSearch(true);
-      setLoadingSearch(false);
-    } catch (error) {
-      console.log('Lỗi', 'Không thể kết nối API');
-      console.error(error);
+      setResultsSearch(query);
     }
   };
 
-  if ((loading && !refreshing) || loadingSearch) return <LoadingSpinner message="Đợi móc con API cái..." />;
+  if (loading && !refreshing) return <LoadingSpinner message="Đợi móc con API cái..." />;
 
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
@@ -189,11 +176,13 @@ const HomeScreen = () => {
         </Portal>
       </View>
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
+        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(12), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
           {categories.map((item, index) => (
-            <TouchableOpacity key={item.categoryId} style={LAYOUT.itemsCenter} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
-              <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.categoryId === currentCategory ? homeStyles.categorySelected : ""]} name={item.categoryIcon}></Ionicons>
-              <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.categoryName}</Text>
+            <TouchableOpacity key={item.categoryId} style={[LAYOUT.w(75), LAYOUT.roundedtl(28), LAYOUT.roundedtr(28), { overflow: "hidden" }]} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
+              <View style={[LAYOUT.pt(10), LAYOUT.pb(4), LAYOUT.itemsCenter, { backgroundColor: item.categoryId === currentCategory ? COLORS.light : "transparent" }]}>
+                <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.categoryId === currentCategory ? homeStyles.categorySelected : ""]} name={item.categoryIcon}></Ionicons>
+                <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.categoryName}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -279,11 +268,11 @@ const HomeScreen = () => {
               <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
                   <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
-                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
+                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
                       <Text style={TEXT.subText}>5.0</Text>
                       <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
-                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.p(4), homeStyles.favoritesContainer]}>
+                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.p(4), homeStyles.favoritesContainer]}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
                     </View>
                   </View>
@@ -293,11 +282,11 @@ const HomeScreen = () => {
               <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
                 <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
                   <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
-                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
+                    <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
                       <Text style={TEXT.subText}>5.0</Text>
                       <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
                     </View>
-                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.accent), LAYOUT.p(4), homeStyles.favoritesContainer]}>
+                    <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.p(4), homeStyles.favoritesContainer]}>
                       <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
                     </View>
                   </View>
@@ -308,15 +297,15 @@ const HomeScreen = () => {
         </ScrollView>
       </View>
 
+      <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
+
       {isShowSearch && (
         <PopupSearch
           visible={isShowSearch}
-          query={query}
-          data={data}
-          onClose={() => setIsShowSearch(false)}
+          query={resultsSearch}
+          onClose={() => (setIsShowSearch(false), setQuery(""))}
         />
       )}
-      <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
     </View>
 
   );
