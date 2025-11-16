@@ -18,16 +18,16 @@ const { width, height } = Dimensions.get("window");
 export default function PopupSearch({ visible, query, data = [], onClose }) {
   function formatPrice(price) {
     if (price === null || price === undefined || price === "") return "";
-    
+
     const num = Number(price);
     if (isNaN(num)) return String(price);
-    
+
     if (Number.isInteger(num)) return num.toLocaleString("vi-VN");
-    
+
     const s = num.toFixed(3).replace(/\.?0+$/, "");
     const parts = s.split(".");
     const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    
+
     return parts[1] ? `${intPart},${parts[1]}` : intPart;
   }
 
@@ -66,7 +66,7 @@ export default function PopupSearch({ visible, query, data = [], onClose }) {
                   ]}
                 >
                   <ImageBackground
-                    source={ typeof d.imageUrl === "string" ? { uri: d.imageUrl } : d.imageUrl }
+                    source={typeof d.imageUrl === "string" ? { uri: d.imageUrl } : d.imageUrl}
                     style={[LAYOUT.rounded(12), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.accent)]}
                     imageStyle={{ borderRadius: 12 }}
                   />

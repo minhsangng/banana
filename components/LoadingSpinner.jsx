@@ -3,7 +3,7 @@ import { COLORS } from "../constants/colors";
 
 export default function LoadingSpinner({ message = "Loading...", size = "large" }) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.content}>
         <ActivityIndicator size={size} color={COLORS.primary} />
         <Text style={styles.message}>{message}</Text>
@@ -22,11 +22,11 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: "center",
-    gap: 16,
   },
   message: {
+    marginTop: 16,
     fontSize: 16,
-    color: COLORS.textLight,
+    color: COLORS.text,
     textAlign: "center",
   },
 });

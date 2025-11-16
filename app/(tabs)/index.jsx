@@ -20,6 +20,8 @@ const HomeScreen = () => {
   const [greeting, setGreeting] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(-1);
 
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
   const loadCategories = async () => {
     try {
       const response = await fetch(`http://192.168.1.171:5001/api/categories`);
@@ -65,17 +67,10 @@ const HomeScreen = () => {
     setCurrentIndex(index);
   };
 
-  const handleNext = () => {
-    const nextIndex = (currentIndex + 1) % slides.length;
-    flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
-    setCurrentIndex(nextIndex);
-  };
-
   const loadData = async () => {
     try {
       setLoading(true);
-      onRefresh();
-
+      await loadCategories();   // chỉ gọi 1 lần
     } catch (error) {
       console.log("Error loading the data", error);
     } finally {
@@ -85,7 +80,6 @@ const HomeScreen = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
     await loadCategories();
     setRefreshing(false);
   };
@@ -94,11 +88,9 @@ const HomeScreen = () => {
     loadData();
     loadCategories();
     updateGreeting();
-    const slideInterval = setInterval(handleNext, 3000);
     const greetingInterval = setInterval(updateGreeting, 60 * 1000);
 
     return () => {
-      clearInterval(slideInterval);
       clearInterval(greetingInterval);
     };
   }, []);
@@ -160,19 +152,21 @@ const HomeScreen = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoadingSearch(true);
       const response = await fetch(`http://192.168.1.171:5001/api/search/${query}`);
 
       const results = await response.json();
 
       setData(results);
       setIsShowSearch(true);
+      setLoadingSearch(false);
     } catch (error) {
       console.log('Lỗi', 'Không thể kết nối API');
       console.error(error);
     }
   };
 
-  if ((loading && !refreshing)) return <LoadingSpinner message="Chờ xíu..." />;
+  if ((loading && !refreshing) || loadingSearch) return <LoadingSpinner message="Đợi móc con API cái..." />;
 
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
@@ -245,6 +239,7 @@ const HomeScreen = () => {
               snapToAlignment="center"
               showsHorizontalScrollIndicator={false}
               scrollEventThrottle={16}
+              onScroll={handleScroll}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
