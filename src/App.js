@@ -5,7 +5,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Stores from "./pages/Stores";
-import Login from "./pages/Login"; // giữ 1 import duy nhất
+import Login from "./Login";
 import "./App.css";
 
 function App() {
