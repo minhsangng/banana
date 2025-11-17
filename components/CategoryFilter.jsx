@@ -71,7 +71,7 @@ export default function CategoryFilter({ categoryId, visible }) {
                 ) : (
                     data.map((d) => (
                         <View key={d.dishId} style={[LAYOUT.mb(24), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3)]}>
-                            <ImageBackground style={[LAYOUT.w("100%"), LAYOUT.h(160), LAYOUT.rounded(36)]} borderRadius={36} source={d.imageUrl ? d.imageUrl : require("../assets/images/food-default-landscape.png")}></ImageBackground>
+                            <ImageBackground style={[LAYOUT.w("100%"), LAYOUT.h(160), LAYOUT.rounded(36)]} borderRadius={36} source={d.imageUrl ? d.imageUrl : require("../assets/images/background-default.png")}></ImageBackground>
                             <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
                                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.w("75%"), LAYOUT.pt(4)]}>
                                     <Text style={[TEXT.text]} numberOfLines={1}>{d.dishName}</Text>

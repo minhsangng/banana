@@ -21,21 +21,21 @@ export default function FirstOnboard() {
             icon: "document-attach-outline",
             heading: "Đặt hàng tiện lợi",
             title: "Chỉ với vài thao tác đơn giản",
-            image: require("../../assets/images/first_onboard.png"),
+            image: require("../../assets/images/onboard-1.png"),
         },
         {
             id: "1",
             icon: "wallet-outline",
             heading: "Thanh toán dễ dàng",
             title: "Hỗ trợ tiền mặt và chuyển khoản",
-            image: require("../../assets/images/second_onboard.png"),
+            image: require("../../assets/images/onboard-2.png"),
         },
         {
             id: "2",
             icon: "bicycle-outline",
             heading: "Giao hàng tận nơi",
             title: "Không cần phải di chuyển",
-            image: require("../../assets/images/third_onboard.png"),
+            image: require("../../assets/images/onboard-3.png"),
         },
     ];
 

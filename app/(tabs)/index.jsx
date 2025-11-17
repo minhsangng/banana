@@ -25,7 +25,7 @@ const HomeScreen = () => {
   const flatListRef = useRef(null);
   const [query, setQuery] = useState("");
   const [isShowSearch, setIsShowSearch] = useState(false);
-
+  const [dataBS, setDataBS] = useState([]);
   const [resultsSearch, setResultsSearch] = useState("");
 
   const loadCategories = async () => {
@@ -46,21 +46,21 @@ const HomeScreen = () => {
   const slides = [
     {
       id: 0,
-      heading: "Thử ngay món mới",
-      discount: "-30%",
-      image: require("../../assets/images/bannerAds.png")
+      storeId: 1,
+      dishId: 1,
+      image: require("../../assets/images/ads-banner-1.png"),
     },
     {
       id: 1,
-      heading: "Happy hour",
-      discount: "-25%",
-      image: require("../../assets/images/bannerAds.png")
+      storeId: 1,
+      dishId: 1,
+      image: require("../../assets/images/ads-banner-2.png"),
     },
     {
       id: 2,
-      heading: "Supper Sale",
-      discount: "-50%",
-      image: require("../../assets/images/bannerAds.png")
+      storeId: 1,
+      dishId: 1,
+      image: require("../../assets/images/ads-banner-1.png"),
     }
   ]
 
@@ -69,11 +69,24 @@ const HomeScreen = () => {
     const index = Math.round(offsetX / width);
     setCurrentIndex(index);
   };
+  
+  const loadBestSeller = async () => {
+    try {
+      const response = await fetch(`http://192.168.1.171:5001/api/dishes/bestseller`);
+      const results = await response.json();
+
+      if (results)
+        setDataBS(results);
+    } catch (error) {
+      console.log("Lỗi không thể kết nối API ", error);
+    }
+  }
 
   const loadData = async () => {
     try {
       setLoading(true);
       await loadCategories();
+      await loadBestSeller();
     } catch (error) {
       console.log("Error loading the data", error);
     } finally {
@@ -89,7 +102,6 @@ const HomeScreen = () => {
 
   useEffect(() => {
     loadData();
-    loadCategories();
     updateGreeting();
     const greetingInterval = setInterval(updateGreeting, 60 * 1000);
 
@@ -157,6 +169,7 @@ const HomeScreen = () => {
 
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
+      {/* Header */}
       <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.positive, homeStyles.headerContent]}>
           <TextInput placeholder="Bạn tìm món gì?" style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]} returnKeyType="search" value={query} onChangeText={setQuery} onSubmitEditing={handleSubmit} />
@@ -175,7 +188,9 @@ const HomeScreen = () => {
           <SubMenu visible={menuVisible} setVisible={setMenuVisible} header={menuData.header} content={menuData.content} />
         </Portal>
       </View>
+
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
+        {/* Categories */}
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(12), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
           {categories.map((item, index) => (
             <TouchableOpacity key={item.categoryId} style={[LAYOUT.w(75), LAYOUT.roundedtl(28), LAYOUT.roundedtr(28), { overflow: "hidden" }]} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
@@ -188,35 +203,45 @@ const HomeScreen = () => {
         </View>
 
         <ScrollView>
+          {/* Best Seller Section */}
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
               <Text style={TEXT.subHeading}>Best seller</Text>
               <Text style={[TEXT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
             <View style={[LAYOUT.mt(4), LAYOUT.row, LAYOUT.justifyBetween]}>
-              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
-                </ImageBackground>
-              </View>
-              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
-                </ImageBackground>
-              </View>
-              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
-                </ImageBackground>
-              </View>
-              <View style={[LAYOUT.border(1, COLORS.background1), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/lamb.png")} >
-                  <Text style={[LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), TEXT.subText, homeStyles.bestSellerNameDish]}>Cơm...</Text>
-                </ImageBackground>
-              </View>
+              {dataBS.length === 0 
+                ? 
+                (<View><Text>Không có dữ liệu</Text></View>)
+                :
+                dataBS.map((d) => (
+                  <TouchableOpacity key={d.dishId} onPress={() => router.push(`/detail/${d.dishId}`)} style={[LAYOUT.border(1, COLORS.border), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110), { overflow: "hidden" }]}>
+                    <ImageBackground
+                      style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]}
+                      source={d.imageUrl ? { uri: d.imageUrl } : require("../../assets/images/background-default.png")}
+                    >
+                      <Text
+                        style={[
+                          LAYOUT.absolute,
+                          LAYOUT.bottom(10),
+                          LAYOUT.right(-1),
+                          LAYOUT.w(45),
+                          LAYOUT.pt(2),
+                          LAYOUT.px(3),
+                          TEXT.subText,
+                          homeStyles.bestSellerNameDish
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {d.dishName}
+                      </Text>
+                    </ImageBackground>
+                  </TouchableOpacity>
+                ))}
             </View>
           </View>
 
+          {/* Ads Banner Section */}
           <View>
             <FlatList
               style={{ width: width - 60, marginHorizontal: "auto" }}
@@ -232,11 +257,8 @@ const HomeScreen = () => {
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
-                  <ImageBackground source={item.image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(128), homeStyles.advertiseImage]}>
-                    <View style={[LAYOUT.absolute, LAYOUT.top(30), LAYOUT.left(15), LAYOUT.itemsCenter]}>
-                      <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.textLight }]}>{item.heading}</Text>
-                      <Text style={[TEXT.heading, { color: COLORS.textLight }]}>{item.discount}</Text>
-                    </View>
+                  <ImageBackground source={item.image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(160), LAYOUT.rounded(20), homeStyles.advertiseImage, { overflow: "hidden" }]}>
+                    <View style={[LAYOUT.absolute, LAYOUT.top(30), LAYOUT.left(15), LAYOUT.itemsCenter]}></View>
                   </ImageBackground>
 
                   <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.mt(8)]}>
@@ -259,14 +281,15 @@ const HomeScreen = () => {
             />
           </View>
 
+          {/* Recommend Section */}
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24), LAYOUT.mb(40)]}>
             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
               <Text style={TEXT.subHeading}>Dành cho bạn</Text>
               <Text style={[TEXT.paragraph, homeStyles.recommendSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
             </View>
             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pt(6)]}>
-              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
+              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(8), { overflow: "hidden" }]}>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/background-default.png")}>
                   <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
                     <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
                       <Text style={TEXT.subText}>5.0</Text>
@@ -279,8 +302,8 @@ const HomeScreen = () => {
                 </ImageBackground>
               </View>
 
-              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(6)]}>
-                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/chicken.png")}>
+              <View style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(8), { overflow: "hidden" }]}>
+                <ImageBackground style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={require("../../assets/images/background-default.png")}>
                   <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
                     <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
                       <Text style={TEXT.subText}>5.0</Text>
@@ -297,13 +320,15 @@ const HomeScreen = () => {
         </ScrollView>
       </View>
 
+      {/* Filter Dish By Category */}
       <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
 
+      {/* Search Section */}
       {isShowSearch && (
         <PopupSearch
           visible={isShowSearch}
           query={resultsSearch}
-          onClose={() => (setIsShowSearch(false), setQuery(""))}
+          onClose={() => (setIsShowSearch(false), setQuery(""), setCurrentCategory(-1))}
         />
       )}
     </View>
