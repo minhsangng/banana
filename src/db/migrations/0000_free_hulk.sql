@@ -9,10 +9,11 @@ CREATE TABLE "dishes" (
 	"dish_name" varchar NOT NULL,
 	"store_id" integer NOT NULL,
 	"category_id" integer NOT NULL,
-	"price" numeric(10, 2) NOT NULL,
+	"price" numeric(10, 3),
 	"description" varchar,
 	"image_url" varchar,
 	"selled" integer DEFAULT 0 NOT NULL,
+	"availability" integer NOT NULL,
 	"status" varchar DEFAULT 'Active' NOT NULL
 );
 --> statement-breakpoint
@@ -33,7 +34,7 @@ CREATE TABLE "orders" (
 	"order_date" timestamp DEFAULT now() NOT NULL,
 	"store_id" integer NOT NULL,
 	"user_id" integer NOT NULL,
-	"total_amount" numeric(10, 2) NOT NULL,
+	"total_amount" numeric(10, 3) NOT NULL,
 	"payment_method" varchar DEFAULT 'Cash' NOT NULL,
 	"status" varchar DEFAULT 'Pending' NOT NULL
 );

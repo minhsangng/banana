@@ -1,8 +1,15 @@
 import express from "express";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
-import { dishes, categories, users, stores, orders, orderItems } from "./db/schema.js";
-import { eq, and, ilike } from "drizzle-orm";
+import {
+  dishes,
+  categories,
+  users,
+  stores,
+  orders,
+  orderItems,
+} from "./db/schema.js";
+import { eq, and, ilike, desc } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 
@@ -22,9 +29,19 @@ app.get("/api/banana", (req, res) => {
 /* Insert into dishes table */
 app.post("/api/dishes", async (req, res) => {
   try {
-    const { dishName, storeId, categoryId, price, description, imageUrl, status } = req.body;
+    const {
+      dishName,
+      storeId,
+      categoryId,
+      price,
+      description,
+      imageUrl,
+      status,
+      selled,
+      availability
+    } = req.body;
 
-    if (!userId || !recipeId || !title) {
+    if (!dishName || !storeId || !categoryId || !price) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -37,7 +54,9 @@ app.post("/api/dishes", async (req, res) => {
         price,
         description,
         imageUrl,
-        status
+        status,
+        selled,
+        availability
       })
       .returning();
 
@@ -48,7 +67,6 @@ app.post("/api/dishes", async (req, res) => {
   }
 });
 
-
 /* Search dish*/
 app.get("/api/search/:query", async (req, res) => {
   try {
@@ -58,7 +76,7 @@ app.get("/api/search/:query", async (req, res) => {
     const resultsSearch = await db
       .select()
       .from(dishes)
-      .where(ilike(dishes.dishName, q));
+      .where(and(ilike(dishes.dishName, q), eq(dishes.status, "Active")));
 
     res.status(200).json(resultsSearch);
   } catch (error) {
@@ -75,7 +93,31 @@ app.get("/api/category/:categoryId", async (req, res) => {
     const results = await db
       .select()
       .from(dishes)
-      .where(eq(dishes.categoryId, parseInt(categoryId)));
+      .where(
+        and(
+          eq(dishes.categoryId, parseInt(categoryId)),
+          eq(dishes.status, "Active")
+        )
+      );
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Select dish detail */
+app.get("/api/dish/:dishId", async (req, res) => {
+  try {
+    const { dishId } = req.params;
+
+    const results = await db
+      .select()
+      .from(dishes)
+      .where(
+        and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
+      );
 
     res.status(200).json(results);
   } catch (error) {
@@ -88,6 +130,23 @@ app.get("/api/category/:categoryId", async (req, res) => {
 app.get("/api/dishes", async (req, res) => {
   try {
     const results = await db.select().from(dishes);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Select dish best seller */
+app.get("/api/dishes/bestseller", async (req, res) => {
+  try {
+    const results = await db
+      .select()
+      .from(dishes)
+      .where(eq(dishes.status, "Active"))
+      .orderBy(desc(dishes.selled))
+      .limit(4);
 
     res.status(200).json(results);
   } catch (error) {
@@ -123,9 +182,7 @@ app.get("/api/stores", async (req, res) => {
 /* Select users table */
 app.get("/api/users", async (req, res) => {
   try {
-    const results = await db
-      .select()
-      .from(users);
+    const results = await db.select().from(users);
 
     res.status(200).json(results);
   } catch (error) {
@@ -142,15 +199,12 @@ app.post("/api/login", async (req, res) => {
     const results = await db
       .select()
       .from(users)
-      .where(
-        and(
-          eq(users.email, email),
-          eq(users.password, password)
-        )
-      );
+      .where(and(eq(users.email, email), eq(users.password, password)));
 
     if (results.length === 0) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     res.status(200).json({
@@ -168,9 +222,7 @@ app.delete("/api/dishes/:dishId", async (req, res) => {
   try {
     const { dishId } = req.params;
 
-    await db
-      .delete(dishes)
-      .where(eq(dishes.dishId, parseInt(dishId)));
+    await db.delete(dishes).where(eq(dishes.dishId, parseInt(dishId)));
 
     res.status(200).json({ message: "Dish deleted successfully" });
   } catch (error) {

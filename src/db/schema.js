@@ -5,10 +5,11 @@ export const dishes = pgTable("dishes", {
   dishName: varchar("dish_name").notNull(),
   storeId: integer("store_id").notNull(),
   categoryId: integer("category_id").notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+  price: numeric("price", { precision: 10, scale: 3 }),
   description: varchar("description"),
   imageUrl: varchar("image_url"),
   selled: integer("selled").notNull().default(0),
+  availability: integer("availability").notNull(1),
   status: varchar("status").notNull().default("Active"),
 });
 
@@ -45,7 +46,7 @@ export const orders = pgTable("orders", {
   orderDate: timestamp("order_date").notNull().defaultNow(),
   storeId: integer("store_id").notNull(),
   userId: integer("user_id").notNull(),
-  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  totalAmount: numeric("total_amount", { precision: 10, scale: 3 }).notNull(),
   paymentMethod: varchar("payment_method").notNull().default("Cash"),
   status: varchar("status").notNull().default("Pending"),
 });

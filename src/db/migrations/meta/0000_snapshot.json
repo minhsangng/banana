@@ -1,5 +1,5 @@
 {
-  "id": "9b3a1eb5-c09c-478c-8406-2fdf950c3376",
+  "id": "c1e32dcb-491d-487a-9a92-9be35d1fd59f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -65,9 +65,9 @@
         },
         "price": {
           "name": "price",
-          "type": "numeric(10, 2)",
+          "type": "numeric(10, 3)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "description": {
           "name": "description",
@@ -87,6 +87,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "availability": {
+          "name": "availability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         },
         "status": {
           "name": "status",
@@ -197,7 +203,7 @@
         },
         "total_amount": {
           "name": "total_amount",
-          "type": "numeric(10, 2)",
+          "type": "numeric(10, 3)",
           "primaryKey": false,
           "notNull": true
         },
