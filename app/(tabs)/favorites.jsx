@@ -1,71 +1,97 @@
-import { View, Text, Alert, ScrollView, TouchableOpacity, FlatList } from "react-native";
-import { useUser } from "@clerk/clerk-expo";
+import { View, Text, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from "react-native";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { API_URL } from "../../constants/api";
-import { favoritesStyles } from "../../assets/styles/favorites.styles";
-import { COLORS } from "../../constants/colors";
-import { Ionicons } from "@expo/vector-icons";
-import RecipeCard from "../../components/RecipeCard";
-import NoFavoritesFound from "../../components/NoFavoritesFound";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { COLORS } from "../../constants/colors";
+import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width, height } = Dimensions.get("window");
 
 const FavoritesScreen = () => {
-  const { user } = useUser();
-  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [data, setData] = useState([]);
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const loadFavorites = async () => {
-      try {
-        const response = await fetch(`${API_URL}/favorites/${user.id}`);
-        if (!response.ok) throw new Error("Failed to fetch favorites");
+    const loadAllBestSeller = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://192.168.1.171:5001/api/dishes/bestseller`);
+            const results = await response.json();
 
-        const favorites = await response.json();
+            if (results)
+                setData(results);
 
-        // transform the data to match the RecipeCard component's expected format
-        const transformedFavorites = favorites.map((favorite) => ({
-          ...favorite,
-          id: favorite.recipeId,
-        }));
+            setLoading(false);
+        } catch (error) {
+            console.log("Lỗi không thể kết nối API ", error);
+        }
+    }
 
-        setFavoriteRecipes(transformedFavorites);
-      } catch (error) {
-        console.log("Error loading favorites", error);
-        Alert.alert("Error", "Failed to load favorites");
-      } finally {
-        setLoading(false);
-      }
-    };
+    useEffect(() => {
+        loadAllBestSeller();
+    }, []);
 
-    loadFavorites();
-  }, [user.id]);
+    function formatPrice(price) {
+        if (price === null || price === undefined || price === "") return "";
 
-  if (loading) return <LoadingSpinner message="Loading your favorites..." />;
+        const num = Number(price);
+        if (isNaN(num)) return String(price);
 
-  return (
-    <View style={favoritesStyles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={favoritesStyles.header}>
-          <Text style={favoritesStyles.title}>Favorites</Text>
-          <TouchableOpacity style={favoritesStyles.logoutButton}>
-            <Ionicons name="log-out-outline" size={22} color={COLORS.text} />
-          </TouchableOpacity>
+        if (Number.isInteger(num)) return num.toLocaleString("vi-VN");
+
+        const s = num.toFixed(3).replace(/\.?0+$/, "");
+        const parts = s.split(".");
+        const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        return parts[1] ? `${intPart},${parts[1]}` : intPart;
+    }
+
+    if (loading) return <LoadingSpinner />;
+
+    return (
+        <View style={[LAYOUT.container]}>
+            <View style={[LAYOUT.header]}>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyBetween]}>
+                    <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
+                        <Ionicons name="chevron-back" size={20} color={COLORS.heading} onPress={() => router.push("../(tabs)/")}></Ionicons>
+                        <Text style={[TEXT.heading, LAYOUT.ml(72)]}>Yêu Thích</Text>
+                    </View>
+                </View>
+            </View>
+            <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
+                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {data.map((item) => (
+                            <TouchableOpacity key={item.dishId}
+                                style={[LAYOUT.wFull, LAYOUT.mb(20), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background4)]}>
+                                <ImageBackground
+                                    source={item.imageUrl ? { uri: item.imageUrl } : require("../../assets/images/background-default.png")}
+                                    style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
+                                />
+                                <View>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                        <Text style={[TEXT.text, LAYOUT.w("50%")]} numberOfLines={1}>{item.dishName}</Text>
+                                        <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(item.price)} đ</Text>
+                                    </View>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
+                                        <Text style={[TEXT.text, TEXT.size(16)]}>09:23 - 19/11</Text>
+                                        <Text style={[TEXT.text, TEXT.size(16)]}>2 items</Text>
+                                    </View>
+                                    <View style={[LAYOUT.mt(12), {alignItems: "flex-end"}]}>
+                                        <TouchableOpacity style={[LAYOUT.px(10), LAYOUT.py(4), LAYOUT.w(100), LAYOUT.rounded(22), {backgroundColor: COLORS.background3}]}>
+                                        <Text style={[TEXT.text, TEXT.size(16), TEXT.center, {color: COLORS.heading}]}>Hủy đơn</Text>
+                                    </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+
+            </View>
         </View>
-
-        <View style={favoritesStyles.recipesSection}>
-          <FlatList
-            data={favoriteRecipes}
-            renderItem={({ item }) => <RecipeCard recipe={item} />}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            columnWrapperStyle={favoritesStyles.row}
-            contentContainerStyle={favoritesStyles.recipesGrid}
-            scrollEnabled={false}
-            ListEmptyComponent={<NoFavoritesFound />}
-          />
-        </View>
-      </ScrollView>
-    </View>
-  );
+    );
 };
+
 export default FavoritesScreen;

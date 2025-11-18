@@ -53,7 +53,7 @@ export default function CategoryFilter({ categoryId, visible }) {
     if (loading)
         return (
             <View style={[LAYOUT.main, { height: height * 0.59, backgroundColor: COLORS.light }]}>
-                <LoadingSpinner message="Đợi móc con API cái..." />
+                <LoadingSpinner />
             </View>
         );
 

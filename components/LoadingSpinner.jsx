@@ -1,7 +1,7 @@
 import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { COLORS } from "../constants/colors";
 
-export default function LoadingSpinner({ message = "Loading...", size = "large" }) {
+export default function LoadingSpinner({ message = "Đợi móc con API cái...", size = "large" }) {
   return (
     <View style={[styles.container]}>
       <View style={styles.content}>

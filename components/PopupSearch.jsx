@@ -42,7 +42,7 @@ export default function PopupSearch({ visible, query, onClose }) {
   if (loading)
     return (
       <View style={[LAYOUT.main, { height: height * 0.92 }]}>
-        <LoadingSpinner message="Đợi móc con API cái..." />
+        <LoadingSpinner />
       </View>
     );
 

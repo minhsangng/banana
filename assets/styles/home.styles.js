@@ -40,9 +40,6 @@ export const homeStyles = StyleSheet.create({
   bestSellerNameDish: {
     backgroundColor: COLORS.heading,
     color: COLORS.textLight,
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 8,
     textAlign: "right",
   },
   recommendSeeAll: {

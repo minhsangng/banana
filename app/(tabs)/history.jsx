@@ -1,7 +1,99 @@
-import { View } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Dimensions } from "react-native";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { COLORS } from "../../constants/colors";
+import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function HistoryScreen() {
+const { width, height } = Dimensions.get("window");
+
+const HistoryScreen = () => {
+    const [data, setData] = useState([]);
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+
+    const loadAllBestSeller = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://192.168.1.171:5001/api/dishes/bestseller`);
+            const results = await response.json();
+
+            if (results)
+                setData(results);
+
+            setLoading(false);
+        } catch (error) {
+            console.log("Lỗi không thể kết nối API ", error);
+        }
+    }
+
+    useEffect(() => {
+        loadAllBestSeller();
+    }, []);
+
+    function formatPrice(price) {
+        if (price === null || price === undefined || price === "") return "";
+
+        const num = Number(price);
+        if (isNaN(num)) return String(price);
+
+        if (Number.isInteger(num)) return num.toLocaleString("vi-VN");
+
+        const s = num.toFixed(3).replace(/\.?0+$/, "");
+        const parts = s.split(".");
+        const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        return parts[1] ? `${intPart},${parts[1]}` : intPart;
+    }
+
+    if (loading) return <LoadingSpinner />;
+
     return (
-        <View></View>
+        <View style={[LAYOUT.container]}>
+            <View style={[LAYOUT.header]}>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyBetween]}>
+                    <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
+                        <Ionicons name="chevron-back" size={20} color={COLORS.heading} onPress={() => router.push("../(tabs)/")}></Ionicons>
+                        <Text style={[TEXT.heading, LAYOUT.ml(72)]}>Lịch Sử Đơn</Text>
+                    </View>
+                </View>
+            </View>
+            <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
+                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {data.map((item) => (
+                            <TouchableOpacity key={item.dishId}
+                                style={[LAYOUT.wFull, LAYOUT.mb(20), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background4)]}>
+                                <View>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.wFull, LAYOUT.mt(12)]}>
+                                        <Text style={[TEXT.text, LAYOUT.w("75%")]} numberOfLines={1}>Order No. #0123</Text>
+                                        <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(item.price)} đ</Text>
+                                    </View>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
+                                        <View>
+                                            <Text style={[TEXT.text, TEXT.size(16)]}>09:23 - 19/11</Text>
+                                            <View style={[LAYOUT.row, LAYOUT.itemsCenter, { gap: 2 }]}>
+                                                <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.heading}></Ionicons>
+                                                <Text style={[TEXT.text, TEXT.size(16), { color: COLORS.heading }]}>Hoàn thành</Text>
+                                            </View>
+                                        </View>
+                                        <Text style={[TEXT.text, TEXT.size(16)]}>2 items</Text>
+                                    </View>
+                                    <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
+                                        <TouchableOpacity onPress={() => router.push(`../detailorder/${item}`)} style={[LAYOUT.px(10), LAYOUT.py(4), LAYOUT.w(100), LAYOUT.rounded(22), { backgroundColor: COLORS.button }]}>
+                                            <Text style={[TEXT.text, TEXT.size(16), TEXT.center, { color: COLORS.textLight }]}>Chi tiết</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+
+            </View>
+        </View>
     );
 };
+
+export default HistoryScreen;
