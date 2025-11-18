@@ -145,8 +145,25 @@ app.get("/api/dishes/bestseller", async (req, res) => {
       .select()
       .from(dishes)
       .where(eq(dishes.status, "Active"))
+      .orderBy(desc(dishes.selled));
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/dishes/bestseller/:limit", async (req, res) => {
+  try {
+    const { limit } = req.params;
+    
+    const results = await db
+      .select()
+      .from(dishes)
+      .where(eq(dishes.status, "Active"))
       .orderBy(desc(dishes.selled))
-      .limit(4);
+      .limit(parseInt(limit));
 
     res.status(200).json(results);
   } catch (error) {
