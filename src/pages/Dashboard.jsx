@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from "recharts";
 
-export default function Dashboard({ isLogin }) {
+export default function Dashboard() {
     const [data, setData] = useState([]);
 
     useEffect(() => {
@@ -20,8 +20,6 @@ export default function Dashboard({ isLogin }) {
             { name: "Tháng 12", orders: 456, revenue: 5600 },
         ];
         setData(fakeData);
-        
-        if (!isLogin) window.location.href = "/login";
     }, []);
 
     return (
@@ -53,8 +51,12 @@ export default function Dashboard({ isLogin }) {
                     </ResponsiveContainer>
                 </div>
 
+
+            </div>
+
+            <div className="flex justify-between gap-x-8 my-20">
                 {/* Biểu đồ tròn */}
-                <div className="mt-20">
+                <div>
                     <div style={{ width: "400px", height: "400px" }}>
                         <h3>Tỷ lệ sản phẩm bán chạy</h3>
                         <ResponsiveContainer width="100%" height="100%">
@@ -82,82 +84,74 @@ export default function Dashboard({ isLogin }) {
 
                     </div>
                 </div>
-            </div>
 
-            {/* Account lists */}
-            <h3>Tài khoản mới trong tuần</h3>
-            <div style={{ display: "flex", marginBottom: "40px" }}>
-                <div style={{ width: "50%" }}>
-                    <table width="100%" style={{ borderCollapse: "collapse" }}>
-                        <thead style={{ backgroundColor: "gray", position: "sticky", top: 0, zIndex: 2 }}>
-                            <tr>
-                                <th>STT</th>
-                                <th>Họ tên</th>
-                                <th>Email</th>
-                                <th>Liên hệ</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                    </table>
-
-                    <div style={{ maxHeight: "100px", overflowY: "auto", border: "1px solid var(--border)" }}>
-                        <table width="100%" style={{ borderCollapse: "collapse" }}>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Nguyen Minh Sang</td>
-                                    <td>fffein@gmail.com</td>
-                                    <td>0992329256</td>
-                                    <td>
-                                        <button>Sửa</button>
-                                        <button>Khóa</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Trần Văn A</td>
-                                    <td>abc@gmail.com</td>
-                                    <td>0123456789</td>
-                                    <td>
-                                        <button>Sửa</button>
-                                        <button>Khóa</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Lê Thị B</td>
-                                    <td>bbb@gmail.com</td>
-                                    <td>0987654321</td>
-                                    <td>
-                                        <button>Sửa</button>
-                                        <button>Khóa</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Lê Thị B</td>
-                                    <td>bbb@gmail.com</td>
-                                    <td>0987654321</td>
-                                    <td>
-                                        <button>Sửa</button>
-                                        <button>Khóa</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Lê Thị B</td>
-                                    <td>bbb@gmail.com</td>
-                                    <td>0987654321</td>
-                                    <td>
-                                        <button>Sửa</button>
-                                        <button>Khóa</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div className="w-full">
+                    {/* Account lists */}
+                    <h3>Tài khoản mới trong tuần</h3>
+                    <div className="mb-[40px] w-full">
+                        <div>
+                            <table width="100%" style={{ border: "1px solid black", textAlign: "center" }}>
+                                <thead style={{ backgroundColor: "gray", zIndex: 2 }}>
+                                    <tr>
+                                        <th className="w-10">STT</th>
+                                        <th>Họ tên</th>
+                                        <th className="w-44">Email</th>
+                                        <th className="w-28">Liên hệ</th>
+                                        <th className="w-24">-</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr className="border-b-1 border-gray-300">
+                                        <td>1</td>
+                                        <td>Nguyen Minh Sang</td>
+                                        <td>fffein@gmail.com</td>
+                                        <td>0992329256</td>
+                                        <td align="center">
+                                            <button>Xem</button>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b-1 border-gray-300">
+                                        <td>2</td>
+                                        <td>Trần Văn A</td>
+                                        <td>abc@gmail.com</td>
+                                        <td>0123456789</td>
+                                        <td align="center">
+                                            <button>Xem</button>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b-1 border-gray-300">
+                                        <td>3</td>
+                                        <td>Lê Thị B</td>
+                                        <td>bbb@gmail.com</td>
+                                        <td>0987654321</td>
+                                        <td align="center">
+                                            <button>Xem</button>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b-1 border-gray-300">
+                                        <td>3</td>
+                                        <td>Lê Thị B</td>
+                                        <td>bbb@gmail.com</td>
+                                        <td>0987654321</td>
+                                        <td align="center">
+                                            <button>Xem</button>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b-1 border-gray-300">
+                                        <td>3</td>
+                                        <td>Lê Thị B</td>
+                                        <td>bbb@gmail.com</td>
+                                        <td>0987654321</td>
+                                        <td align="center">
+                                            <button>Xem</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                        </div>
                     </div>
-                </div>
-                <div>
                 </div>
             </div>
         </div>

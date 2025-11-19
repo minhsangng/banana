@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "./../constants/api";
 
-export default function Stores ({ isLogin }) {
+export default function Stores() {
     const [content, setContent] = useState([]);
 
-    async function showDishes() {
+    async function showStores() {
         try {
-            const response = await fetch(`http://localhost:5001/api/stores`);
+            const response = await fetch(`${API_URL}/stores`);
 
             const data = await response.json();
 
@@ -17,8 +18,7 @@ export default function Stores ({ isLogin }) {
     };
 
     useEffect(() => {
-        if (!isLogin) window.location.href = "/login";
-        showDishes();
+        showStores();
     }, []);
 
     return (

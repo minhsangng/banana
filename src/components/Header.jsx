@@ -6,9 +6,6 @@ export default function Header({ onToggleSidebar, isLogin, onLogout }) {
     const [open, setOpen] = useState(true);
     const [openSearchBar, setOpenSearchBar] = useState(false);
 
-    // menu user
-    const [openUserMenu, setOpenUserMenu] = useState(false);
-
     const toggleIcon = () => {
         setOpen(!open);
         setIconMenu(!open ? "menu-outline" : "filter-outline");
@@ -17,11 +14,6 @@ export default function Header({ onToggleSidebar, isLogin, onLogout }) {
 
     const toggleSearch = () => {
         setOpenSearchBar(!openSearchBar);
-    };
-
-    const toggleUserMenu = () => {
-        if (!isLogin) return;
-        setOpenUserMenu(!openUserMenu);
     };
 
     return (
@@ -47,34 +39,12 @@ export default function Header({ onToggleSidebar, isLogin, onLogout }) {
                 </div>
 
                 <div className="userIcon">
-
-                    {/* Nếu chưa login → link đến login */}
-                    {!isLogin && (
+                    {!isLogin ? (
                         <Link to="/login" style={{ color: "#000" }}>
                             <ion-icon name="person-circle-outline" className="personIcon"></ion-icon>
                         </Link>
-                    )}
-
-                    {/* Nếu đã login → không dùng Link */}
-                    {isLogin && (
-                        <ion-icon
-                            name="person-circle-outline"
-                            className="personIcon"
-                            onClick={toggleUserMenu}
-                            style={{ cursor: "pointer" }}
-                        ></ion-icon>
-                    )}
-
-                    {/* menu user */}
-                    {isLogin && openUserMenu && (
-                        <div className="navbar">
-                            <h4>Tài khoản</h4>
-                            <ul>
-                                <li>Cập nhật thông tin</li>
-                                <li><p onClick={onLogout}>Đăng xuất</p></li>
-                            </ul>
-                        </div>
-                    )}
+                    ) : (<div><ion-icon name="person-circle-outline" className="personIcon"></ion-icon></div>)
+                    }
                 </div>
             </div>
         </div>

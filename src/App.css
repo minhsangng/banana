@@ -1,11 +1,11 @@
 @font-face {
   font-family: "Modak";
-  src: url("/assets/fonts/DFVN-Modak.ttf") format(truetype);
+  src: url("../src/assets/fonts/DFVN-Modak.ttf") format(truetype);
 }
 
 @font-face {
   font-family: "GochiHand";
-  src: url("/assets/fonts/DFVN-GochiHand.ttf") format(truetype);
+  src: url("../src/assets/fonts/DFVN-GochiHand.ttf") format(truetype);
 }
 
 :root {
@@ -53,7 +53,7 @@ body {
 }
 
 .sidebar.collapsed {
-  width: 50px;
+  width: 70px;
 }
 
 .sidebar h2 {
@@ -73,7 +73,8 @@ body {
   padding-bottom: .2rem;
 }
 
-.sidebar a {
+.sidebar a,
+.sidebar button {
   display: flex;
   align-items: center;
   color: var(--heading);
@@ -140,9 +141,12 @@ ion-icon {
   cursor: pointer;
 }
 
-.menuIcon,
-.personIcon {
+.menuIcon {
   font-size: 42px;
+}
+
+.personIcon {
+  font-size: 28px;
 }
 
 .navbar {
@@ -182,13 +186,8 @@ ion-icon {
   transition: all 1s ease-out;
 }
 
-.notifyIcon:hover .navbar,
-.userIcon:hover .navbar {
+.notifyIcon:hover .navbar {
   display: block;
-}
-
-.userIcon .navbar::before {
-  right: 10%;
 }
 
 .navbar ul {
@@ -232,49 +231,11 @@ ion-icon {
   display: none;
 }
 
-/* Login */
-.login form {
-  width: 100%;
-}
-
-.login table {
-  width: fit-content;
-}
-
-.login label {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.login input {
-  padding: 8px 12px;
-  border-radius: 12px;
-  outline: none;
-  border: 1px solid var(--accent);
-  margin-bottom: 14px;
-  width: 100%;
-  font-size: 16px;
-  color: var(--paragraph);
-}
-
-.login button {
-  padding: 8px 24px;
-  font: 18px "Modak";
-  color: var(--light);
-  background-color: var(--button);
-  border: none;
-  border-radius: 22px;
-  margin: 14px auto 0;
-  letter-spacing: .15rem;
-  cursor: pointer;
-}
-
 /* Content */
 .main-content {
   background: var(--textLight);
   padding: 70px 20px 20px;
   height: auto;
-  width: 100%;
 }
 
 button {

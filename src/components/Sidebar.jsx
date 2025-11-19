@@ -1,21 +1,6 @@
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-export default function Sidebar({ isOpen, isActive }) {
-    const linkClass = ({ isActive: active }) =>
-        `sidebar-item ${active ? "active" : ""}`;
-
-    const linkStyle = {
-        pointerEvents: isActive ? "auto" : "none",
-        cursor: isActive ? "pointer" : "not-allowed",
-        opacity: isActive ? 1 : 0.5,
-    };
-
-    const itemLayout = {
-        justifyContent: isOpen ? "flex-start" : "center",
-        paddingLeft: isOpen ? "10px" : "0",
-        paddingRight: isOpen ? "10px" : "0",
-    };
-
+export default function Sidebar({ isOpen, onLogout }) {
     return (
         <div className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
             <div>
@@ -23,45 +8,49 @@ export default function Sidebar({ isOpen, isActive }) {
 
                 <ul>
                     <li>
-                        <NavLink
-                            to="/"
-                            className={linkClass}
-                            style={{ ...linkStyle, ...itemLayout }}
-                        >
+                        <Link to="/">
                             <ion-icon name="speedometer-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Dashboard
                             </span>
-                        </NavLink>
+                        </Link>
                     </li>
 
                     <li>
-                        <NavLink
-                            to="/users"
-                            className={linkClass}
-                            style={{ ...linkStyle, ...itemLayout }}
-                        >
+                        <Link to="/users">
                             <ion-icon name="person-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Users
                             </span>
-                        </NavLink>
+                        </Link>
                     </li>
 
                     <li>
-                        <NavLink
-                            to="/stores"
-                            className={linkClass}
-                            style={{ ...linkStyle, ...itemLayout }}
-                        >
+                        <Link to="/stores">
                             <ion-icon name="storefront-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Stores
                             </span>
-                        </NavLink>
+                        </Link>
+                    </li>
+
+                    <li>
+                        <Link to="/requests">
+                            <ion-icon name="chatbubbles-outline"></ion-icon>
+                            <span className={isOpen ? "open" : "collapsed"}>
+                                Requests
+                            </span>
+                        </Link>
+                    </li>
+
+                    <li>
+                        <button onClick={onLogout} style={{ marginTop: 20, width: "100%", backgroundColor: "#F9F9F9", borderTop: 1, borderStyle: "solid", borderTopColor: "#F5CB58" }}>
+                            <ion-icon name="log-out-outline"></ion-icon>
+                            <span className={isOpen ? "open" : "collapsed"}>Logout</span>
+                        </button>
                     </li>
                 </ul>
             </div>
-        </div>
+        </div >
     );
 }
