@@ -6,12 +6,12 @@ export default function LoginPage({ onLoginSuccess }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const showMessage = (icon, message) => {
+    const showMessage = (icon, message, timer = 2200) => {
         const Toast = Swal.mixin({
             toast: true,
             position: "top-end",
             showConfirmButton: false,
-            timer: 2200,
+            timer: timer,
             timerProgressBar: true,
             didOpen: (toast) => {
                 toast.onmouseenter = Swal.stopTimer;
@@ -40,7 +40,7 @@ export default function LoginPage({ onLoginSuccess }) {
 
             if (result.success) {
                 sessionStorage.setItem("isLogin", true);
-                showMessage("success", "Wecome back!");
+                showMessage("success", "Wecome back!", 1500);
                 setTimeout(()=>{
                     onLoginSuccess();
                 }, 1000);
