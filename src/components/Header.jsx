@@ -43,7 +43,7 @@ export default function Header({ onToggleSidebar, isLogin, onLogout }) {
                         <Link to="/login" style={{ color: "#000" }}>
                             <ion-icon name="person-circle-outline" className="personIcon"></ion-icon>
                         </Link>
-                    ) : (<div><ion-icon name="person-circle-outline" className="personIcon"></ion-icon></div>)
+                    ) : (<div className="relative"><ion-icon name="person-circle-outline" className="personIcon"></ion-icon><span className="absolute -bottom-5 -right-7 w-20 text-center">Hi, Admin!</span></div>)
                     }
                 </div>
             </div>

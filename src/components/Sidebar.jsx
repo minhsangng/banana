@@ -1,7 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Swal from 'sweetalert2'
 
 export default function Sidebar({ isOpen, onLogout }) {
+    const location = useLocation();
+    const currentPath = location.pathname;
 
     const confirmLogout = () => {
         Swal.fire({
@@ -33,12 +35,12 @@ export default function Sidebar({ isOpen, onLogout }) {
     return (
         <div className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
             <div>
-                <h2>{isOpen ? "Admin" : "A"}</h2>
+                <h2>{isOpen ? "Control" : <ion-icon name="construct-outline"></ion-icon>}</h2>
 
                 <ul>
                     <li>
-                        <Link to="/">
-                            <ion-icon name="speedometer-outline"></ion-icon>
+                        <Link to="/" className={currentPath === "/" ? "bg-[var(--background3)]" : ""}>
+                            <ion-icon name="bar-chart-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Dashboard
                             </span>
@@ -46,7 +48,7 @@ export default function Sidebar({ isOpen, onLogout }) {
                     </li>
 
                     <li>
-                        <Link to="/users">
+                        <Link to="/users" className={currentPath === "/users" ? "bg-[var(--background3)]" : ""}>
                             <ion-icon name="person-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Users
@@ -55,16 +57,25 @@ export default function Sidebar({ isOpen, onLogout }) {
                     </li>
 
                     <li>
-                        <Link to="/stores">
+                        <Link to="/stores" className={currentPath === "/stores" ? "bg-[var(--background3)]" : ""}>
                             <ion-icon name="storefront-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Stores
                             </span>
                         </Link>
                     </li>
+                    
+                    <li>
+                        <Link to="/orders" className={currentPath === "/orders" ? "bg-[var(--background3)]" : ""}>
+                            <ion-icon name="podium-outline"></ion-icon>
+                            <span className={isOpen ? "open" : "collapsed"}>
+                                Orders
+                            </span>
+                        </Link>
+                    </li>
 
                     <li>
-                        <Link to="/requests">
+                        <Link to="/requests" className={currentPath === "/requests" ? "bg-[var(--background3)]" : ""}>
                             <ion-icon name="chatbubbles-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>
                                 Requests
@@ -73,7 +84,7 @@ export default function Sidebar({ isOpen, onLogout }) {
                     </li>
 
                     <li>
-                        <button onClick={confirmLogout} style={{ marginTop: 20, width: "100%", backgroundColor: "#F9F9F9", borderTop: 1, borderStyle: "solid", borderTopColor: "#F5CB58" }}>
+                        <button onClick={confirmLogout} className="mt-[20px] w-full bg-[var(--textLight)] border-t-1 border-[var(--background4)]">
                             <ion-icon name="log-out-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>Logout</span>
                         </button>

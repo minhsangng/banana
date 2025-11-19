@@ -9,18 +9,18 @@
 }
 
 :root {
-  --heading: #E95322;
-  --accent: #A8BBA3;
-  --backgroundLight: #F4DA1F;
-  --background2: #F7F4EA;
-  --background3: #F3E9B5;
-  --background4: #F5CB58;
+  --heading: #e95322;
+  --accent: #a8bba3;
+  --backgroundLight: #f4da1f;
+  --background2: #f7f4ea;
+  --background3: #f3e9b5;
+  --background4: #f5cb58;
   --text: #391713;
-  --textLight: #F9F9F9;
+  --textLight: #f9f9f9;
   --paragraph: rgba(0, 0, 0, 0.6);
-  --button: #E95322;
-  --border: #D5D8DC;
-  --light: #FFFFFF;
+  --button: #e95322;
+  --border: #d5d8dc;
+  --light: #ffffff;
   --dark: #333333;
 }
 
@@ -30,7 +30,10 @@
 
 body {
   margin: 0;
-  width: 100vw;
+  background-image: url("./assets/images/background-login.png");
+  background-size: cover;
+  background-position: -10%;
+  background-repeat: no-repeat;
   overflow-x: hidden;
 }
 
@@ -42,10 +45,10 @@ body {
 
 /* Slidebar */
 .sidebar {
-  background: #F7F4EA;
+  background: #f7f4ea;
   color: var(--heading);
   padding: 70px 0;
-  transition: all .25s linear;
+  transition: all 0.25s linear;
 }
 
 .sidebar.open {
@@ -70,7 +73,7 @@ body {
 }
 
 .sidebar ul li {
-  padding-bottom: .2rem;
+  padding-bottom: 0.2rem;
 }
 
 .sidebar a,
@@ -80,7 +83,7 @@ body {
   color: var(--heading);
   text-decoration: none;
   padding: 10px 20px;
-  gap: .5rem;
+  gap: 0.5rem;
   font: 1.2rem "GochiHand";
 }
 
@@ -157,7 +160,7 @@ ion-icon {
   background-color: var(--accent);
   border-radius: 12px;
   display: none;
-  transition: all .75s linear;
+  transition: all 0.75s linear;
 }
 
 .navbar h4 {
@@ -182,7 +185,7 @@ ion-icon {
   height: 0;
   border-left: 15px solid transparent;
   border-right: 15px solid transparent;
-  border-bottom: 25px solid #A8BBA3;
+  border-bottom: 25px solid #a8bba3;
   transition: all 1s ease-out;
 }
 
@@ -197,7 +200,7 @@ ion-icon {
 
 .navbar ul li {
   margin-bottom: 2px;
-  padding: .2rem 1.5rem;
+  padding: 0.2rem 1.5rem;
 }
 
 .navbar ul li:hover {
@@ -208,7 +211,7 @@ ion-icon {
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: all .3s linear;
+  transition: all 0.3s linear;
 }
 
 .openSearch {

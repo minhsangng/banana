@@ -9,11 +9,11 @@ function RootComponent() {
   const [isLogin, setIsLogin] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("isLogin")) setIsLogin(true);
+    if (sessionStorage.getItem("isLogin")) setIsLogin(true);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLogin");
+    sessionStorage.removeItem("isLogin");
     setIsLogin(false);
   };
 
