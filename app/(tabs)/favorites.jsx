@@ -5,6 +5,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
+import { API } from "../../constants/api";
 
 const { width, height } = Dimensions.get("window");
 
@@ -16,8 +17,8 @@ const FavoritesScreen = () => {
     const loadAllBestSeller = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`http://192.168.1.171:5001/api/dishes/bestseller`);
-            const results = await response.json();
+            const response = await API.get(`/dishes/bestseller`);
+            const results = response.data;
 
             if (results)
                 setData(results);

@@ -10,6 +10,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import SubMenu from "../../components/SubMenu";
 import PopupSearch from "../../components/PopupSearch";
 import CategoryFilter from "../../components/CategoryFilter";
+import { API } from "../../constants/api";
 
 const { width, height } = Dimensions.get("window");
 
@@ -29,9 +30,9 @@ const HomeScreen = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`http://192.168.1.171:5001/api/categories`);
+      const response = await API.get("/categories");
 
-      const results = await response.json();
+      const results = response.data;
 
       if (results) {
         setCategories(results);
@@ -71,8 +72,8 @@ const HomeScreen = () => {
 
   const loadBestSeller = async () => {
     try {
-      const response = await fetch(`http://192.168.1.171:5001/api/dishes/bestseller/4`);
-      const results = await response.json();
+      const response = await API.get("/dishes/bestseller/4");
+      const results = response.data;
 
       if (results)
         setDataBS(results);

@@ -14,6 +14,7 @@ import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { API_URL } from "../constants/api";
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,7 +26,7 @@ export default function PopupSearch({ visible, query, onClose }) {
     const loadDataSearch = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://192.168.1.171:5001/api/search/${query}`);
+        const response = await fetch(`${API_URL}/search/${query}`);
 
         const results = await response.json();
 
