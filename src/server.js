@@ -9,7 +9,7 @@ import {
   orders,
   orderItems,
 } from "./db/schema.js";
-import { eq, and, ilike, desc } from "drizzle-orm";
+import { eq, and, ilike, desc, between } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 
@@ -199,7 +199,7 @@ app.get("/api/stores", async (req, res) => {
 /* Select users table */
 app.get("/api/users", async (req, res) => {
   try {
-    const results = await db.select().from(users);
+    const results = await db.select().from(users).where(eq(users.role, "Customer")).orderBy(desc(users.createdAt)).limit(10);
 
     res.status(200).json(results);
   } catch (error) {
@@ -244,6 +244,33 @@ app.delete("/api/dishes/:dishId", async (req, res) => {
     res.status(200).json({ message: "Dish deleted successfully" });
   } catch (error) {
     console.log("Error removing a favorite", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* REVENUE */
+app.get("/api/orders/:start/:end", async (req, res) => {
+  try {
+    const {start, end} = req.params;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return res.status(400).json({ error: "Ngày không hợp lệ" });
+    }
+    
+    const results = await db
+      .select()
+      .from(orders)
+      .where(
+        and(eq(orders.status, "Success"),
+          between(orders.orderDate, startDate, endDate)
+        )  
+      );
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the orders", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
