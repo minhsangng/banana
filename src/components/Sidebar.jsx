@@ -1,6 +1,35 @@
 import { Link } from "react-router-dom";
+import Swal from 'sweetalert2'
 
 export default function Sidebar({ isOpen, onLogout }) {
+
+    const confirmLogout = () => {
+        Swal.fire({
+            title: 'Logout?',
+            text: 'Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            confirmButtonText: 'Logout',
+            confirmButtonColor: '#E95322',
+            showClass: {
+                popup:
+                    `animate__animated
+                    animate__fadeInUp
+                    animate__faster `
+            },
+            hideClass: {
+                popup:
+                    `animate__animated
+                    animate__fadeOutDown
+                    animate__faster`
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                onLogout();
+            }
+        });
+    }
     return (
         <div className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
             <div>
@@ -44,7 +73,7 @@ export default function Sidebar({ isOpen, onLogout }) {
                     </li>
 
                     <li>
-                        <button onClick={onLogout} style={{ marginTop: 20, width: "100%", backgroundColor: "#F9F9F9", borderTop: 1, borderStyle: "solid", borderTopColor: "#F5CB58" }}>
+                        <button onClick={confirmLogout} style={{ marginTop: 20, width: "100%", backgroundColor: "#F9F9F9", borderTop: 1, borderStyle: "solid", borderTopColor: "#F5CB58" }}>
                             <ion-icon name="log-out-outline"></ion-icon>
                             <span className={isOpen ? "open" : "collapsed"}>Logout</span>
                         </button>
