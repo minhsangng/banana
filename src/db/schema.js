@@ -38,6 +38,7 @@ export const stores = pgTable("stores", {
   logoUrl: varchar("logo_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   rateStar: numeric("rate_star").notNull().default(0.0), 
+  userId: integer("user_id"),
   status: varchar("status").notNull().default("Active"),
 });
 

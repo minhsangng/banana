@@ -47,6 +47,7 @@ CREATE TABLE "stores" (
 	"logo_url" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"rate_star" numeric DEFAULT 0 NOT NULL,
+	"user_id" integer,
 	"status" varchar DEFAULT 'Active' NOT NULL,
 	CONSTRAINT "stores_phone_number_unique" UNIQUE("phone_number")
 );
