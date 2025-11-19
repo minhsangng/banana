@@ -157,7 +157,7 @@ app.get("/api/dishes/bestseller", async (req, res) => {
 app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   try {
     const { limit } = req.params;
-    
+
     const results = await db
       .select()
       .from(dishes)
@@ -187,7 +187,7 @@ app.get("/api/categories", async (req, res) => {
 /* Select stores table */
 app.get("/api/stores", async (req, res) => {
   try {
-    const results = await db.select().from(stores);
+    const results = await db.select().from(stores).where(eq(stores.status, "Active"));
 
     res.status(200).json(results);
   } catch (error) {
