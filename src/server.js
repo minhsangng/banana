@@ -141,33 +141,22 @@ app.get("/api/dishes", async (req, res) => {
   }
 });
 
-/* Select dish best seller */
-app.get("/api/dishes/bestseller", async (req, res) => {
+/* Select dish best seller in limit range */
+app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   try {
-    const results = await db
+    const limit = parseInt(req.params.limit);
+
+    let query = db
       .select()
       .from(dishes)
       .where(eq(dishes.status, "Active"))
       .orderBy(desc(dishes.selled));
 
-    res.status(200).json(results);
-  } catch (error) {
-    console.log("Error fetching the dishes", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
+    if (limit !== 0) {
+      query = query.limit(limit);
+    }
 
-/* Select dish best seller in limit range */
-app.get("/api/dishes/bestseller/:limit", async (req, res) => {
-  try {
-    const { limit } = req.params;
-
-    const results = await db
-      .select()
-      .from(dishes)
-      .where(eq(dishes.status, "Active"))
-      .orderBy(desc(dishes.selled))
-      .limit(parseInt(limit));
+    const results = await query;
 
     res.status(200).json(results);
   } catch (error) {

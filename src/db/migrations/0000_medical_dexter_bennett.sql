@@ -26,7 +26,8 @@ CREATE TABLE "favorites" (
 CREATE TABLE "order_items" (
 	"order_item_id" integer PRIMARY KEY NOT NULL,
 	"order_id" integer NOT NULL,
-	"dish_id" integer NOT NULL
+	"dish_id" integer NOT NULL,
+	"quantity" integer DEFAULT 1 NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (

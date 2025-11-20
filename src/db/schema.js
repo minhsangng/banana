@@ -56,6 +56,7 @@ export const orderItems = pgTable("order_items", {
   orderItemId: integer("order_item_id").primaryKey(),
   orderId: integer("order_id").notNull(),
   dishId: integer("dish_id").notNull(),
+  quantity: integer("quantity").notNull().default(1),
 });
 
 export const favorites = pgTable("favorites", {
