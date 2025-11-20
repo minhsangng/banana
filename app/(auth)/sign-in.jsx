@@ -12,12 +12,36 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 const { height } = Dimensions.get("window");
 
 export default function SignInScreen() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post(`${API_URL}/auth/login`, {
+                email,
+                password,
+            });
+
+            if (response.data.success) {
+                await SecureStore.setItemAsync("accessToken", response.data.token);
+                await SecureStore.setItemAsync("userInfo", response.data.user);
+                router.replace("../(tabs)/");
+            } else {
+                alert(response.data.message || "Đăng nhập thất bại");
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -39,9 +63,11 @@ export default function SignInScreen() {
                 </Text>
 
                 {/* Phone Number */}
-                <Text style={styles.label}>Điện thoại</Text>
+                <Text style={styles.label}>Email</Text>
                 <TextInput
-                    placeholder="0123456789"
+                    placeholder="example@gmail.com"
+                    value={email}
+                    onChangeText={setEmail}
                     placeholderTextColor={COLORS.paragraph}
                     style={styles.input}
                 />
@@ -51,6 +77,8 @@ export default function SignInScreen() {
                 <View style={styles.passwordContainer}>
                     <TextInput
                         placeholder="********"
+                        value={password}
+                        onChangeText={setPassword}
                         placeholderTextColor={COLORS.paragraph}
                         secureTextEntry={!showPassword}
                         style={styles.passwordInput}
@@ -69,7 +97,7 @@ export default function SignInScreen() {
                 </TouchableOpacity>
 
                 {/* Login Button */}
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleLogin}>
                     <Text style={[BUTTON.primary]}>Đăng nhập</Text>
                 </TouchableOpacity>
 

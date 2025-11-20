@@ -1,28 +1,27 @@
-import { View, Text, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { API } from "../../constants/api";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
-const DishDetailScreen = () => {
-    const { id: dishId } = useLocalSearchParams();
-    const [data, setData] = useState([]);
+const OrderDetailScreen = () => {
+    const { id: orderId } = useLocalSearchParams();
+    const [order, setOrder] = useState([]);
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-    const loadDishDetail = async () => {
+    const loadOrderDetail = async () => {
         try {
             setLoading(true);
-            const response = await API.get(`/dish/${dishId}`);
-            const results = response.data;
+            const { data } = await axios.get(`${API_URL}/order/${orderId}`);
 
-            if (results)
-                setData(results[0]);
+                setOrder(data[0]);
 
             setLoading(false);
         } catch (error) {
@@ -31,7 +30,7 @@ const DishDetailScreen = () => {
     }
 
     useEffect(() => {
-        /* loadDishDetail(); */
+        /* loadOrderDetail(); */
     }, []);
 
     if (loading) return <LoadingSpinner />;
@@ -46,7 +45,7 @@ const DishDetailScreen = () => {
                     </View>
                 </View>
             </View>
-            <View key={data.dishId} style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
+            <View key={order.orderId} style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(32)]}>
                     <View style={[LAYOUT.borderb(1, COLORS.background4), LAYOUT.pb(12)]}>
                         <Text style={[TEXT.text]}>Order No. #0123</Text>
@@ -113,4 +112,4 @@ const DishDetailScreen = () => {
     );
 };
 
-export default DishDetailScreen;
+export default OrderDetailScreen;

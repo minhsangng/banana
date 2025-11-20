@@ -5,7 +5,8 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { API } from "../../constants/api";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
@@ -17,8 +18,8 @@ const HistoryScreen = () => {
     const loadAllBestSeller = async () => {
         try {
             setLoading(true);
-            const response = await API.get(`/dishes/bestseller`);
-            const results = response.data;
+            const response = await axios.get(`${API_URL}/dishes/bestseller`);
+            const results = await response.json();
 
             if (results)
                 setData(results);

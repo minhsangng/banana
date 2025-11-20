@@ -10,7 +10,8 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import SubMenu from "../../components/SubMenu";
 import PopupSearch from "../../components/PopupSearch";
 import CategoryFilter from "../../components/CategoryFilter";
-import { API } from "../../constants/api";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
@@ -29,20 +30,42 @@ const HomeScreen = () => {
   const [resultsSearch, setResultsSearch] = useState("");
 
   const loadCategories = async () => {
-    try {
-      const response = await API.get("/categories");
-
-      const results = response.data;
-
-      if (results) {
-        setCategories(results);
-      }
-    } catch (error) {
-      console.log('Lỗi', 'Không thể kết nối API');
-      console.error(error);
-    }
+    const { data } = await axios.get(`${API_URL}/categories`);
+    setCategories(data);
   }
 
+  const loadBestSeller = async () => {
+    const { data } = await axios.get(`${API_URL}/dishes/bestseller/4`);
+    setDataBS(data);
+  }
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+
+      await Promise.all([
+        loadCategories(),
+        loadBestSeller()
+      ]);
+
+    } catch (error) {
+      console.log("Error loading the data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    updateGreeting();
+    const greetingInterval = setInterval(updateGreeting, 60 * 1000);
+
+    return () => {
+      clearInterval(greetingInterval);
+    };
+  }, []);
+  
+  
   const slides = [
     {
       id: 0,
@@ -69,40 +92,6 @@ const HomeScreen = () => {
     const index = Math.round(offsetX / width);
     setCurrentIndex(index);
   };
-
-  const loadBestSeller = async () => {
-    try {
-      const response = await API.get("/dishes/bestseller/4");
-      const results = response.data;
-
-      if (results)
-        setDataBS(results);
-    } catch (error) {
-      console.log("Lỗi không thể kết nối API ", error);
-    }
-  }
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      await loadCategories();
-      await loadBestSeller();
-    } catch (error) {
-      console.log("Error loading the data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-    updateGreeting();
-    const greetingInterval = setInterval(updateGreeting, 60 * 1000);
-
-    return () => {
-      clearInterval(greetingInterval);
-    };
-  }, []);
 
   const updateGreeting = () => {
     let hour = new Date().getHours();
@@ -218,7 +207,7 @@ const HomeScreen = () => {
                     >
                       <Text
                         style={[
-                          LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), LAYOUT.pt(2), LAYOUT.px(3), LAYOUT.roundedtl(30), LAYOUT.roundedbl(30), 
+                          LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), LAYOUT.pt(2), LAYOUT.px(3), LAYOUT.roundedtl(30), LAYOUT.roundedbl(30),
                           TEXT.subText, homeStyles.bestSellerNameDish
                         ]}
                         numberOfLines={1}

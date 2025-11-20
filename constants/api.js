@@ -1,10 +1,1 @@
-import axios from "axios";
-
-export const API  = axios.create({
-  baseURL: "http://cfo-app.onrender.com/api",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-    "Connection": "keep-alive"
-  }
-});
+export const API_URL = "http://192.168.1.171:5001/api";

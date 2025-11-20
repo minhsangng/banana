@@ -5,24 +5,24 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { API } from "../../constants/api";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 const { width, height } = Dimensions.get("window");
 
 const OrderScreen = () => {
-    const [data, setData] = useState([]);
+    const [orders, setOrders] = useState([]);
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [isLogin, setIsLogin] = useState(false);
 
     const loadAllBestSeller = async () => {
         try {
             setLoading(true);
-            const response = await API.get(`/dishes/bestseller`);
-            const results = await response.json();
+            const { data } = await axios.get(`${API_URL}/orders`);
 
-            if (results)
-                setData(results);
-
+            setOrders(data);
             setLoading(false);
         } catch (error) {
             console.log("Lỗi không thể kết nối API ", error);
@@ -30,6 +30,14 @@ const OrderScreen = () => {
     }
 
     useEffect(() => {
+        const loadUser = async () => {
+            const storedUser = await SecureStore.getItem("userInfo");
+            if (storedUser) {
+                setIsLogin(true);
+            }
+        };
+        loadUser();
+
         loadAllBestSeller();
     }, []);
 
@@ -63,30 +71,35 @@ const OrderScreen = () => {
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        {data.map((item) => (
-                            <TouchableOpacity key={item.dishId}
-                                style={[LAYOUT.wFull, LAYOUT.mb(20), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background4)]}>
-                                <ImageBackground
-                                    source={item.imageUrl ? { uri: item.imageUrl } : require("../../assets/images/background-default.png")}
-                                    style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
-                                />
-                                <View>
-                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                        <Text style={[TEXT.text, LAYOUT.w("50%")]} numberOfLines={1}>{item.dishName}</Text>
-                                        <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(item.price)} đ</Text>
+                        {!isLogin ? (<View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+                                <Text style={[TEXT.center, TEXT.text]}>Vui lòng </Text>
+                                <TouchableOpacity onPress={()=> router.push("../(auth)/sign-in")}><Text style={[TEXT.text, { color: COLORS.heading }]}> đăng nhập </Text></TouchableOpacity>
+                                <Text style={[TEXT.center, TEXT.text]}>để xem thông tin</Text>
+                        </View>)
+                            : (orders.map((item) => (
+                                <TouchableOpacity key={item.orderId}
+                                    style={[LAYOUT.wFull, LAYOUT.mb(20), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background4)]}>
+                                    <ImageBackground
+                                        source={require("../../assets/images/background-default.png")}
+                                        style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
+                                    />
+                                    <View>
+                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                            <Text style={[TEXT.text, LAYOUT.w("50%")]} numberOfLines={1}>{item.orderId}</Text>
+                                            <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(item.orderDate)} đ</Text>
+                                        </View>
+                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
+                                            <Text style={[TEXT.text, TEXT.size(16)]}>{item.orderDate}</Text>
+                                            <Text style={[TEXT.text, TEXT.size(16)]}>2 items</Text>
+                                        </View>
+                                        <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
+                                            <TouchableOpacity style={[LAYOUT.px(10), LAYOUT.py(4), LAYOUT.w(100), LAYOUT.rounded(22), { backgroundColor: COLORS.background3 }]}>
+                                                <Text style={[TEXT.text, TEXT.size(16), TEXT.center, { color: COLORS.heading }]}>Hủy đơn</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
-                                        <Text style={[TEXT.text, TEXT.size(16)]}>09:23 - 19/11</Text>
-                                        <Text style={[TEXT.text, TEXT.size(16)]}>2 items</Text>
-                                    </View>
-                                    <View style={[LAYOUT.mt(12), {alignItems: "flex-end"}]}>
-                                        <TouchableOpacity style={[LAYOUT.px(10), LAYOUT.py(4), LAYOUT.w(100), LAYOUT.rounded(22), {backgroundColor: COLORS.background3}]}>
-                                        <Text style={[TEXT.text, TEXT.size(16), TEXT.center, {color: COLORS.heading}]}>Hủy đơn</Text>
-                                    </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
+                                </TouchableOpacity>
+                            )))}
                     </ScrollView>
                 </View>
 

@@ -6,26 +6,25 @@ import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
 const DishDetailScreen = () => {
-    const [data, setData] = useState([]);
+    const [dishes, setDishes] = useState([]);
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const loadAllBestSeller = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_URL}/dishes/bestseller`);
-            const results = await response.json();
-
-            if (results)
-                setData(results);
-
+            const { data } = await axios.get(`${API_URL}/dishes/bestseller/0`);
+            
+            setDishes(data);
             setLoading(false);
         } catch (error) {
             console.log("Lỗi không thể kết nối API ", error);
+            setLoading(false);
         }
     }
 
@@ -65,7 +64,7 @@ const DishDetailScreen = () => {
 
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
                     <FlatList
-                        data={data}
+                        data={dishes}
                         keyExtractor={(item) => item.dishId}
                         numColumns={2}
                         showsVerticalScrollIndicator={false}

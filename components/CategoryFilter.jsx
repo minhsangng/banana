@@ -5,6 +5,7 @@ import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { API_URL } from "../constants/api";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,9 +34,8 @@ export default function CategoryFilter({ categoryId, visible }) {
             try {
                 if (categoryId !== -1) {
                     setLoading(true);
-                    const response = await fetch(`${API_URL}/category/${categoryId}`);
-                    const results = await response.json();
-                    setData(results);
+                    const { response } = await axios.get(`${API_URL}/dishes/${categoryId}`);
+                    setData(response);
                 } else {
                     setData([]);
                 }
@@ -46,7 +46,7 @@ export default function CategoryFilter({ categoryId, visible }) {
             }
         }
 
-        loadDishByCategoryId();
+        loadDishByCategoryId()
     }, [categoryId]);
 
     if (!visible) return null;
