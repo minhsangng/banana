@@ -21,12 +21,15 @@ if (ENV.NODE_ENV === "production") job.start();
 app.use(cors());
 app.use(express.json());
 
-/* Test */
-app.get("/api/banana", (req, res) => {
+
+/* TEST */
+app.get("/api/healthz", (req, res) => {
   res.status(200).json({ success: true });
 });
 
-/* Insert into dishes table */
+
+/* DISH API */
+/* Insert dishes */
 app.post("/api/dishes", async (req, res) => {
   try {
     const {
@@ -85,8 +88,8 @@ app.get("/api/search/:query", async (req, res) => {
   }
 });
 
-/* Filter dish by category */
-app.get("/api/category/:categoryId", async (req, res) => {
+/* Selct dish by categoryId */
+app.get("/api/dishes/:categoryId", async (req, res) => {
   try {
     const { categoryId } = req.params;
 
@@ -108,7 +111,7 @@ app.get("/api/category/:categoryId", async (req, res) => {
 });
 
 /* Select dish detail */
-app.get("/api/dish/:dishId", async (req, res) => {
+app.get("/api/dishes/:dishId", async (req, res) => {
   try {
     const { dishId } = req.params;
 
@@ -126,7 +129,7 @@ app.get("/api/dish/:dishId", async (req, res) => {
   }
 });
 
-/* Select dishes table */
+/* Select all dish */
 app.get("/api/dishes", async (req, res) => {
   try {
     const results = await db.select().from(dishes);
@@ -154,6 +157,7 @@ app.get("/api/dishes/bestseller", async (req, res) => {
   }
 });
 
+/* Select dish best seller in limit range */
 app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   try {
     const { limit } = req.params;
@@ -172,7 +176,9 @@ app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   }
 });
 
-/* Select categories table */
+
+/* CATEGORY API */
+/* Select all categories */
 app.get("/api/categories", async (req, res) => {
   try {
     const results = await db.select().from(categories);
@@ -184,7 +190,9 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
-/* Select stores table */
+
+/* STORE API */
+/* Select all stores */
 app.get("/api/stores", async (req, res) => {
   try {
     const results = await db.select().from(stores).where(eq(stores.status, "Active"));
@@ -196,7 +204,9 @@ app.get("/api/stores", async (req, res) => {
   }
 });
 
-/* Select users table */
+
+/* USER API */
+/* Select all users */
 app.get("/api/users", async (req, res) => {
   try {
     const results = await db.select().from(users).where(eq(users.role, "Customer")).orderBy(desc(users.createdAt)).limit(10);
@@ -208,7 +218,9 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-/* Login */
+
+/* ACCOUNT API */
+/* Login confirm */
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -234,38 +246,26 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* Delete dishes table */
-app.delete("/api/dishes/:dishId", async (req, res) => {
-  try {
-    const { dishId } = req.params;
 
-    await db.delete(dishes).where(eq(dishes.dishId, parseInt(dishId)));
-
-    res.status(200).json({ message: "Dish deleted successfully" });
-  } catch (error) {
-    console.log("Error removing a favorite", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
-
-/* REVENUE */
+/* ORDER API */
+/* Select revenue in limit range */
 app.get("/api/orders/:start/:end", async (req, res) => {
   try {
-    const {start, end} = req.params;
+    const { start, end } = req.params;
     const startDate = new Date(start);
     const endDate = new Date(end);
-    
+
     if (isNaN(startDate) || isNaN(endDate)) {
       return res.status(400).json({ error: "Ngày không hợp lệ" });
     }
-    
+
     const results = await db
       .select()
       .from(orders)
       .where(
         and(eq(orders.status, "Success"),
           between(orders.orderDate, startDate, endDate)
-        )  
+        )
       );
 
     res.status(200).json(results);
@@ -275,6 +275,8 @@ app.get("/api/orders/:start/:end", async (req, res) => {
   }
 });
 
+
+/* MESSAGE RUNNING */
 app.listen(5001, () => {
   console.log("Server is running on PORT:", PORT);
 });
