@@ -113,7 +113,7 @@ app.get("/api/dishes/:categoryId", async (req, res) => {
 });
 
 /* Select dish detail */
-app.get("/api/dishes/:dishId", async (req, res) => {
+app.get("/api/dish/:dishId", async (req, res) => {
   try {
     const { dishId } = req.params;
 
@@ -266,6 +266,16 @@ app.get("/api/orders/:start/:end", async (req, res) => {
   }
 });
 
+app.get("/api/orders", async (req, res) => {
+  try {
+    const results = await db.select().from(orders);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
 
 /* MESSAGE RUNNING */
 app.listen(5001, () => {
