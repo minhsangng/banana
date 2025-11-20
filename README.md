@@ -11,5 +11,9 @@ npm i express@5.1.0 @neondatabase/serverless@1.0.0 cors@2.8.5 dotenv@16.5.0 driz
 ```
 
 ```bash
+npm i bcrypt jsonwebtoken express-rate-limit
+```
+
+```bash
 npm run dev
 ```

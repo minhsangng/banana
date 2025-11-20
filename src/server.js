@@ -12,6 +12,7 @@ import {
 import { eq, and, ilike, desc, between } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
+import authRouter from "./auth.js";
 
 const app = express();
 const PORT = ENV.PORT || 5001;
@@ -21,6 +22,7 @@ if (ENV.NODE_ENV === "production") job.start();
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/auth", authRouter);
 
 /* TEST */
 app.get("/api/healthz", (req, res) => {
