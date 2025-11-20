@@ -19,7 +19,7 @@ export default function Dashboard() {
     function buildDailyStats(start, end, orders) {
         const startD = new Date(start);
         const endD = new Date(end);
-        const year = startD.getFullYear(); // dùng cho legend
+        const year = startD.getFullYear();
 
         const days = [];
         let current = new Date(startD);
