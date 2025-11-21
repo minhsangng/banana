@@ -34,8 +34,8 @@ export default function CategoryFilter({ categoryId, visible }) {
             try {
                 if (categoryId !== -1) {
                     setLoading(true);
-                    const { response } = await axios.get(`${API_URL}/dishes/${categoryId}`);
-                    setData(response);
+                    const { data } = await axios.get(`${API_URL}/dishes/${categoryId}`);
+                    setData(data);
                 } else {
                     setData([]);
                 }
@@ -53,13 +53,13 @@ export default function CategoryFilter({ categoryId, visible }) {
 
     if (loading)
         return (
-            <View style={[LAYOUT.main, { height: height * 0.59, backgroundColor: COLORS.light }]}>
+            <View style={[LAYOUT.main, { height: height * 0.59, backgroundColor: COLORS.light, zIndex: 9999, elevation: 9999 }]}>
                 <LoadingSpinner />
             </View>
         );
 
     return (
-        <View style={[LAYOUT.main, { height: height * 0.59, backgroundColor: COLORS.light }]}>
+        <View style={[LAYOUT.main, { height: height * 0.59, backgroundColor: COLORS.light, zIndex: 9999, elevation: 9999 }]}>
             <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
                 <Text style={[TEXT.text, TEXT.size(14), LAYOUT.pr(10)]}>Sắp xếp</Text>
                 <TouchableOpacity onPress={() => setSortBy(sortBy === "Phổ biến" ? "Mới nhất" : "Phổ biến")}>

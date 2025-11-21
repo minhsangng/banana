@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import { useEffect, useState } from "react";
+import { View, ScrollView, TextInput, Text, ImageBackground, TouchableOpacity, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { Portal } from "react-native-paper";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
@@ -9,54 +9,22 @@ import { Ionicons } from "@expo/vector-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import SubMenu from "../../components/SubMenu";
 import PopupSearch from "../../components/PopupSearch";
-import CategoryFilter from "../../components/CategoryFilter";
-import { API_URL } from "../../constants/api";
-import axios from "axios";
+
+import BestSeller from "../../components/BestSeller";
+import SlideBanner from "../../components/SlideBanner";
+import Categories from "../../components/Categories";
 
 const { width, height } = Dimensions.get("window");
 
 const HomeScreen = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState(-1);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuData, setMenuData] = useState({ header: null, content: null });
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
   const [query, setQuery] = useState("");
   const [isShowSearch, setIsShowSearch] = useState(false);
-  const [dataBS, setDataBS] = useState([]);
   const [resultsSearch, setResultsSearch] = useState("");
 
-  const loadCategories = async () => {
-    const { data } = await axios.get(`${API_URL}/categories`);
-    setCategories(data);
-  }
-
-  const loadBestSeller = async () => {
-    const { data } = await axios.get(`${API_URL}/dishes/bestseller/4`);
-    setDataBS(data);
-  }
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-
-      await Promise.all([
-        loadCategories(),
-        loadBestSeller()
-      ]);
-
-    } catch (error) {
-      console.log("Error loading the data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadData();
     updateGreeting();
     const greetingInterval = setInterval(updateGreeting, 60 * 1000);
 
@@ -64,34 +32,6 @@ const HomeScreen = () => {
       clearInterval(greetingInterval);
     };
   }, []);
-  
-  
-  const slides = [
-    {
-      id: 0,
-      storeId: 1,
-      dishId: 1,
-      image: require("../../assets/images/ads-banner-1.png"),
-    },
-    {
-      id: 1,
-      storeId: 1,
-      dishId: 1,
-      image: require("../../assets/images/ads-banner-2.png"),
-    },
-    {
-      id: 2,
-      storeId: 1,
-      dishId: 1,
-      image: require("../../assets/images/ads-banner-1.png"),
-    }
-  ]
-
-  const handleScroll = (event) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / width);
-    setCurrentIndex(index);
-  };
 
   const updateGreeting = () => {
     let hour = new Date().getHours();
@@ -148,8 +88,6 @@ const HomeScreen = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
-
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
       {/* Header */}
@@ -174,91 +112,14 @@ const HomeScreen = () => {
 
       <View style={[LAYOUT.absolute, LAYOUT.bottom(0), LAYOUT.w(width), LAYOUT.h(height * 0.7), homeStyles.main]}>
         {/* Categories */}
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(12), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
-          {categories.map((item, index) => (
-            <TouchableOpacity key={item.categoryId} style={[LAYOUT.w(75), LAYOUT.roundedtl(28), LAYOUT.roundedtr(28), { overflow: "hidden" }]} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
-              <View style={[LAYOUT.pt(10), LAYOUT.pb(4), LAYOUT.itemsCenter, { backgroundColor: item.categoryId === currentCategory ? COLORS.light : "transparent" }]}>
-                <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.categoryId === currentCategory ? homeStyles.categorySelected : ""]} name={item.categoryIcon}></Ionicons>
-                <Text style={[LAYOUT.mt(4), TEXT.subText]}>{item.categoryName}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Categories />
 
         <ScrollView>
           {/* Best Seller Section */}
-          <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(20)]}>
-            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
-              <Text style={TEXT.subHeading}>Best seller</Text>
-              <TouchableOpacity onPress={() => router.push("../bestseller/")}>
-                <Text style={[TEXT.paragraph, homeStyles.bestSellerSeeAll]}>Xem tất cả <Ionicons name="chevron-forward-outline" style={{ fontSize: 16 }}></Ionicons></Text>
-              </TouchableOpacity>
-            </View>
-            <View style={[LAYOUT.mt(4), LAYOUT.row, LAYOUT.justifyBetween]}>
-              {dataBS.length === 0
-                ?
-                (<View><Text>Không có dữ liệu</Text></View>)
-                :
-                dataBS.map((d) => (
-                  <TouchableOpacity key={d.dishId} onPress={() => router.push(`/detaildish/${d.dishId}`)} style={[LAYOUT.border(1, COLORS.border), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110), { overflow: "hidden" }]}>
-                    <ImageBackground
-                      style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]}
-                      source={d.imageUrl ? { uri: d.imageUrl } : require("../../assets/images/background-default.png")}
-                    >
-                      <Text
-                        style={[
-                          LAYOUT.absolute, LAYOUT.bottom(10), LAYOUT.right(-1), LAYOUT.w(45), LAYOUT.pt(2), LAYOUT.px(3), LAYOUT.roundedtl(30), LAYOUT.roundedbl(30),
-                          TEXT.subText, homeStyles.bestSellerNameDish
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {d.dishName}
-                      </Text>
-                    </ImageBackground>
-                  </TouchableOpacity>
-                ))}
-            </View>
-          </View>
+          <BestSeller />
 
           {/* Ads Banner Section */}
-          <View>
-            <FlatList
-              style={{ width: width - 60, marginHorizontal: "auto" }}
-              data={slides}
-              ref={flatListRef}
-              horizontal
-              pagingEnabled
-              decelerationRate="fast"
-              snapToAlignment="center"
-              showsHorizontalScrollIndicator={false}
-              scrollEventThrottle={16}
-              onScroll={handleScroll}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
-                  <ImageBackground source={item.image} style={[LAYOUT.relative, LAYOUT.wFull, LAYOUT.h(160), LAYOUT.rounded(20), homeStyles.advertiseImage, { overflow: "hidden" }]}>
-                    <View style={[LAYOUT.absolute, LAYOUT.top(30), LAYOUT.left(15), LAYOUT.itemsCenter]}></View>
-                  </ImageBackground>
-
-                  <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.mt(8)]}>
-                    {slides.map((_, index) => (
-                      <View
-                        key={index}
-                        style={[LAYOUT.w(24), LAYOUT.h(6), LAYOUT.rounded(10), LAYOUT.mx(2),
-                        { opacity: index === currentIndex ? 1 : 0.3, backgroundColor: COLORS.heading },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-              )}
-              getItemLayout={(data, index) => ({
-                length: width,
-                offset: width * index,
-                index,
-              })}
-            />
-          </View>
+          <SlideBanner />
 
           {/* Recommend Section */}
           <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24), LAYOUT.mb(40)]}>
@@ -299,15 +160,12 @@ const HomeScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Filter Dish By Category */}
-      <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
-
       {/* Search Section */}
       {isShowSearch && (
         <PopupSearch
           visible={isShowSearch}
           query={resultsSearch}
-          onClose={() => (setIsShowSearch(false), setQuery(""), setCurrentCategory(-1))}
+          onClose={() => (setIsShowSearch(false), setQuery(""))}
         />
       )}
     </View>
