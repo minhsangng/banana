@@ -12,31 +12,32 @@ import {
 import { eq, and, ilike, desc, between, inArray } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
-import authRouter from "./auth.js";
+import authRouter, { protect } from "./auth.js";
 
 const app = express();
 const PORT = ENV.PORT || 5001;
 
 if (ENV.NODE_ENV === "production") job.start();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
 
 /* TEST */
-app.get("/api/healthz", (req, res) => {
+app.get("/api/healthz", protect, (req, res) => {
   res.status(200).json({ success: true });
 });
 
-
 /* DISH API */
 /* Insert dishes */
-app.post("/api/dishes", async (req, res) => {
+app.post("/api/dishes", protect, async (req, res) => {
   try {
     const {
       dishName,
@@ -47,7 +48,7 @@ app.post("/api/dishes", async (req, res) => {
       imageUrl,
       status,
       selled,
-      availability
+      availability,
     } = req.body;
 
     if (!dishName || !storeId || !categoryId || !price) {
@@ -65,7 +66,7 @@ app.post("/api/dishes", async (req, res) => {
         imageUrl,
         status,
         selled,
-        availability
+        availability,
       })
       .returning();
 
@@ -77,7 +78,7 @@ app.post("/api/dishes", async (req, res) => {
 });
 
 /* Search dish*/
-app.get("/api/search/:query", async (req, res) => {
+app.get("/api/search/:query", protect, async (req, res) => {
   try {
     const { query } = req.params;
     const q = `%${query}%`;
@@ -95,7 +96,7 @@ app.get("/api/search/:query", async (req, res) => {
 });
 
 /* Selct dish by categoryId */
-app.get("/api/dishes/:categoryId", async (req, res) => {
+app.get("/api/dishes/:categoryId", protect, async (req, res) => {
   try {
     const { categoryId } = req.params;
 
@@ -117,7 +118,7 @@ app.get("/api/dishes/:categoryId", async (req, res) => {
 });
 
 /* Select dish detail */
-app.get("/api/dish/:dishId", async (req, res) => {
+app.get("/api/dish/:dishId", protect, async (req, res) => {
   try {
     const { dishId } = req.params;
 
@@ -136,7 +137,7 @@ app.get("/api/dish/:dishId", async (req, res) => {
 });
 
 /* Select all dish */
-app.get("/api/dishes", async (req, res) => {
+app.get("/api/dishes", protect, async (req, res) => {
   try {
     const results = await db.select().from(dishes);
 
@@ -148,7 +149,7 @@ app.get("/api/dishes", async (req, res) => {
 });
 
 /* Select dish best seller in limit range */
-app.get("/api/dishes/bestseller/:limit", async (req, res) => {
+app.get("/api/dishes/bestseller/:limit", protect, async (req, res) => {
   try {
     const limit = parseInt(req.params.limit);
 
@@ -171,10 +172,9 @@ app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   }
 });
 
-
 /* CATEGORY API */
 /* Select all categories */
-app.get("/api/categories", async (req, res) => {
+app.get("/api/categories", protect, async (req, res) => {
   try {
     const results = await db.select().from(categories);
 
@@ -185,12 +185,14 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
-
 /* STORE API */
 /* Select all stores */
-app.get("/api/stores", async (req, res) => {
+app.get("/api/stores", protect, async (req, res) => {
   try {
-    const results = await db.select().from(stores).where(eq(stores.status, "Active"));
+    const results = await db
+      .select()
+      .from(stores)
+      .where(eq(stores.status, "Active"));
 
     res.status(200).json(results);
   } catch (error) {
@@ -199,12 +201,16 @@ app.get("/api/stores", async (req, res) => {
   }
 });
 
-
 /* USER API */
 /* Select all users */
-app.get("/api/users", async (req, res) => {
+app.get("/api/users", protect, async (req, res) => {
   try {
-    const results = await db.select().from(users).where(eq(users.role, "Customer")).orderBy(desc(users.createdAt)).limit(10);
+    const results = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, "Customer"))
+      .orderBy(desc(users.createdAt))
+      .limit(10);
 
     res.status(200).json(results);
   } catch (error) {
@@ -213,10 +219,9 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-
 /* ORDER API */
 /* Select revenue in limit range */
-app.get("/api/orders/:start/:end", async (req, res) => {
+app.get("/api/orders/:start/:end", protect, async (req, res) => {
   try {
     const { start, end } = req.params;
     const startDate = new Date(start);
@@ -230,7 +235,8 @@ app.get("/api/orders/:start/:end", async (req, res) => {
       .select()
       .from(orders)
       .where(
-        and(eq(orders.status, "Success"),
+        and(
+          eq(orders.status, "Success"),
           between(orders.orderDate, startDate, endDate)
         )
       );
@@ -242,7 +248,7 @@ app.get("/api/orders/:start/:end", async (req, res) => {
   }
 });
 
-app.post("/api/cart/add", async (req, res) => {
+app.post("/api/cart/add", protect, async (req, res) => {
   try {
     const { userId, dishId, quantity } = req.body;
 
@@ -259,7 +265,7 @@ app.post("/api/cart/add", async (req, res) => {
     let orderId;
 
     if (!cart) {
-      const orderDate = new Date();
+      const orderDate = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
 
       await db.insert(orders).values({
         orderDate,
@@ -268,7 +274,10 @@ app.post("/api/cart/add", async (req, res) => {
         status: "Cart",
       });
 
-      orderId = await db.select(orderId).from(orders).orderBy(desc(orders.orderId))[0];
+      orderId = await db
+        .select(orderId)
+        .from(orders)
+        .orderBy(desc(orders.orderId))[0];
     } else {
       orderId = cart.orderId;
     }
@@ -283,7 +292,6 @@ app.post("/api/cart/add", async (req, res) => {
       message: "Added to cart successfully",
       orderId,
     });
-
   } catch (error) {
     console.log("Error adding to cart", error);
     res.status(500).json({ error: "Something went wrong" });
@@ -291,25 +299,30 @@ app.post("/api/cart/add", async (req, res) => {
 });
 
 /* Get cart by userId */
-app.get("/api/cart/get/:userId", async (req, res) => {
+app.get("/api/cart/get/:userId", protect, async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const ordersList = await db.select().from(orders).where(eq(orders.userId, parseInt(userId)));
+    const ordersList = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.userId, parseInt(userId)));
 
     if (ordersList.length === 0) {
       return res.json([]);
     }
 
-    const orderIds = ordersList.map(order => parseInt(order.orderId));
+    const orderIds = ordersList.map((order) => parseInt(order.orderId));
     const orderItemsList = await db
       .select()
       .from(orderItems)
       .where(inArray(orderItems.orderId, orderIds));
 
-    const cart = ordersList.map(order => ({
+    const cart = ordersList.map((order) => ({
       ...order,
-      items: orderItemsList.filter(item => parseInt(item.orderId) === parseInt(order.orderId))
+      items: orderItemsList.filter(
+        (item) => parseInt(item.orderId) === parseInt(order.orderId)
+      ),
     }));
 
     res.json(cart);
@@ -319,7 +332,7 @@ app.get("/api/cart/get/:userId", async (req, res) => {
   }
 });
 
-app.get("/api/orders", async (req, res) => {
+app.get("/api/orders", protect,async (req, res) => {
   try {
     const results = await db.select().from(orders);
 

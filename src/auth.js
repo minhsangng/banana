@@ -36,10 +36,12 @@ router.post("/register", async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
-
+  
+    const date = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
+    
     const inserted = await db
       .insert(users)
-      .values({ fullName, email, phoneNumber, password: hashed })
+      .values({ fullName, email, phoneNumber, password: hashed, createdAt: date })
       .returning();
 
     const user = inserted[0];
