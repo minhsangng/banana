@@ -27,11 +27,9 @@ export default function PopupSearch({ visible, query, onClose }) {
     const loadDataSearch = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/search/${query}`);
+        const { data } = await axios.get(`${API_URL}/search/${query}`);
 
-        const results = await response.json();
-
-        setData(results);
+        setData(data);
         setLoading(false);
       } catch (error) {
         console.log("Lỗi", "Không thể kết nối API", error);

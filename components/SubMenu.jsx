@@ -1,5 +1,5 @@
 import { View, Text, Animated, Dimensions, TouchableWithoutFeedback } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 
@@ -9,15 +9,29 @@ const SUBMENU_WIDTH = 330;
 export default function SubMenu({ visible, setVisible, header, content }) {
     const slideAnim = useRef(new Animated.Value(SUBMENU_WIDTH)).current;
 
-    useEffect(() => {
-        Animated.timing(slideAnim, {
-            toValue: visible ? 0 : SUBMENU_WIDTH,
-            duration: 300,
-            useNativeDriver: true,
-        }).start();
-    }, [visible, content]);
+    const [shouldRender, setShouldRender] = useState(visible);
 
-    if (!visible) return null;
+    useEffect(() => {
+        if (visible) {
+            setShouldRender(true);
+
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(slideAnim, {
+                toValue: SUBMENU_WIDTH,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                setShouldRender(false);
+            });
+        }
+    }, [visible]);
+
+    if (!shouldRender) return null;
 
     return (
         <View style={{ position: "absolute", top: 0, left: 0, width, height, zIndex: 1000 }}>
@@ -45,7 +59,7 @@ export default function SubMenu({ visible, setVisible, header, content }) {
                     }
                 ]}
             >
-                <View style={[LAYOUT.h(150), LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx(), LAYOUT.justifyCenter, LAYOUT.borderb(1, COLORS.background3)]}>
+                <View style={[LAYOUT.h(150), LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx(), LAYOUT.borderb(1, COLORS.background3), LAYOUT.justifyCenter]}>
                     {header}
                 </View>
                 <View style={[LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx()]}>

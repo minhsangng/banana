@@ -21,9 +21,7 @@ export default function Categories() {
 
     const loadData = async () => {
         try {
-            await Promise.all([
-                loadCategories()
-            ]);
+            await loadCategories();
         } catch (error) {
             console.log("Error loading the data", error);
         }
@@ -36,7 +34,7 @@ export default function Categories() {
     return (
         <>
             <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(12), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, homeStyles.categories]}>
-                {categories.map((item, index) => (
+                {categories.map((item) => (
                     <TouchableOpacity key={item.categoryId} style={[LAYOUT.w(75), LAYOUT.roundedtl(28), LAYOUT.roundedtr(28), { overflow: "hidden" }]} onPress={() => setCurrentCategory(item.categoryId === currentCategory ? -1 : item.categoryId)}>
                         <View style={[LAYOUT.pt(10), LAYOUT.pb(4), LAYOUT.itemsCenter, { backgroundColor: item.categoryId === currentCategory ? COLORS.light : "transparent" }]}>
                             <Ionicons style={[LAYOUT.p(10), LAYOUT.rounded(50), TEXT.size(32), homeStyles.categoryIcon, item.categoryId === currentCategory ? homeStyles.categorySelected : ""]} name={item.categoryIcon}></Ionicons>

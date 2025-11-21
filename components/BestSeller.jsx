@@ -18,17 +18,15 @@ export default function BestSeller() {
         setDataBS(data);
     }
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                await Promise.all([
-                    loadBestSeller()
-                ]);
-            } catch (error) {
-                console.log("Error loading the data", error);
-            }
+    const loadData = async () => {
+        try {
+            await loadBestSeller();
+        } catch (error) {
+            console.log("Error loading the data", error);
         }
+    }
 
+    useEffect(() => {
         loadData();
     }, []);
 

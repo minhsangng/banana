@@ -6,7 +6,7 @@ export default function LoadingSpinner({ message = "Đợi móc con API cái..."
     <View style={[styles.container]}>
       <View style={styles.content}>
         <ActivityIndicator size={size} color={COLORS.primary} />
-        <Text style={styles.message}>{message}</Text>
+        {/* <Text style={styles.message}>{message}</Text> */}
       </View>
     </View>
   );

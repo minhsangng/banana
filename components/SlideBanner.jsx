@@ -1,13 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { View, ImageBackground, FlatList, Dimensions } from "react-native";
-import { router } from "expo-router";
-import { Portal } from "react-native-paper";
-import { LAYOUT, TEXT } from "../assets/styles/base.styles";
+import { LAYOUT } from "../assets/styles/base.styles";
 import { homeStyles } from "../assets/styles/home.styles";
 import { COLORS } from "../constants/colors";
-import axios from "axios";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export default function SlideBanner() {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -18,19 +15,19 @@ export default function SlideBanner() {
             id: 0,
             storeId: 1,
             dishId: 1,
-            image: require("../assets/images/ads-banner-1.png"),
+            image: require("./../assets/images/ads-banner-1.png"),
         },
         {
             id: 1,
             storeId: 1,
             dishId: 1,
-            image: require("../assets/images/ads-banner-2.png"),
+            image: require("./../assets/images/ads-banner-2.png"),
         },
         {
             id: 2,
             storeId: 1,
             dishId: 1,
-            image: require("../assets/images/ads-banner-1.png"),
+            image: require("./../assets/images/ads-banner-2.png"),
         }
     ]
 
@@ -71,13 +68,14 @@ export default function SlideBanner() {
                             ))}
                         </View>
                     </View>
-                )}
+                )
+                }
                 getItemLayout={(data, index) => ({
                     length: width,
                     offset: width * index,
                     index,
                 })}
             />
-        </View>
+        </View >
     );
 }
