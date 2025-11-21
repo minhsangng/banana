@@ -37,7 +37,7 @@ export const stores = pgTable("stores", {
   phoneNumber: varchar("phone_number").notNull().unique(),
   logoUrl: varchar("logo_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  rateStar: numeric("rate_star").notNull().default(0.0), 
+  rateStar: numeric("rate_star").notNull().default(5.0),
   userId: integer("user_id"),
   status: varchar("status").notNull().default("Active"),
 });
@@ -45,10 +45,10 @@ export const stores = pgTable("stores", {
 export const orders = pgTable("orders", {
   orderId: integer("order_id").primaryKey(),
   orderDate: timestamp("order_date").notNull().defaultNow(),
-  storeId: integer("store_id").notNull(),
   userId: integer("user_id").notNull(),
   totalAmount: numeric("total_amount", { precision: 10, scale: 3 }).notNull(),
   paymentMethod: varchar("payment_method").notNull().default("Cash"),
+  note: varchar("note"),
   status: varchar("status").notNull().default("Pending"),
 });
 

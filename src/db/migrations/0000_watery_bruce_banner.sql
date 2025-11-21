@@ -33,10 +33,10 @@ CREATE TABLE "order_items" (
 CREATE TABLE "orders" (
 	"order_id" integer PRIMARY KEY NOT NULL,
 	"order_date" timestamp DEFAULT now() NOT NULL,
-	"store_id" integer NOT NULL,
 	"user_id" integer NOT NULL,
 	"total_amount" numeric(10, 3) NOT NULL,
 	"payment_method" varchar DEFAULT 'Cash' NOT NULL,
+	"note" varchar,
 	"status" varchar DEFAULT 'Pending' NOT NULL
 );
 --> statement-breakpoint
@@ -47,7 +47,7 @@ CREATE TABLE "stores" (
 	"phone_number" varchar NOT NULL,
 	"logo_url" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"rate_star" numeric DEFAULT 0 NOT NULL,
+	"rate_star" numeric DEFAULT 5 NOT NULL,
 	"user_id" integer,
 	"status" varchar DEFAULT 'Active' NOT NULL,
 	CONSTRAINT "stores_phone_number_unique" UNIQUE("phone_number")

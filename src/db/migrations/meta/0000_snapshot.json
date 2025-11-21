@@ -1,5 +1,5 @@
 {
-  "id": "1cb9bfbd-4e5b-4717-bf5a-32d9b213fe3e",
+  "id": "c0213d69-59f3-4060-b0ab-9f1c19e93f22",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -196,12 +196,6 @@
           "notNull": true,
           "default": "now()"
         },
-        "store_id": {
-          "name": "store_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
         "user_id": {
           "name": "user_id",
           "type": "integer",
@@ -220,6 +214,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Cash'"
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         },
         "status": {
           "name": "status",
@@ -283,7 +283,7 @@
           "type": "numeric",
           "primaryKey": false,
           "notNull": true,
-          "default": 0
+          "default": 5
         },
         "user_id": {
           "name": "user_id",

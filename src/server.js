@@ -9,7 +9,7 @@ import {
   orders,
   orderItems,
 } from "./db/schema.js";
-import { eq, and, ilike, desc, between } from "drizzle-orm";
+import { eq, and, ilike, desc, between, inArray } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 import authRouter from "./auth.js";
@@ -19,7 +19,11 @@ const PORT = ENV.PORT || 5001;
 
 if (ENV.NODE_ENV === "production") job.start();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
@@ -210,34 +214,6 @@ app.get("/api/users", async (req, res) => {
 });
 
 
-/* ACCOUNT API */
-/* Login confirm */
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const results = await db
-      .select()
-      .from(users)
-      .where(and(eq(users.email, email), eq(users.password, password)));
-
-    if (results.length === 0) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    res.status(200).json({
-      success: true,
-      user: results[0],
-    });
-  } catch (error) {
-    console.log("Error fetching the users", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
-
-
 /* ORDER API */
 /* Select revenue in limit range */
 app.get("/api/orders/:start/:end", async (req, res) => {
@@ -262,6 +238,83 @@ app.get("/api/orders/:start/:end", async (req, res) => {
     res.status(200).json(results);
   } catch (error) {
     console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/api/cart/add", async (req, res) => {
+  try {
+    const { userId, dishId, quantity } = req.body;
+
+    if (!userId || !dishId || !quantity) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    const [cart] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.userId, userId))
+      .where(eq(orders.status, "Cart"));
+
+    let orderId;
+
+    if (!cart) {
+      const orderDate = new Date();
+
+      await db.insert(orders).values({
+        orderDate,
+        userId,
+        totalAmount: 0,
+        status: "Cart",
+      });
+
+      orderId = await db.select(orderId).from(orders).orderBy(desc(orders.orderId))[0];
+    } else {
+      orderId = cart.orderId;
+    }
+
+    await db.insert(orderItems).values({
+      orderId,
+      dishId,
+      quantity: quantity ?? 1,
+    });
+
+    res.json({
+      message: "Added to cart successfully",
+      orderId,
+    });
+
+  } catch (error) {
+    console.log("Error adding to cart", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+/* Get cart by userId */
+app.get("/api/cart/get/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const ordersList = await db.select().from(orders).where(eq(orders.userId, parseInt(userId)));
+
+    if (ordersList.length === 0) {
+      return res.json([]);
+    }
+
+    const orderIds = ordersList.map(order => parseInt(order.orderId));
+    const orderItemsList = await db
+      .select()
+      .from(orderItems)
+      .where(inArray(orderItems.orderId, orderIds));
+
+    const cart = ordersList.map(order => ({
+      ...order,
+      items: orderItemsList.filter(item => parseInt(item.orderId) === parseInt(order.orderId))
+    }));
+
+    res.json(cart);
+  } catch (error) {
+    console.log("Error fetching the cart", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
