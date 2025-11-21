@@ -7,16 +7,44 @@ import {
     SafeAreaView,
     Dimensions,
     StyleSheet,
+    Pressable
 } from "react-native";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
+import { API_URL } from "../../constants/api";
+import axios from "axios";
 
 const { height } = Dimensions.get("window");
+
 export default function SignUpScreen() {
-    const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
+    const [showPassword, setShowPassword] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [phone, setPhone] = useState("");
+    const [isChecked, setIsChecked] = useState(false);
+
+    const handleSignup = async () => {
+        try {
+            const response = await axios.post(`http://192.168.1.171:5001/api/auth/register`, {
+                fullName: name,
+                email,
+                phoneNumber: phone,
+                password
+            });
+
+            if (response.data.success) {
+                router.replace("./sign-in");
+            } else {
+                alert(response.data.message || "Đăng ký thất bại");
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -31,12 +59,13 @@ export default function SignUpScreen() {
             </View>
 
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82), styles.formWrapper]}>
-
                 <Text style={styles.label}>Họ và tên</Text>
                 <TextInput
-                    placeholder="Nguyễn Văn a"
+                    placeholder="ba ba ba banana"
                     placeholderTextColor={COLORS.paragraph}
                     style={styles.input}
+                    value={name}
+                    onChangeText={setName}
                 />
                 <Text style={styles.label}>Mật khẩu</Text>
                 <View style={styles.passwordContainer}>
@@ -45,6 +74,8 @@ export default function SignUpScreen() {
                         placeholderTextColor={COLORS.paragraph}
                         secureTextEntry={!showPassword}
                         style={styles.passwordInput}
+                        value={password}
+                        onChangeText={setPassword}
                     />
                     <TouchableOpacity
                         onPress={() => setShowPassword(!showPassword)}
@@ -61,19 +92,30 @@ export default function SignUpScreen() {
                     placeholder="example@gmail.com"
                     placeholderTextColor={COLORS.paragraph}
                     style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
                 />
                 <Text style={styles.label}>Điện thoại</Text>
                 <TextInput
                     placeholder="0123456789"
                     placeholderTextColor={COLORS.paragraph}
                     style={styles.input}
+                    value={phone}
+                    onChangeText={setPhone}
                 />
-                <Text style={[TEXT.center, TEXT.paragraph]}>
-                    Bằng việc tiếp tục, bạn đồng ý với
-                </Text>
-                <Text style={[TEXT.center, TEXT.paragraph, LAYOUT.mb(28), { color: COLORS.heading }]}>Điều Khoản <Text style={{ color: COLORS.paragraph }}> và </Text> Chính Sách</Text>
 
-                <TouchableOpacity>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.mb(22)]}>
+                    <Pressable onPress={() => setIsChecked(!isChecked)}>
+                        <Ionicons
+                            name={isChecked ? "checkbox" : "square-outline"}
+                            size={24}
+                            color={COLORS.button}
+                        />
+                    </Pressable>
+                    <Text style={[TEXT.center, TEXT.paragraph, LAYOUT.ml(8), { color: COLORS.paragraph }]}>Tài khoản bán hàng</Text>
+                </View>
+
+                <TouchableOpacity onPress={handleSignup}>
                     <Text style={[BUTTON.primary]}>Đăng ký</Text>
                 </TouchableOpacity>
 
@@ -102,7 +144,6 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         position: "relative",
     },
-    headerTitle: { fontSize: 30, fontFamily: "Modak", color: "#FFFFFF" },
     backButton: { position: "absolute", left: 20, top: 60, padding: 8 },
     formWrapper: {
         flex: 1,

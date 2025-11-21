@@ -10,6 +10,7 @@ import { API_URL } from "../constants/api";
 import axios from "axios";
 import SubMenu from "./SubMenu";
 import PopupSearch from "./PopupSearch";
+import * as SecureStore from "expo-secure-store";
 
 const { width, height } = Dimensions.get("window");
 
@@ -21,17 +22,39 @@ export default function Header() {
     const [isShowSearch, setIsShowSearch] = useState(false);
     const [resultsSearch, setResultsSearch] = useState("");
     const [dataCart, setDataCart] = useState([]);
+    const [isLogin, setIsLogin] = useState(false);
+    const loginInfo = SecureStore.getItemAsync("userInfo");
 
     useEffect(() => {
+        initData();
+    }, []);
+
+    const initData = async () => {
         updateGreeting();
+
         const greetingInterval = setInterval(updateGreeting, 60 * 1000);
 
-        loadCart();
+        // Lấy user
+        const userStr = await SecureStore.getItemAsync("userInfo");
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            setIsLogin(true);
+            setMenuData(prev => ({ ...prev, user }));
+        }
 
-        return () => {
-            clearInterval(greetingInterval);
-        };
-    }, []);
+        await loadCart();
+
+        return () => clearInterval(greetingInterval);
+    };
+
+    const loadCart = async () => {
+        try {
+            const { data } = await axios.get(`${API_URL}/cart/get/1`);
+            setDataCart(data);
+        } catch (e) {
+            console.log("Load cart failed", e);
+        }
+    };
 
     const updateGreeting = () => {
         const hour = new Date().getHours();
@@ -72,73 +95,43 @@ export default function Header() {
         setGreeting([current.title, current.subtitle]);
     };
 
-    const loadCart = async () => {
-        const { data } = await axios.get(`${API_URL}/cart/get/1`);
-        setDataCart(data);
-    }
-
     const openMenu = (type) => {
-        let header, content;
+        let header = null;
+        let content = null;
 
-        // Header menu
-        header = (
-            <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.pt(22)]}>
-                <Ionicons
-                    name={type === "cart" ? "cart-outline" : "notifications-outline"}
-                    style={[
-                        LAYOUT.rounded(44),
-                        LAYOUT.p(4),
-                        LAYOUT.mr(20),
-                        TEXT.size(30),
-                        { backgroundColor: COLORS.textLight, color: COLORS.heading }
-                    ]}
-                />
-                <Text style={[TEXT.heading]}>{type === "cart" ? "Giỏ Hàng" : "Thông Báo"}</Text>
-            </View>
-        );
-
-        // Content menu
+        // ===== HEADER =====
         if (type === "cart") {
-            if (dataCart.length === 0) {
-                content = (
-                    <View style={[LAYOUT.pt(12)]}>
-                        <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                            Chưa có món nào được chọn
-                        </Text>
-                        <View style={[LAYOUT.wFull, LAYOUT.h(height - 200), LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
-                            <TouchableOpacity style={[LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
-                                <Ionicons
-                                    name="add-circle-outline"
-                                    style={[TEXT.size(92), LAYOUT.pb(12), { color: COLORS.textLight }]}
-                                />
-                                <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>Lựa món</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                );
-            } else {
-                content = dataCart.map((order, idx) => (
-                    <View style={[LAYOUT.pt(12)]} key={`${order.orderId}-${idx}`}>
-                        <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                            Order #NO001{order.orderId}
-                        </Text>
-                        {order.items && order.items.length > 0 ? (
-                            order.items.map((item, i) => (
-                                <View key={`${item.id || i}`} style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.px(10), LAYOUT.py(6)]}>
-                                    <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>{item.name}</Text>
-                                    <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>x{item.quantity}</Text>
-                                </View>
-                            ))
-                        ) : (
-                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                                Chưa có món nào trong order này
-                            </Text>
-                        )}
-                    </View>
-                ));
-            }
-        } else {
-            // Thông báo
+            header = (
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
+                    <Ionicons name="cart-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), {backgroundColor: COLORS.textLight}]} />
+                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Giỏ Hàng</Text>
+                </View>
+            );
+        }
+        else if (type === "notify") {
+            header = (
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
+                    <Ionicons name="notifications-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), {backgroundColor: COLORS.textLight}]} />
+                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Thông Báo</Text>
+                </View>
+            );
+        }
+        else if (type === "person") {
+            header = (
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
+                    <Ionicons name="person-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), {backgroundColor: COLORS.textLight}]} />
+                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>
+                        {menuData.user?.fullName || "Tài khoản"}
+                    </Text>
+                </View>
+            );
+        }
+
+        // ===== CONTENT =====
+        if (type === "cart") {
+            content = renderCart();
+        }
+        else if (type === "notify") {
             content = (
                 <View style={[LAYOUT.pt(12)]}>
                     <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
@@ -147,10 +140,68 @@ export default function Header() {
                 </View>
             );
         }
+        else if (type === "person") {
+            content = renderUserMenu();
+        }
 
         setMenuData({ header, content });
         setMenuVisible(true);
     };
+
+    const renderCart = () => {
+        if (!dataCart || dataCart.length === 0) {
+            return (
+                <View style={[LAYOUT.pt(12)]}>
+                    <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                        Chưa có món nào được chọn
+                    </Text>
+                </View>
+            );
+        }
+
+        return dataCart.map((order) => (
+            <View key={order.orderId} style={[LAYOUT.pt(12)]}>
+                <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                    Order #{order.orderId}
+                </Text>
+
+                {order.items?.length > 0 ? (
+                    order.items.map((item, idx) => (
+                        <View key={idx} style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.px(10), LAYOUT.py(6)]}>
+                            <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>{item.name}</Text>
+                            <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>x{item.quantity}</Text>
+                        </View>
+                    ))
+                ) : (
+                    <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                        Chưa có món nào trong order
+                    </Text>
+                )}
+            </View>
+        ));
+    };
+
+    const renderUserMenu = () => (
+        <View style={[LAYOUT.pt(12), LAYOUT.px(20)]}>
+            <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>
+                {menuData.user?.email}
+            </Text>
+
+            <TouchableOpacity
+                style={[LAYOUT.mt(20)]}
+                onPress={async () => {
+                    await SecureStore.deleteItemAsync("userInfo");
+                    setIsLogin(false);
+                    setMenuVisible(false);
+                    router.replace("/(auth)/sign-in");
+                }}
+            >
+                <Text style={[TEXT.paragraph]}>
+                    Đăng xuất
+                </Text>
+            </TouchableOpacity>
+        </View>
+    );
 
     const handleSubmit = () => {
         if (query !== "") {
@@ -168,7 +219,7 @@ export default function Header() {
                     <View style={[LAYOUT.row, LAYOUT.justifyAround, { gap: 6 }]}>
                         <Ionicons name="cart-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => openMenu("cart")}></Ionicons>
                         <Ionicons name="notifications-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => openMenu("notify")}></Ionicons>
-                        <Ionicons name="person-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => router.replace("../(auth)/sign-in")}></Ionicons>
+                        <Ionicons name="person-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => isLogin ? openMenu("person") : router.replace("../(auth)/sign-in")}></Ionicons>
                     </View>
                 </View>
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(12)]}>

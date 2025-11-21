@@ -26,14 +26,14 @@ export default function SignInScreen() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, {
+            const response = await axios.post(`http://192.168.1.171:5001/api/auth/login`, {
                 email,
                 password,
             });
 
             if (response.data.success) {
                 await SecureStore.setItemAsync("accessToken", response.data.token);
-                await SecureStore.setItemAsync("userInfo", response.data.user);
+                await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
                 router.replace("../(tabs)/");
             } else {
                 alert(response.data.message || "Đăng nhập thất bại");
