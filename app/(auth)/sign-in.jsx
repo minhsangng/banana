@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     Dimensions,
     StyleSheet,
+    InteractionManager
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -15,6 +16,7 @@ import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import ToastModal from "../../components/ToastModal";
 
 const { height } = Dimensions.get("window");
 
@@ -23,6 +25,7 @@ export default function SignInScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [alert, setAlert] = useState(false);
 
     const handleLogin = async () => {
         try {
@@ -32,9 +35,15 @@ export default function SignInScreen() {
             });
 
             if (response.data.success) {
+                setAlert(true);
+
                 await SecureStore.setItemAsync("accessToken", response.data.token);
                 await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
-                router.replace("../(tabs)/");
+                setTimeout(() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        router.replace("../(tabs)/");
+                    });
+                }, 750);
             } else {
                 alert(response.data.message || "Đăng nhập thất bại");
             }
@@ -114,6 +123,8 @@ export default function SignInScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            <ToastModal width={"auto"} height={"auto"} status={"success"} title={"Welcome back!"} content={null} visible={alert}/>
         </SafeAreaView>
     );
 }

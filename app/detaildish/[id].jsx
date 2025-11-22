@@ -1,21 +1,26 @@
 import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
+import { formatPrice } from "../../constants/formatPrice";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ToastModal from "../../components/ToastModal";
 
 const { height, width } = Dimensions.get("window");
 
-const OrderDetailScreen = () => {
+const OrderDishScreen = () => {
   const { id: dishId } = useLocalSearchParams();
   const [dish, setDish] = useState(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
+  const [alert, setAlert] = useState(false);
+  const [addToCart, setAddToCart] = useState(false);
 
   const loadDishDetail = async () => {
     try {
@@ -29,22 +34,35 @@ const OrderDetailScreen = () => {
     }
   };
 
-  const userId = 1;
-
   const addCart = async () => {
     try {
-      const response = await axios.post(`${API_URL}/cart/add`, {
-        userId,
-        dishId,
-        quantity
-      });
-
-      console.log(response);
-      console.log("Thêm giỏ hàng thành công");
+      const userStr = await SecureStore.getItemAsync("userInfo");
+      if (userStr) {
+        const response = await axios.post(`${API_URL}/cart/add`, {
+          userId: JSON.parse(userStr).userId,
+          dishId: dishId,
+          quantity
+        });
+        setAddToCart(true);
+        setTimeout(() => setAddToCart(false), 1000);
+        setQuantity(1);
+      } else {
+        setAlert(true);
+      }
     } catch (error) {
       console.log(error);
     }
-  }
+  };
+
+  const contentAlert = () => {
+    return (
+      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
+        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("50%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+          <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Đăng nhập</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   useEffect(() => {
     loadDishDetail();
@@ -92,12 +110,12 @@ const OrderDetailScreen = () => {
             LAYOUT.mx(),
             LAYOUT.mt(32),
             LAYOUT.rounded(28),
-            { overflow: "hidden", backgroundColor: COLORS.background3 },
+            { overflow: "hidden" },
           ]}
         >
           <Image
-            source={{ uri: dish.dishImage }}
-            style={{ width: "100%", height: "100%" }}
+            source={dish.imageUrl ? { uri: dish.imageUrl } : require("../../assets/images/background-default.png")}
+            style={[LAYOUT.border(1, COLORS.border), LAYOUT.wFull, LAYOUT.hFull, LAYOUT.rounded(28), { overflow: "hidden" }]}
             resizeMode="cover"
           />
         </View>
@@ -116,7 +134,7 @@ const OrderDetailScreen = () => {
           ]}
         >
           <Text style={[TEXT.text, TEXT.size(26), { color: COLORS.heading }]}>
-            ${dish.price}.00
+            {formatPrice(dish.price)} đ
           </Text>
 
           <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
@@ -124,13 +142,13 @@ const OrderDetailScreen = () => {
               onPress={() => quantity > 1 && setQuantity(quantity - 1)}
             >
               <Ionicons
-                name="remove"
+                name="remove-outline"
                 size={20}
                 color={COLORS.heading}
                 style={[
                   LAYOUT.rounded(50),
                   LAYOUT.p(6),
-                  { backgroundColor: COLORS.background },
+                  { backgroundColor: COLORS.background3 },
                 ]}
               />
             </TouchableOpacity>
@@ -141,13 +159,13 @@ const OrderDetailScreen = () => {
 
             <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
               <Ionicons
-                name="add"
+                name="add-outline"
                 size={20}
                 color={COLORS.heading}
                 style={[
                   LAYOUT.rounded(50),
                   LAYOUT.p(6),
-                  { backgroundColor: COLORS.background },
+                  { backgroundColor: COLORS.background3 },
                 ]}
               />
             </TouchableOpacity>
@@ -181,7 +199,7 @@ const OrderDetailScreen = () => {
           <TouchableOpacity onPress={addCart}
             style={[
               LAYOUT.py(12),
-              LAYOUT.px(24),
+              LAYOUT.w(200),
               LAYOUT.rounded(30),
               LAYOUT.row,
               LAYOUT.itemsCenter,
@@ -189,15 +207,17 @@ const OrderDetailScreen = () => {
               { backgroundColor: COLORS.button, gap: 8 },
             ]}
           >
-            <Ionicons name="cart-outline" size={(20)} color={COLORS.textLight}></Ionicons>
-            <Text style={[TEXT.text, TEXT.size(20), TEXT.center, { color: COLORS.light }]}>
-              Add to Cart
+            <Ionicons name={addToCart ? "cart" : "cart-outline"} style={addToCart ? {transform: "rotate(-15deg)", color: COLORS.background1} : {}} size={(24)} color={COLORS.textLight}></Ionicons>
+            <Text style={[TEXT.text, TEXT.size(20), TEXT.center, addToCart ? {color: COLORS.background1} : { color: COLORS.light }]}>
+              Thêm giỏ hàng
             </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Đăng nhập để thêm giỏ hàng!"} content={contentAlert} visible={alert} />
     </View>
   );
 };
 
-export default OrderDetailScreen;
+export default OrderDishScreen;

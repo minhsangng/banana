@@ -1,5 +1,6 @@
 import { Slot } from "expo-router";
 import { useFonts } from "expo-font";
+import { Provider as PaperProvider } from 'react-native-paper';
 
 export default function RootLayout() {
   const [fontLoader] = useFonts({
@@ -8,5 +9,9 @@ export default function RootLayout() {
   });
   
   if (!fontLoader) return null;
-  return <Slot />;
+  return (
+    <PaperProvider>
+      <Slot />
+    </PaperProvider>
+  );
 }

@@ -1,6 +1,6 @@
-import { View, Animated, Dimensions, Text, TouchableOpacity, FlatList, Image, TouchableWithoutFeedback } from "react-native";
+import { View, Animated, Dimensions, Text, TouchableOpacity, FlatList, Image, TouchableWithoutFeedback, InteractionManager } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import { router } from "react-dom";
+import { useRouter } from "expo-router";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import { API_URL } from "../constants/api";
 import { formatPrice } from "../constants/formatPrice";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import ToastModal from "./ToastModal";
 
 const { width, height } = Dimensions.get("window");
 const SUBMENU_WIDTH = 330;
@@ -15,12 +16,14 @@ const SUBMENU_WIDTH = 330;
 export default function SubMenu({ visible, setVisible, type }) {
     const slideAnim = useRef(new Animated.Value(SUBMENU_WIDTH)).current;
 
+    const router = useRouter();
     const [shouldRender, setShouldRender] = useState(visible);
     const [isLogin, setIsLogin] = useState(false);
     const [header, setHeader] = useState("");
     const [dataCart, setDataCart] = useState([]);
     const [user, setUser] = useState([]);
     const [totalCart, setTotalCart] = useState(0);
+    const [alert, setAlert] = useState(false);
 
     const loadCart = async () => {
         try {
@@ -92,7 +95,7 @@ export default function SubMenu({ visible, setVisible, type }) {
             setHeader(
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
                     <Ionicons name="person-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), { backgroundColor: COLORS.textLight }]} />
-                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Tài khoản</Text>
+                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>{user.fullName}</Text>
                 </View>
             );
         }
@@ -119,6 +122,33 @@ export default function SubMenu({ visible, setVisible, type }) {
     useEffect(() => {
         calculateTotal();
     }, [dataCart]);
+    
+    const contentLogout = () => {
+        return (
+            <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyBetween, LAYOUT.mt(16)]}>
+                <TouchableOpacity onPress={()=>setAlert(false)} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), {backgroundColor: COLORS.background2}]}>
+                    <Text style={[TEXT.text, TEXT.center, {color: COLORS.heading}]}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleLogout} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), {backgroundColor: COLORS.button}]}>
+                    <Text style={[TEXT.text, TEXT.center, {color: COLORS.textLight}]}>Đăng xuất</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+    
+    const handleLogout = async () => {
+        try {
+            await SecureStore.deleteItemAsync("userInfo");
+            setIsLogin(false);
+            setVisible(false);
+        } catch (error) {
+            console.log("Logout error:", error);
+        } finally {
+            InteractionManager.runAfterInteractions(() => {
+                router.replace("../(auth)/sign-in");
+            });
+        }
+    };
 
     if (!shouldRender) return null;
 
@@ -169,15 +199,23 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Cài đặt</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.absolute, LAYOUT.bottom(250)]} onPress={async () => {
-                                await SecureStore.deleteItemAsync("userInfo");
-                                setIsLogin(false);
-                                setShouldRender(false);
-                                router.replace("/(auth)/sign-in");
-                            }}>
+                            <TouchableOpacity
+                                style={[
+                                    LAYOUT.row,
+                                    LAYOUT.itemsCenter,
+                                    LAYOUT.absolute,
+                                    LAYOUT.bottom(250)
+                                ]}
+                                onPress={()=>setAlert(true)}
+                            >
                                 <Ionicons name="log-out-outline" size={24} color={COLORS.textLight} />
-                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Đăng xuất</Text>
+                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>
+                                    Đăng xuất
+                                </Text>
                             </TouchableOpacity>
+
+                            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert}/>
+
                         </View>) : (<View style={[LAYOUT.pt(12)]}>
                             <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>Chưa có thông báo</Text>
                         </View>) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
@@ -194,12 +232,12 @@ export default function SubMenu({ visible, setVisible, type }) {
                             </Text>
 
                             <FlatList
-                                style={{ height: "70%" }}
+                                style={[LAYOUT.h("65%")]}
                                 data={dataCart}
                                 extraData={dataCart}
                                 keyExtractor={(item) => item.order_items.orderItemId.toString()}
                                 renderItem={({ item }) => (
-                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.py(6), LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(20)]}>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pb(20), LAYOUT.pt(12), { borderStyle: "dashed" }]}>
                                         <Image
                                             source={item.dishes.imageUrl ? { uri: item.dishes.imageUrl } : require("../assets/images/background-default.png")}
                                             style={[LAYOUT.w(80), LAYOUT.h(80), LAYOUT.rounded(20)]}
@@ -216,11 +254,11 @@ export default function SubMenu({ visible, setVisible, type }) {
                                             </View>
 
                                             <View style={[LAYOUT.justifyBetween, { alignItems: "flex-end" }]}>
-                                                <Text style={[TEXT.subText, { color: COLORS.textLight }]}>
+                                                <Text style={[TEXT.subText, TEXT.size(14), { color: COLORS.textLight }]}>
                                                     {formatPrice(item.dishes.price * item.order_items.quantity)}
                                                 </Text>
 
-                                                <View style={[LAYOUT.row, LAYOUT.itemsCenter, { gap: 10 }]}>
+                                                <View style={[LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
                                                     <TouchableOpacity
                                                         style={[LAYOUT.rounded(20), { backgroundColor: COLORS.textLight }]}
                                                         onPress={() => item.order_items.quantity > 1 && updateQuantity(item.order_items.orderItemId, item.order_items.quantity - 1)}
@@ -245,8 +283,8 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 )}
                             />
 
-                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.bordert(1, COLORS.background3), LAYOUT.pt(12), LAYOUT.mb(28)]}>
-                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>Tổng đơn hàng</Text>
+                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.bordert(1, COLORS.background4), LAYOUT.pt(12), LAYOUT.mb(40)]}>
+                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>Tổng đơn</Text>
                                 <Text style={[TEXT.text, { color: COLORS.textLight }]}>{formatPrice(totalCart)} đ</Text>
                             </View>
 

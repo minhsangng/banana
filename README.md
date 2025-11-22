@@ -27,5 +27,9 @@ npm i --save expo-secure-store
 ```
 
 ```bash
+npm i --save react-native-modal
+```
+
+```bash
 npx expo
 ```

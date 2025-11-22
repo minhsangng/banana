@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, TextInput, Text, TouchableOpacity, Dimensions, Image, FlatList } from "react-native";
+import { View, TextInput, Text, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { Portal } from "react-native-paper";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { homeStyles } from "../assets/styles/home.styles";
-import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "../constants/api";
-import { formatPrice } from "../constants/formatPrice";
-import axios from "axios";
 import SubMenu from "./SubMenu";
 import PopupSearch from "./PopupSearch";
 import * as SecureStore from "expo-secure-store";
