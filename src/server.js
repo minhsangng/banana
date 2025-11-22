@@ -31,13 +31,13 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 
 /* TEST */
-app.get("/api/healthz", protect, (req, res) => {
+app.get("/api/healthz", (req, res) => {
   res.status(200).json({ success: true });
 });
 
 /* DISH API */
 /* Insert dishes */
-app.post("/api/dishes", protect, async (req, res) => {
+app.post("/api/dishes", async (req, res) => {
   try {
     const {
       dishName,
@@ -78,7 +78,7 @@ app.post("/api/dishes", protect, async (req, res) => {
 });
 
 /* Search dish*/
-app.get("/api/search/:query", protect, async (req, res) => {
+app.get("/api/search/:query", async (req, res) => {
   try {
     const { query } = req.params;
     const q = `%${query}%`;
@@ -96,7 +96,7 @@ app.get("/api/search/:query", protect, async (req, res) => {
 });
 
 /* Selct dish by categoryId */
-app.get("/api/dishes/:categoryId", protect, async (req, res) => {
+app.get("/api/dishes/:categoryId", async (req, res) => {
   try {
     const { categoryId } = req.params;
 
@@ -118,7 +118,7 @@ app.get("/api/dishes/:categoryId", protect, async (req, res) => {
 });
 
 /* Select dish detail */
-app.get("/api/dish/:dishId", protect, async (req, res) => {
+app.get("/api/dish/:dishId", async (req, res) => {
   try {
     const { dishId } = req.params;
 
@@ -137,7 +137,7 @@ app.get("/api/dish/:dishId", protect, async (req, res) => {
 });
 
 /* Select all dish */
-app.get("/api/dishes", protect, async (req, res) => {
+app.get("/api/dishes", async (req, res) => {
   try {
     const results = await db.select().from(dishes);
 
@@ -149,7 +149,7 @@ app.get("/api/dishes", protect, async (req, res) => {
 });
 
 /* Select dish best seller in limit range */
-app.get("/api/dishes/bestseller/:limit", protect, async (req, res) => {
+app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   try {
     const limit = parseInt(req.params.limit);
 
@@ -174,7 +174,7 @@ app.get("/api/dishes/bestseller/:limit", protect, async (req, res) => {
 
 /* CATEGORY API */
 /* Select all categories */
-app.get("/api/categories", protect, async (req, res) => {
+app.get("/api/categories", async (req, res) => {
   try {
     const results = await db.select().from(categories);
 
@@ -187,7 +187,7 @@ app.get("/api/categories", protect, async (req, res) => {
 
 /* STORE API */
 /* Select all stores */
-app.get("/api/stores", protect, async (req, res) => {
+app.get("/api/stores", async (req, res) => {
   try {
     const results = await db
       .select()
@@ -203,7 +203,7 @@ app.get("/api/stores", protect, async (req, res) => {
 
 /* USER API */
 /* Select all users */
-app.get("/api/users", protect, async (req, res) => {
+app.get("/api/users", async (req, res) => {
   try {
     const results = await db
       .select()
@@ -221,7 +221,7 @@ app.get("/api/users", protect, async (req, res) => {
 
 /* ORDER API */
 /* Select revenue in limit range */
-app.get("/api/orders/:start/:end", protect, async (req, res) => {
+app.get("/api/orders/:start/:end", async (req, res) => {
   try {
     const { start, end } = req.params;
     const startDate = new Date(start);
@@ -248,7 +248,21 @@ app.get("/api/orders/:start/:end", protect, async (req, res) => {
   }
 });
 
-app.post("/api/cart/add", protect, async (req, res) => {
+/* Select all order */
+app.get("/api/orders", async (req, res) => {
+  try {
+    const results = await db.select().from(orders);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+
+/* Add to cart */
+app.post("/api/cart/add", async (req, res) => {
   try {
     const { userId, dishId, quantity } = req.body;
 
@@ -298,15 +312,17 @@ app.post("/api/cart/add", protect, async (req, res) => {
   }
 });
 
-/* Get cart by userId */
-app.get("/api/cart/get/:userId", protect, async (req, res) => {
+/* Get cart */
+app.get("/api/cart/get/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
     const ordersList = await db
       .select()
       .from(orders)
-      .where(eq(orders.userId, parseInt(userId)));
+      .where(
+        and(eq(orders.userId, parseInt(userId)), eq(orders.status, "Cart"))
+      );
 
     if (ordersList.length === 0) {
       return res.json([]);
@@ -316,30 +332,32 @@ app.get("/api/cart/get/:userId", protect, async (req, res) => {
     const orderItemsList = await db
       .select()
       .from(orderItems)
+      .fullJoin(dishes, eq(dishes.dishId, orderItems.dishId))
       .where(inArray(orderItems.orderId, orderIds));
 
-    const cart = ordersList.map((order) => ({
-      ...order,
-      items: orderItemsList.filter(
-        (item) => parseInt(item.orderId) === parseInt(order.orderId)
-      ),
-    }));
-
-    res.json(cart);
+    res.json(orderItemsList);
   } catch (error) {
     console.log("Error fetching the cart", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-app.get("/api/orders", protect,async (req, res) => {
+/* Update cart */
+app.post("/api/cart/update", async (req, res) => {
   try {
-    const results = await db.select().from(orders);
+    const { orderItemId, quantity } = req.body;
 
-    res.status(200).json(results);
-  } catch (error) {
-    console.log("Error fetching the orders", error);
-    res.status(500).json({ error: "Something went wrong" });
+    if (quantity <= 0)
+      return res.status(400).json({ message: "Invalid quantity" });
+
+    await db
+      .update(orderItems)
+      .set({ quantity })
+      .where(eq(orderItems.orderItemId, orderItemId));
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 
