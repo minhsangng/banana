@@ -44,13 +44,13 @@ CREATE TABLE "stores" (
 	"store_id" integer PRIMARY KEY NOT NULL,
 	"store_name" varchar NOT NULL,
 	"location" varchar NOT NULL,
-	"phone_number" varchar NOT NULL,
 	"logo_url" varchar,
+	"bank_number" varchar,
+	"bank_name" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"rate_star" numeric DEFAULT 5 NOT NULL,
 	"user_id" integer,
-	"status" varchar DEFAULT 'Active' NOT NULL,
-	CONSTRAINT "stores_phone_number_unique" UNIQUE("phone_number")
+	"status" varchar DEFAULT 'Active' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

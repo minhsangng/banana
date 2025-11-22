@@ -260,12 +260,11 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-
 /* Add to cart */
 app.post("/api/cart/add", async (req, res) => {
   try {
     const { userId, dishId, quantity } = req.body;
-
+    
     if (!userId || !dishId || !quantity) {
       return res.status(400).json({ error: "Missing fields" });
     }
@@ -295,17 +294,37 @@ app.post("/api/cart/add", async (req, res) => {
     } else {
       orderId = cart.orderId;
     }
+    
+    const existingItem = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId))
+      .where(eq(orderItems.dishId, dishId));
+      
+    if (existingItem.length > 0) {
+      const currentQty = existingItem[0].quantity;
 
-    await db.insert(orderItems).values({
-      orderId,
-      dishId,
-      quantity: quantity ?? 1,
-    });
+      await db
+        .update(orderItems)
+        .set({ quantity: currentQty + quantity })
+        .where(eq(orderItems.orderItemId, existingItem[0].orderItemId));
 
-    res.json({
-      message: "Added to cart successfully",
-      orderId,
-    });
+      return res.json({
+        message: "Updated item quantity",
+        orderId,
+      });
+    } else {
+      await db.insert(orderItems).values({
+        orderId,
+        dishId,
+        quantity,
+      });
+
+      res.json({
+        message: "Added new item to cart",
+        orderId,
+      });
+    }
   } catch (error) {
     console.log("Error adding to cart", error);
     res.status(500).json({ error: "Something went wrong" });

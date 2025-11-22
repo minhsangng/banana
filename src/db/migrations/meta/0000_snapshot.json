@@ -1,5 +1,5 @@
 {
-  "id": "c0213d69-59f3-4060-b0ab-9f1c19e93f22",
+  "id": "1a3e4d25-668e-450e-b477-8a7fe9726bef",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -259,14 +259,20 @@
           "primaryKey": false,
           "notNull": true
         },
-        "phone_number": {
-          "name": "phone_number",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
         "logo_url": {
           "name": "logo_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bank_number": {
+          "name": "bank_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bank_name": {
+          "name": "bank_name",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -302,15 +308,7 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "stores_phone_number_unique": {
-          "name": "stores_phone_number_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "phone_number"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
