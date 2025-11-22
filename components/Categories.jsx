@@ -10,7 +10,7 @@ import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-export default function Categories() {
+const Categories = () => {
     const [categories, setCategories] = useState([]);
     const [currentCategory, setCurrentCategory] = useState(-1);
 
@@ -24,7 +24,7 @@ export default function Categories() {
             await loadCategories();
         } catch (error) {
             console.log("Error loading the data", error);
-        }
+        } 
     };
 
     useEffect(() => {
@@ -47,4 +47,6 @@ export default function Categories() {
             <CategoryFilter categoryId={currentCategory} visible={currentCategory !== -1} />
         </>
     );
-}
+};
+
+export default Categories;

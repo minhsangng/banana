@@ -5,6 +5,7 @@ import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { API_URL } from "../constants/api";
+import { formatPrice } from "../constants/formatPrice";
 import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
@@ -13,21 +14,6 @@ export default function CategoryFilter({ categoryId, visible }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [sortBy, setSortBy] = useState("Phổ biến");
-
-    function formatPrice(price) {
-        if (price === null || price === undefined || price === "") return "";
-
-        const num = Number(price);
-        if (isNaN(num)) return String(price);
-
-        if (Number.isInteger(num)) return num.toLocaleString("vi-VN");
-
-        const s = num.toFixed(3).replace(/\.?0+$/, "");
-        const parts = s.split(".");
-        const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-        return parts[1] ? `${intPart},${parts[1]}` : intPart;
-    }
 
     useEffect(() => {
         const loadDishByCategoryId = async () => {
@@ -66,7 +52,7 @@ export default function CategoryFilter({ categoryId, visible }) {
                     <Text style={[TEXT.text, TEXT.size(14), { color: COLORS.heading }]}>{sortBy}</Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView style={[LAYOUT.mt(12), LAYOUT.w(width - 60), LAYOUT.mx()]} showsVerticalScrollIndicator={false}>
+            <ScrollView style={[LAYOUT.mt(12), LAYOUT.pt(4), LAYOUT.w(width - 60), LAYOUT.mx()]} showsVerticalScrollIndicator={false}>
                 {data.length === 0 ? (
                     <Text style={[TEXT.paragraph, { textAlign: "center" }]}>Không có món nào</Text>
                 ) : (

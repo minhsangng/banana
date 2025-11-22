@@ -1,20 +1,11 @@
 import { useState } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    SafeAreaView,
-    Dimensions,
-    StyleSheet,
-    Pressable
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Dimensions, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { COLORS } from "../../constants/colors";
-import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
-import { API_URL } from "../../constants/api";
 import axios from "axios";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { API_URL } from "../../constants/api";
+import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
+import { COLORS } from "../../constants/colors";
 
 const { height } = Dimensions.get("window");
 
@@ -29,7 +20,7 @@ export default function SignUpScreen() {
 
     const handleSignup = async () => {
         try {
-            const response = await axios.post(`http://192.168.1.171:5001/api/auth/register`, {
+            const response = await axios.post(`${API_URL}/auth/register`, {
                 fullName: name,
                 email,
                 phoneNumber: phone,

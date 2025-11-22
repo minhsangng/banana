@@ -1,1 +1,1 @@
-export const API_URL = "https://cfo-app.onrender.com/api";
+export const API_URL = "http://cfo-app.onrender.com/api";

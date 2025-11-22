@@ -10,7 +10,7 @@ import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-export default function BestSeller() {
+const BestSeller = () => {
     const [dataBS, setDataBS] = useState([]);
 
     const loadBestSeller = async () => {
@@ -64,4 +64,6 @@ export default function BestSeller() {
             </View>
         </View>
     );
-}
+};
+
+export default BestSeller;

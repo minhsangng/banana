@@ -10,7 +10,7 @@ import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-export default function Recommend() {
+const Recommend = () => {
     const [recommends, setRecommends] = useState([]);
 
     const loadRecommend = async () => {
@@ -23,7 +23,7 @@ export default function Recommend() {
             await loadRecommend();
         } catch (error) {
             console.log("Error loading the data", error);
-        }
+        } 
     };
 
     useEffect(() => {
@@ -56,4 +56,6 @@ export default function Recommend() {
             </View>
         </View>
     );
-}
+};
+
+export default Recommend;

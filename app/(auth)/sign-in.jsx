@@ -26,7 +26,7 @@ export default function SignInScreen() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post(`http://192.168.1.171:5001/api/auth/login`, {
+            const response = await axios.post(`${API_URL}/auth/login`, {
                 email,
                 password,
             });
