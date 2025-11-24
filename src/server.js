@@ -380,6 +380,29 @@ app.post("/api/cart/update", async (req, res) => {
   }
 });
 
+/* Get order by id */
+app.get("/api/order/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    const results = await db.select().from(orders).where(eq(orders.orderId, orderId));
+    
+    if (results.length === 0)
+      res.json([]);
+      
+    const orderIds = results.map((order) => parseInt(order.orderId));
+    const orderItemsList = await db
+      .select()
+      .from(orderItems)
+      .fullJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .where(inArray(orderItems.orderId, orderIds));
+
+    res.json(orderItemsList);
+  } catch (e) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 /* MESSAGE RUNNING */
 app.listen(5001, () => {
   console.log("Server is running on PORT:", PORT);
