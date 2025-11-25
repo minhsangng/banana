@@ -27,7 +27,8 @@ CREATE TABLE "order_items" (
 	"order_item_id" integer PRIMARY KEY NOT NULL,
 	"order_id" integer NOT NULL,
 	"dish_id" integer NOT NULL,
-	"quantity" integer DEFAULT 1 NOT NULL
+	"quantity" integer DEFAULT 1 NOT NULL,
+	"note" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (
@@ -37,6 +38,7 @@ CREATE TABLE "orders" (
 	"total_amount" numeric(10, 3) NOT NULL,
 	"payment_method" varchar DEFAULT 'Cash' NOT NULL,
 	"note" varchar,
+	"delivery_address" varchar,
 	"status" varchar DEFAULT 'Pending' NOT NULL
 );
 --> statement-breakpoint

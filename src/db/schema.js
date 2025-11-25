@@ -50,6 +50,7 @@ export const orders = pgTable("orders", {
   totalAmount: numeric("total_amount", { precision: 10, scale: 3 }).notNull(),
   paymentMethod: varchar("payment_method").notNull().default("Cash"),
   note: varchar("note"),
+  deliveryAddress: varchar("delivery_address"),
   status: varchar("status").notNull().default("Pending"),
 });
 
@@ -58,6 +59,7 @@ export const orderItems = pgTable("order_items", {
   orderId: integer("order_id").notNull(),
   dishId: integer("dish_id").notNull(),
   quantity: integer("quantity").notNull().default(1),
+  note: varchar("note"),
 });
 
 export const favorites = pgTable("favorites", {

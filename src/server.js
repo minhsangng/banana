@@ -8,8 +8,9 @@ import {
   stores,
   orders,
   orderItems,
+  favorites,
 } from "./db/schema.js";
-import { eq, and, ilike, desc, between, inArray } from "drizzle-orm";
+import { eq, ne, and, ilike, desc, between, inArray } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 import authRouter, { protect } from "./auth.js";
@@ -219,6 +220,35 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+/* FAVORITES */
+/* Select favorites */
+app.get("/api/favorites/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const results = await db
+      .select({
+        favoritesId: favorites.favoriteId,
+        userId: favorites.userId,
+        dishId: dishes.dishId,
+        dishName: dishes.dishName,
+        storeId: dishes.storeId,
+        categoryId: dishes.categoryId,
+        price: dishes.price,
+        imageUrl: dishes.imageUrl,
+        selled: dishes.selled,
+        status: dishes.status,
+      })
+      .from(favorites)
+      .innerJoin(dishes, eq(dishes.dishId, favorites.dishId))
+      .where(eq(favorites.userId, parseInt(userId)));
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 /* ORDER API */
 /* Select revenue in limit range */
 app.get("/api/orders/:start/:end", async (req, res) => {
@@ -249,11 +279,102 @@ app.get("/api/orders/:start/:end", async (req, res) => {
 });
 
 /* Select all order */
-app.get("/api/orders", async (req, res) => {
+app.get("/api/orders/:userId", async (req, res) => {
   try {
-    const results = await db.select().from(orders);
+    const { userId } = req.params;
 
-    res.status(200).json(results);
+    const rows = await db
+      .select({
+        orderId: orders.orderId,
+        orderStatus: orders.status,
+        deliveryAddress: orders.deliveryAddress,
+        orderItemId: orderItems.orderItemId,
+        quantity: orderItems.quantity,
+        dishId: dishes.dishId,
+        dishName: dishes.dishName,
+        dishPrice: dishes.price,
+        dishImage: dishes.imageUrl,
+      })
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .where(and(
+        eq(orders.userId, parseInt(userId)),
+        ne(orders.status, "Success"),
+        ne(orders.status, "Cart")
+      ));
+      
+    const grouped = {};
+    rows.forEach((row) => {
+      if (!grouped[row.orderId]) {
+        grouped[row.orderId] = {
+          orderId: row.orderId,
+          orderStatus: row.orderStatus,
+          deliveryAddress: row.deliveryAddress,
+          items: [],
+        };
+      }
+
+      grouped[row.orderId].items.push({
+        orderItemId: row.orderItemId,
+        quantity: row.quantity,
+        dishId: row.dishId,
+        dishName: row.dishName,
+        dishPrice: row.dishPrice,
+        dishImage: row.dishImage,
+      });
+    });
+
+    res.status(200).json(Object.values(grouped));
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/history/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const rows = await db
+      .select({
+        orderId: orders.orderId,
+        orderStatus: orders.status,
+        deliveryAddress: orders.deliveryAddress,
+        orderItemId: orderItems.orderItemId,
+        quantity: orderItems.quantity,
+        dishId: dishes.dishId,
+        dishName: dishes.dishName,
+        dishPrice: dishes.price,
+        dishImage: dishes.imageUrl,
+      })
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .where(and(eq(orders.userId, parseInt(userId)), eq(orders.status, "Success")));
+
+    const grouped = {};
+    rows.forEach((row) => {
+      if (!grouped[row.orderId]) {
+        grouped[row.orderId] = {
+          orderId: row.orderId,
+          orderStatus: row.orderStatus,
+          deliveryAddress: row.deliveryAddress,
+          items: [],
+        };
+      }
+
+      grouped[row.orderId].items.push({
+        orderItemId: row.orderItemId,
+        quantity: row.quantity,
+        dishId: row.dishId,
+        dishName: row.dishName,
+        dishPrice: row.dishPrice,
+        dishImage: row.dishImage,
+      });
+    });
+
+    res.status(200).json(Object.values(grouped));
   } catch (error) {
     console.log("Error fetching the orders", error);
     res.status(500).json({ error: "Something went wrong" });
@@ -264,7 +385,7 @@ app.get("/api/orders", async (req, res) => {
 app.post("/api/cart/add", async (req, res) => {
   try {
     const { userId, dishId, quantity } = req.body;
-    
+
     if (!userId || !dishId || !quantity) {
       return res.status(400).json({ error: "Missing fields" });
     }
@@ -294,13 +415,13 @@ app.post("/api/cart/add", async (req, res) => {
     } else {
       orderId = cart.orderId;
     }
-    
+
     const existingItem = await db
       .select()
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId))
       .where(eq(orderItems.dishId, dishId));
-      
+
     if (existingItem.length > 0) {
       const currentQty = existingItem[0].quantity;
 
@@ -384,12 +505,14 @@ app.post("/api/cart/update", async (req, res) => {
 app.get("/api/order/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
-    
-    const results = await db.select().from(orders).where(eq(orders.orderId, orderId));
-    
-    if (results.length === 0)
-      res.json([]);
-      
+
+    const results = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.orderId, orderId));
+
+    if (results.length === 0) res.json([]);
+
     const orderIds = results.map((order) => parseInt(order.orderId));
     const orderItemsList = await db
       .select()
@@ -400,6 +523,135 @@ app.get("/api/order/:orderId", async (req, res) => {
     res.json(orderItemsList);
   } catch (e) {
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/orderbeingprocessed/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const ordersList = await db
+      .select()
+      .from(orders)
+      .where(
+        and(eq(orders.userId, parseInt(userId)), ne(orders.status, "Success"))
+      );
+
+    if (ordersList.length === 0) return res.json([]);
+
+    const orderIds = ordersList.map((order) => order.orderId);
+
+    const flatList = await db
+      .select({
+        orderItemId: orderItems.orderItemId,
+        quantity: orderItems.quantity,
+        dishId: dishes.dishId,
+        dishName: dishes.dishName,
+        dishPrice: dishes.price,
+        dishImage: dishes.imageUrl,
+        storeId: stores.storeId,
+        storeName: stores.storeName,
+        orderId: orders.orderId,
+        orderStatus: orders.status,
+        deliveryAddress: orders.deliveryAddress,
+      })
+      .from(orderItems)
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .innerJoin(orders, eq(orders.orderId, orderItems.orderId))
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
+      .where(inArray(orderItems.orderId, orderIds));
+
+    // === GROUP BY orderId ===
+    const grouped = {};
+
+    flatList.forEach((item) => {
+      const id = item.orderId;
+
+      if (!grouped[id]) {
+        grouped[id] = {
+          orderId: id,
+          orderStatus: item.orderStatus,
+          deliveryAddress: item.deliveryAddress,
+          storeId: item.storeId,
+          storeName: item.storeName,
+          items: [],
+        };
+      }
+
+      grouped[id].items.push({
+        orderItemId: item.orderItemId,
+        dishId: item.dishId,
+        dishName: item.dishName,
+        dishPrice: item.dishPrice,
+        dishImage: item.dishImage,
+        quantity: item.quantity,
+      });
+    });
+
+    const response = Object.values(grouped);
+
+    res.json(response);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* Remove order items */
+app.delete("/api/orderItem/:orderItemId", async (req, res) => {
+  try {
+    const { orderItemId } = req.params;
+
+    if (!orderItemId) {
+      return res.status(400).json({ message: "orderItemId is required" });
+    }
+
+    const result = await db
+      .delete(orderItems)
+      .where(eq(orderItems.orderItemId, parseInt(orderItemId)));
+
+    if (result.rowsAffected === 0) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy orderItem để xoá" });
+    }
+
+    res.json({
+      success: true,
+      message: "Xoá orderItem thành công",
+      deletedId: orderItemId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server khi xoá orderItem" });
+  }
+});
+
+/* Checkout */
+app.post("/api/checkout", async (req, res) => {
+  try {
+    const { orderId, address } = req.body;
+
+    const result = await db
+      .update(orders)
+      .set({
+        deliveryAddress: address,
+        orderDate: new Date(new Date().getTime() + 7 * 60 * 60 * 1000),
+        status: "Pending",
+      })
+      .where(eq(orders.orderId, parseInt(orderId)));
+
+    if (result.rowsAffected === 0)
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+
+    res.json({
+      success: true,
+      message: "Đặt hàng thành công",
+      orderId: orderId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server khi tạo đơn hàng" });
   }
 });
 
