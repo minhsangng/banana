@@ -21,7 +21,7 @@ const OrderDetailScreen = () => {
             setLoading(true);
             const { data } = await axios.get(`${API_URL}/order/${orderId}`);
 
-                setOrder(data[0]);
+            setOrder(data[0]);
 
             setLoading(false);
         } catch (error) {
@@ -40,7 +40,7 @@ const OrderDetailScreen = () => {
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyBetween]}>
                     <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
-                        <Ionicons name="chevron-back" size={20} color={COLORS.heading} onPress={() => router.push("../(tabs)/history")}></Ionicons>
+                        <Ionicons name="chevron-back" size={20} color={COLORS.heading} onPress={() => router.back()}></Ionicons>
                         <Text style={[TEXT.heading, LAYOUT.ml(60)]}>Chi Tiết Đơn</Text>
                     </View>
                 </View>
@@ -102,7 +102,7 @@ const OrderDetailScreen = () => {
 
                     {/* Re-Order */}
                     <View style={[LAYOUT.wFull, LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.mt(44)]}>
-                        <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.rounded(30), LAYOUT.py(6), {backgroundColor: COLORS.button}]}>
+                        <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.rounded(30), LAYOUT.py(6), { backgroundColor: COLORS.button }]}>
                             <Text style={[TEXT.text, TEXT.size(24), TEXT.center, { color: COLORS.textLight }]}>Đặt lại</Text>
                         </TouchableOpacity>
                     </View>

@@ -14,9 +14,9 @@ const { width, height } = Dimensions.get("window");
 
 const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
-  
+
   const handleLoading = () => {
-    setTimeout(()=>{
+    setTimeout(() => {
       setLoading(false);
     }, 1200);
   }
@@ -24,9 +24,9 @@ const HomeScreen = () => {
   useEffect(() => {
     handleLoading();
   }, []);
-  
+
   if (loading) return <LoadingSpinner />
-  
+
   return (
     <View style={[LAYOUT.container, LAYOUT.positive]}>
       {/* Header */}

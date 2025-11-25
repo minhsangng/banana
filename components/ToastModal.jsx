@@ -3,7 +3,7 @@ import Modal from "react-native-modal";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 
-export default function ToastModal({ width, height, status, title, content, visible }) {
+export default function ToastModal({ width = "auto", height = "auto", status, title, content, visible }) {
     return (
         <Modal
             isVisible={visible}

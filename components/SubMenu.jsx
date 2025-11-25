@@ -93,9 +93,12 @@ export default function SubMenu({ visible, setVisible, type }) {
         }
         else if (type === "person") {
             setHeader(
-                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
-                    <Ionicons name="person-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), { backgroundColor: COLORS.textLight }]} />
-                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>{user.fullName}</Text>
+                <View style={[LAYOUT.pt(22)]}>
+                    <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+                        <Ionicons name="person-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), { backgroundColor: COLORS.textLight }]} />
+                        <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Tài khoản</Text>
+                    </View>
+                    <Text style={[TEXT.text, TEXT.size(22), LAYOUT.mt(6), LAYOUT.px(8), LAYOUT.py(2), { backgroundColor: COLORS.background1 }]}>Hi, {user.fullName}</Text>
                 </View>
             );
         }
@@ -122,20 +125,20 @@ export default function SubMenu({ visible, setVisible, type }) {
     useEffect(() => {
         calculateTotal();
     }, [dataCart]);
-    
+
     const contentLogout = () => {
         return (
             <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyBetween, LAYOUT.mt(16)]}>
-                <TouchableOpacity onPress={()=>setAlert(false)} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), {backgroundColor: COLORS.background2}]}>
-                    <Text style={[TEXT.text, TEXT.center, {color: COLORS.heading}]}>Hủy</Text>
+                <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background2 }]}>
+                    <Text style={[TEXT.text, TEXT.center, { color: COLORS.heading }]}>Hủy</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleLogout} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), {backgroundColor: COLORS.button}]}>
-                    <Text style={[TEXT.text, TEXT.center, {color: COLORS.textLight}]}>Đăng xuất</Text>
+                <TouchableOpacity onPress={handleLogout} style={[LAYOUT.w("45%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+                    <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Đăng xuất</Text>
                 </TouchableOpacity>
             </View>
         );
     };
-    
+
     const handleLogout = async () => {
         try {
             await SecureStore.deleteItemAsync("userInfo");
@@ -206,7 +209,7 @@ export default function SubMenu({ visible, setVisible, type }) {
                                     LAYOUT.absolute,
                                     LAYOUT.bottom(250)
                                 ]}
-                                onPress={()=>setAlert(true)}
+                                onPress={() => setAlert(true)}
                             >
                                 <Ionicons name="log-out-outline" size={24} color={COLORS.textLight} />
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>
@@ -214,17 +217,17 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 </Text>
                             </TouchableOpacity>
 
-                            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert}/>
+                            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert} />
 
                         </View>) : (<View style={[LAYOUT.pt(12)]}>
-                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>Chưa có thông báo</Text>
+                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>Thông báo trống!</Text>
                         </View>) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
                             <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
                                 Đăng nhập để thêm giỏ hàng
                             </Text>
                         </View>) : dataCart.length === 0 ? (<View style={[LAYOUT.pt(12)]}>
                             <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                                Chưa có món nào được chọn
+                                Giỏ hàng trống!
                             </Text>
                         </View>) : (<View style={[LAYOUT.pt(12)]}>
                             <Text style={[TEXT.paragraph, LAYOUT.mt(10), { color: COLORS.textLight }]}>
@@ -288,7 +291,7 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 <Text style={[TEXT.text, { color: COLORS.textLight }]}>{formatPrice(totalCart)} đ</Text>
                             </View>
 
-                            <TouchableOpacity onPress={()=>router.push(`../payment/${dataCart[0].order_items.orderId}`)} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
+                            <TouchableOpacity onPress={() => router.push(`../checkout/${dataCart[0].order_items.orderId}`)} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
                                 <Text style={[TEXT.text, TEXT.size(24), TEXT.center, { color: COLORS.heading }]}>Thanh toán</Text>
                             </TouchableOpacity>
                         </View>))
