@@ -42,9 +42,9 @@ const TabsLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="favorites"
+          name="favorite"
           options={{
-            title: "Favorites",
+            title: "Favorite",
             tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
           }}
         />

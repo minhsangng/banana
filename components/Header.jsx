@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { View, TextInput, Text, Dimensions, TouchableOpacity, ScrollView, Image } from "react-native";
+import { View, TextInput, Text, Dimensions, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { Portal } from "react-native-paper";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { homeStyles } from "../assets/styles/home.styles";
 import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "../constants/colors";
+import { API_URL } from "../constants/api";
 import SubMenu from "./SubMenu";
 import PopupSearch from "./PopupSearch";
-import { API_URL } from "../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { COLORS } from "../constants/colors";
 
 const { width } = Dimensions.get("window");
 
@@ -22,49 +22,106 @@ export default function Header() {
     const [resultsSearch, setResultsSearch] = useState("");
     const [isLogin, setIsLogin] = useState(false);
     const [orders, setOrders] = useState([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [type, setType] = useState(null);
 
-    const loadOrderPeding = async () => {
+    // ------------------- LOAD ORDER PROCESSING --------------------
+    const loadOrderProccessing = async () => {
         try {
             const userStr = await SecureStore.getItemAsync("userInfo");
-            if (userStr) {
-                const userId = parseInt(JSON.parse(userStr).userId);
+            if (!userStr) return;
 
-                const { data } = await axios.get(`${API_URL}/orderbyuseridstatus/${userId}/Pending`);
+            const userId = parseInt(JSON.parse(userStr).userId);
 
-                if (data) {
-                    let dishNames = "";
-                    { data.map((item) => (dishNames += item.dishName + " - ")) };
-                    let content =
-                        <TouchableOpacity
-                            style={[LAYOUT.px(10), LAYOUT.py(6), LAYOUT.rounded(12), LAYOUT.itemsCenter, { maxWidth: 200, backgroundColor: COLORS.background3 }]}
-                            onPress={() => router.push(`../detailorder/${data[0].orderId}`)}
-                        >
-                            <Text style={[TEXT.subText, LAYOUT.row, LAYOUT.itemsCenter]} numberOfLines={1}>{dishNames}<Text style={[TEXT.subText, { color: COLORS.button }]}>{data[0].orderStatus}</Text></Text>
-                        </TouchableOpacity>;
-                    setOrders(content);
-                }
+            const { data } = await axios.get(`${API_URL}/orderbeingprocessed/${userId}`);
+
+            if (!data || data.length === 0) {
+                setOrders([]);
+                return;
             }
-        } catch (error) {
-            console.error(error);
-        }
-    }
 
+            const grouped = {};
+
+            data.forEach((item) => {
+
+                const orderId = item?.orderId;
+
+                if (!grouped[orderId]) {
+                    grouped[orderId] = {
+                        orderId: orderId,
+                        orderStatus: item.orderStatus ?? "",
+                        dishes: []
+                    };
+                }
+
+                grouped[orderId].dishes = item.items?.map(d => d?.dishName || "Món không tên") || [];
+            });
+
+            setOrders(Object.values(grouped));
+            setCurrentIndex(0);
+
+        } catch (error) {
+            console.error("ORDER LOAD ERROR: ", error);
+        }
+    };
+
+    // ------------------- RENDER ORDER --------------------
+    const renderOrder = () => {
+        if (orders.length === 0) return null;
+
+        const order = orders[currentIndex];
+
+        const dishNames = (order.dishes ?? []).join(" - ");
+
+        return (
+            <TouchableOpacity
+                style={[
+                    LAYOUT.px(10),
+                    LAYOUT.py(6),
+                    LAYOUT.rounded(12),
+                    LAYOUT.itemsCenter,
+                    {
+                        maxWidth: 200,
+                        backgroundColor: COLORS.background3,
+                    },
+                ]}
+                onPress={() => router.push(`../detailorder/${order.orderId}`)}
+            >
+                <Text style={[TEXT.subText]} numberOfLines={1}>
+                    {dishNames}
+                    <Text style={[TEXT.subText, { color: COLORS.button }]}>
+                        {" "}
+                        ({order.orderStatus})
+                    </Text>
+                </Text>
+            </TouchableOpacity>
+        );
+    };
+
+    // ------------------- AUTO ROTATE ORDER --------------------
+    useEffect(() => {
+        if (orders.length === 0) return;
+
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % orders.length);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [orders]);
+
+    // ------------------- INIT DATA --------------------
     useEffect(() => {
         initData();
-        loadOrderPeding();
+        loadOrderProccessing();
     }, []);
 
     const initData = async () => {
         updateGreeting();
 
-        const greetingInterval = setInterval(updateGreeting, 60 * 1000);
-
         const userStr = await SecureStore.getItemAsync("userInfo");
-        if (userStr) {
-            setIsLogin(true);
-        }
+        if (userStr) setIsLogin(true);
 
+        const greetingInterval = setInterval(updateGreeting, 60 * 1000);
         return () => clearInterval(greetingInterval);
     };
 
@@ -78,10 +135,10 @@ export default function Header() {
             { range: [19, 22], title: "Chào buổi tối", subtitle: "Buổi tối thư giãn!" },
         ];
 
-        const current = greetings.find(g => hour >= g.range[0] && hour <= g.range[1]);
+        const current = greetings.find((g) => hour >= g.range[0] && hour <= g.range[1]);
 
         if (!current) {
-            setGreeting(["Chúc bạn ngủ ngon", "Hẹn gặp lại!"]);
+            setGreeting(["Chúc ngủ ngon", "Hẹn gặp lại!"]);
             return;
         }
 
@@ -95,31 +152,84 @@ export default function Header() {
         }
     };
 
+    // ------------------- UI --------------------
     return (
         <>
             <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
-                <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.positive, homeStyles.headerContent]}>
+                {/* SEARCH BAR */}
+                <View
+                    style={[
+                        LAYOUT.w(width - 60),
+                        LAYOUT.mx,
+                        LAYOUT.row,
+                        LAYOUT.justifyBetween,
+                        LAYOUT.itemsCenter,
+                        homeStyles.headerContent,
+                    ]}
+                >
                     <TextInput
                         placeholder="Bạn tìm món gì?"
-                        style={[LAYOUT.w(200), LAYOUT.rounded(30), LAYOUT.px(14), LAYOUT.py(10), TEXT.size(14), homeStyles.searchInput]}
+                        style={[
+                            LAYOUT.w(200),
+                            LAYOUT.rounded(30),
+                            LAYOUT.px(14),
+                            LAYOUT.py(10),
+                            TEXT.size(14),
+                            homeStyles.searchInput,
+                        ]}
                         returnKeyType="search"
                         value={query}
                         onChangeText={setQuery}
                         onSubmitEditing={handleSubmit}
                     />
-                    <Ionicons name="options-outline" style={[LAYOUT.absolute, LAYOUT.top(6), LAYOUT.left(164), LAYOUT.h(28), LAYOUT.w(28), LAYOUT.p(4), LAYOUT.rounded(50), LAYOUT.jsutifyCenter, LAYOUT.itemsCenter, TEXT.size(18), homeStyles.searchIcon]} />
-                    <View style={[LAYOUT.row, LAYOUT.justifyAround, { gap: 6 }]}>
-                        <Ionicons name="cart-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => (setType("cart"), setMenuVisible(true))} />
-                        <Ionicons name="notifications-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => (setType("notify"), setMenuVisible(true))} />
-                        <Ionicons name="person-outline" style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]} onPress={() => isLogin ? (setType("person"), setMenuVisible(true)) : router.replace("/(auth)/sign-in")} />
+
+                    <Ionicons
+                        name="options-outline"
+                        style={[
+                            LAYOUT.absolute,
+                            LAYOUT.top(6),
+                            LAYOUT.left(164),
+                            LAYOUT.h(28),
+                            LAYOUT.w(28),
+                            LAYOUT.p(4),
+                            LAYOUT.rounded(50),
+                            TEXT.size(18),
+                            homeStyles.searchIcon,
+                        ]}
+                    />
+
+                    {/* RIGHT ICONS */}
+                    <View style={[LAYOUT.row, { gap: 6 }]}>
+                        <Ionicons
+                            name="cart-outline"
+                            style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
+                            onPress={() => (setType("cart"), setMenuVisible(true))}
+                        />
+                        <Ionicons
+                            name="notifications-outline"
+                            style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
+                            onPress={() => (setType("notify"), setMenuVisible(true))}
+                        />
+                        <Ionicons
+                            name="person-outline"
+                            style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
+                            onPress={() =>
+                                isLogin
+                                    ? (setType("person"), setMenuVisible(true))
+                                    : router.replace("/(auth)/sign-in")
+                            }
+                        />
                     </View>
                 </View>
 
+                {/* GREETING & ORDER */}
                 <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(12)]}>
                     <Text style={TEXT.heading}>{greeting[0]}</Text>
+
                     <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
                         <Text style={[TEXT.paragraph, homeStyles.title]}>{greeting[1]}</Text>
-                        {orders}
+
+                        {renderOrder()}
                     </View>
                 </View>
 
@@ -132,7 +242,10 @@ export default function Header() {
                 <PopupSearch
                     visible={isShowSearch}
                     query={resultsSearch}
-                    onClose={() => { setIsShowSearch(false); setQuery(""); }}
+                    onClose={() => {
+                        setIsShowSearch(false);
+                        setQuery("");
+                    }}
                 />
             )}
         </>
