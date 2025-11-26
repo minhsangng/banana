@@ -13,16 +13,51 @@ import { useState, useEffect } from "react";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import LoadingSpinner from "../components/LoadingSpinner";
 import { API_URL } from "../constants/api";
 import { formatPrice } from "../constants/formatPrice";
 import axios from "axios";
+import LoadingSpinner from "./LoadingSpinner";
+import ToastModal from "./ToastModal";
 
 const { width, height } = Dimensions.get("window");
 
 export default function PopupSearch({ visible, query, onClose }) {
   const [data, setData] = useState([]);
+  const [addToCart, setAddToCart] = useState(false);
+  const [alert, setAlert] = useState(false);
+  const [dishSelected, setDishSelected] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const addCart = async (dishId) => {
+    try {
+      const userStr = await SecureStore.getItemAsync("userInfo");
+      if (userStr) {
+        setDishSelected(dishId);
+        const { data } = await axios.post(`${API_URL}/cart/add`, {
+          userId: userId,
+          dishId: dishId,
+          quantity: 1
+        });
+        setAddToCart(true);
+        setTimeout(() => setAddToCart(false), 1000);
+        setQuantity(1);
+      } else {
+        setAlert(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const contentAlert = () => {
+    return (
+      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
+        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("50%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+          <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Đăng nhập</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   useEffect(() => {
     const loadDataSearch = async () => {
@@ -102,8 +137,8 @@ export default function PopupSearch({ visible, query, onClose }) {
                         <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
                       </View>
 
-                      <TouchableOpacity style={[LAYOUT.pl(12)]}>
-                        <Ionicons name="cart-outline" size={22} color={COLORS.paragraph} style={[LAYOUT.p(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button, color: COLORS.light }]} />
+                      <TouchableOpacity style={[LAYOUT.pl(12)]} onPress={() => addCart(d.dishId)}>
+                        <Ionicons name={(addToCart && dishSelected == d.dishId) ? "cart" : "cart-outline"} size={22} style={[LAYOUT.p(6), LAYOUT.rounded(20), (addToCart && dishSelected == d.dishId) ? { transform: "rotate(-15deg)", color: COLORS.background1 } : { color: COLORS.light }, { backgroundColor: COLORS.button }]} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -114,6 +149,7 @@ export default function PopupSearch({ visible, query, onClose }) {
           </View>
         </Pressable>
       </Pressable>
+      <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Đăng nhập để thêm giỏ hàng!"} content={contentAlert} visible={alert} />
     </Modal>
   );
 }

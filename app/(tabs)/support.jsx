@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
@@ -10,37 +10,57 @@ export default function SupportScreen() {
         <View style={[LAYOUT.container]}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
-                    <Text style={[TEXT.heading, TEXT.center]}>Trợ giúp</Text>
+                    <Text style={[TEXT.heading, TEXT.center]}>Trung tâm hỗ trợ</Text>
                 </View>
             </View>
 
             {/* Body */}
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
-                    <Text style={[TEXT.paragraph, { lineHeight: 22 }]}>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent
-                        pellentesque congue lorem, vel tincidunt tortor.
-                    </Text>
+                    <TextInput placeholder="Nhập từ khóa" style={[LAYOUT.wFull, LAYOUT.px(18), LAYOUT.py(8), LAYOUT.rounded(12), TEXT.paragraph, { backgroundColor: COLORS.background3 }]}></TextInput>
 
-                    <TouchableOpacity style={[LAYOUT.mt(24), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
-                        <Text style={[TEXT.subHeading]}>Help with the order</Text>
-                        <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Support</Text>
-                        <Ionicons
-                            name="chevron-forward"
-                            style={[TEXT.size(18), { position: "absolute", right: 0, top: 20 }]}
-                        />
-                    </TouchableOpacity>
+                    <Text style={[TEXT.text, LAYOUT.pt(30), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>Tra cứu nhanh</Text>
+                    <View style={[LAYOUT.mt(20), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
+                        <Text style={[TEXT.text]}>Về đơn hàng</Text>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Làm thế nào để hủy đơn hàng đã đặt?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Tôi muốn thay đổi địa điểm giao hàng?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                    </View>
 
-                    <TouchableOpacity style={[LAYOUT.mt(24), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
-                        <Text style={[TEXT.subHeading]}>Help Center</Text>
-                        <Text style={[TEXT.subText, LAYOUT.mt(4)]}>General Information</Text>
-                        <Ionicons
-                            name="chevron-forward"
-                            style={[TEXT.size(18), { position: "absolute", right: 0, top: 20 }]}
-                        />
-                    </TouchableOpacity>
+                    <View style={[LAYOUT.mt(20), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
+                        <Text style={[TEXT.text]}>Về tài khoản</Text>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Làm thế nào để xóa tài khoản?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Quên mật khẩu?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={[LAYOUT.mt(20), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
+                        <Text style={[TEXT.text]}>Về thanh toán</Text>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Các phương thức thanh toán hỗ trợ?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={[LAYOUT.mt(20), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
+                        <Text style={[TEXT.text]}>Về cửa hàng/đối tác</Text>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >
+                            <Text style={[TEXT.subText, LAYOUT.mt(4)]}>Tôi muốn trở thành đối tác cửa hàng?</Text>
+                            <Ionicons name="chevron-forward-outline" style={[TEXT.size(18)]} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            </View >
         </View >
     );
 }

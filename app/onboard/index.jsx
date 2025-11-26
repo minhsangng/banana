@@ -55,17 +55,17 @@ export default function FirstOnboard() {
             router.replace("/(tabs)/");
         }
     };
-    
+
     const handleSkip = () => {
         router.replace("/(tabs)/");
     };
 
     return (
         <View style={styles.container}>
-            {currentIndex < slides.length - 1 ? 
+            {currentIndex < slides.length - 1 ?
                 <TouchableOpacity onPress={handleSkip} style={{ position: "absolute", top: 50, right: 20, zIndex: 999, flexDirection: "row", alignItems: "center" }}>
                     <Text style={{ color: COLORS.background1, fontSize: 18, fontFamily: "GochiHand" }}>Bỏ qua</Text>
-                    <Ionicons name="chevron-forward-outline" style={{color: COLORS.background1, fontSize: 18}}></Ionicons>
+                    <Ionicons name="chevron-forward-outline" style={{ color: COLORS.background1, fontSize: 18 }}></Ionicons>
                 </TouchableOpacity> : ""}
             <ImageBackground
                 source={slides[currentIndex].image}
@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
     },
     icon: {
         color: COLORS.heading,
-        fontSize: 40
+        fontSize: 40,
+        marginTop: 20,
     },
     heading: {
         fontFamily: "Modak",
