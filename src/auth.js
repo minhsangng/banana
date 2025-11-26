@@ -14,11 +14,9 @@ const SALT_ROUNDS = 10;
 
 // Tạo token
 function signToken(user) {
-  return jwt.sign(
-    { id: user.userId, email: user.email },
-    JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  return jwt.sign({ id: user.userId, email: user.email }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
 }
 
 // ---------------- REGISTER ------------------
@@ -27,7 +25,9 @@ router.post("/register", async (req, res) => {
     const { fullName, email, phoneNumber, password } = req.body;
 
     if (!fullName || !email || !phoneNumber || !password) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
     }
 
     const exist = await db.select().from(users).where(eq(users.email, email));
@@ -36,12 +36,18 @@ router.post("/register", async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
-  
+
     const date = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
-    
+
     const inserted = await db
       .insert(users)
-      .values({ fullName, email, phoneNumber, password: hashed, createdAt: date })
+      .values({
+        fullName,
+        email,
+        phoneNumber,
+        password: hashed,
+        createdAt: date,
+      })
       .returning();
 
     const user = inserted[0];
@@ -67,13 +73,14 @@ router.post("/login", async (req, res) => {
 
     const results = await db.select().from(users).where(eq(users.email, email));
     if (results.length === 0) {
-      return res.status(401).json({ success: false, message: "Email not found" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Email not found" });
     }
 
     const user = results[0];
-
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Wrong password" });
     }
@@ -86,7 +93,7 @@ router.post("/login", async (req, res) => {
       user: {
         userId: user.userId,
         fullName: user.fullName,
-        email: user.email,
+        role: user.role,
       },
     });
   } catch (err) {
