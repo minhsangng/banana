@@ -291,7 +291,7 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 <Text style={[TEXT.text, { color: COLORS.textLight }]}>{formatPrice(totalCart)} đ</Text>
                             </View>
 
-                            <TouchableOpacity onPress={() => router.push(`../checkout/${dataCart[0].order_items.orderId}`)} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
+                            <TouchableOpacity onPress={() => router.push("../checkout/")} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
                                 <Text style={[TEXT.text, TEXT.size(24), TEXT.center, { color: COLORS.heading }]}>Thanh toán</Text>
                             </TouchableOpacity>
                         </View>))

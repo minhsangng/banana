@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { Provider } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../../constants/colors";
+import { COLORS } from "../../../constants/colors";
 
 const TabsLayout = () => {
   return (
@@ -41,17 +41,17 @@ const TabsLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="favorite"
+          name="dish"
           options={{
-            title: "Favorite",
-            tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
+            title: "Dish",
+            tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
-          name="history"
+          name="statistic"
           options={{
-            title: "History",
-            tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
+            title: "Statistic",
+            tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />,
           }}
         />
         <Tabs.Screen

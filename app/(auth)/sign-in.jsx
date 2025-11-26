@@ -31,9 +31,9 @@ export default function SignInScreen() {
         try {
             const response = await axios.post(`${API_URL}/auth/login`, {
                 email,
-                password,
+                password: String(password),
             });
-
+            
             if (response.data.success) {
                 setAlert(true);
 
@@ -41,11 +41,13 @@ export default function SignInScreen() {
                 await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
                 setTimeout(() => {
                     InteractionManager.runAfterInteractions(() => {
-                        router.replace("../(tabs)/");
+                        if (response.data.user.role === "Customer")
+                            router.replace("../(tabs)/");
+                        else router.replace("../owner/");
                     });
                 }, 750);
             } else {
-                alert(response.data.message || "Đăng nhập thất bại");
+                console.log(response.data.message || "Đăng nhập thất bại");
             }
         } catch (error) {
             console.log(error);

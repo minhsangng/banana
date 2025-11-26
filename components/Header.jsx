@@ -24,15 +24,13 @@ export default function Header() {
     const [orders, setOrders] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [type, setType] = useState(null);
+    const [userId, setUserId] = useState(0);
 
     // ------------------- LOAD ORDER PROCESSING --------------------
     const loadOrderProccessing = async () => {
         try {
-            const userStr = await SecureStore.getItemAsync("userInfo");
-            if (!userStr) return;
-
-            const userId = parseInt(JSON.parse(userStr).userId);
-
+            if (userId === 0) return;
+                
             const { data } = await axios.get(`${API_URL}/orderbeingprocessed/${userId}`);
 
             if (!data || data.length === 0) {
@@ -105,6 +103,8 @@ export default function Header() {
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % orders.length);
         }, 3000);
+        
+        loadOrderProccessing();
 
         return () => clearInterval(interval);
     }, [orders]);
@@ -112,14 +112,18 @@ export default function Header() {
     // ------------------- INIT DATA --------------------
     useEffect(() => {
         initData();
-        loadOrderProccessing();
     }, []);
 
     const initData = async () => {
         updateGreeting();
-
+        
         const userStr = await SecureStore.getItemAsync("userInfo");
-        if (userStr) setIsLogin(true);
+        if (userStr) {
+            setUserId(JSON.parse(userStr).userId);
+            setIsLogin(true);   
+        }
+        
+        loadOrderProccessing();
 
         const greetingInterval = setInterval(updateGreeting, 60 * 1000);
         return () => clearInterval(greetingInterval);

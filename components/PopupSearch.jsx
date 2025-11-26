@@ -13,15 +13,18 @@ import { useState, useEffect } from "react";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from  "expo-router";
 import { API_URL } from "../constants/api";
 import { formatPrice } from "../constants/formatPrice";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "./LoadingSpinner";
 import ToastModal from "./ToastModal";
 
 const { width, height } = Dimensions.get("window");
 
 export default function PopupSearch({ visible, query, onClose }) {
+  const router = useRouter();
   const [data, setData] = useState([]);
   const [addToCart, setAddToCart] = useState(false);
   const [alert, setAlert] = useState(false);
@@ -34,13 +37,12 @@ export default function PopupSearch({ visible, query, onClose }) {
       if (userStr) {
         setDishSelected(dishId);
         const { data } = await axios.post(`${API_URL}/cart/add`, {
-          userId: userId,
+          userId: JSON.parse(userStr).userId,
           dishId: dishId,
           quantity: 1
         });
         setAddToCart(true);
         setTimeout(() => setAddToCart(false), 1000);
-        setQuantity(1);
       } else {
         setAlert(true);
       }

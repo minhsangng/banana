@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Dimensions, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { Audio } from "expo-av";
+import { Sound } from "expo-audio";
+import * as SecureStore from "expo-secure-store";
 import { COLORS } from "../constants/colors";
 
 const { width, height } = Dimensions.get("window");
@@ -12,11 +13,14 @@ export default function Splash() {
 
   const playSound = async () => {
     try {
-      const { sound } = await Audio.Sound.createAsync(
+      const s = new Sound();
+
+      await s.loadAsync(
         require("../assets/audios/babababanana.mp3")
       );
-      setSound(sound);
-      await sound.playAsync();
+
+      setSound(s);
+      await s.playAsync();
     } catch (error) {
       console.log("Error loading sound:", error);
     }
@@ -25,12 +29,31 @@ export default function Splash() {
   useEffect(() => {
     playSound();
 
-    const timer = setTimeout(() => {
-      router.replace("../onboard/");
-    }, 3200);
+    const loadUser = async () => {
+      try {
+        const userStr = await SecureStore.getItemAsync("userInfo");
 
-    return () => clearTimeout(timer);
-  }, [router]);
+        setTimeout(() => {
+          if (!userStr) {
+            router.replace("onboard");
+            return;
+          }
+
+          const user = JSON.parse(userStr);
+
+          if (user.role === "Owner") {
+            router.replace("owner/(tabs)");
+          } else {
+            router.replace("onboard");
+          }
+        }, 3200);
+      } catch (error) {
+        console.log("Lỗi load user:", error);
+      }
+    };
+
+    loadUser();
+  }, []);
 
   useEffect(() => {
     return () => {
