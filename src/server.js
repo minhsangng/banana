@@ -10,7 +10,7 @@ import {
   orderItems,
   favorites,
 } from "./db/schema.js";
-import { eq, ne, and, ilike, desc, between, inArray } from "drizzle-orm";
+import { eq, ne, sql, and, ilike, desc, between, inArray, sum } from "drizzle-orm";
 import job from "./config/cron.js";
 import cors from "cors";
 import authRouter, { protect } from "./auth.js";
@@ -303,7 +303,7 @@ app.get("/api/orders/:userId", async (req, res) => {
         ne(orders.status, "Success"),
         ne(orders.status, "Cart")
       ));
-      
+
     const grouped = {};
     rows.forEach((row) => {
       if (!grouped[row.orderId]) {
@@ -390,28 +390,38 @@ app.post("/api/cart/add", async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
     }
 
+    const dishRecord = await db
+      .select({ price: dishes.price })
+      .from(dishes)
+      .where(eq(dishes.dishId, dishId));
+
+    if (dishRecord.length === 0) {
+      return res.status(400).json({ error: "Dish not found" });
+    }
+
+    const dishPrice = dishRecord[0].price;
+
     const [cart] = await db
       .select()
       .from(orders)
-      .where(eq(orders.userId, userId))
-      .where(eq(orders.status, "Cart"));
+      .where(and(eq(orders.userId, userId), eq(orders.status, "Cart")));
 
     let orderId;
 
     if (!cart) {
-      const orderDate = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
+      const orderDate = new Date(Date.now() + 7 * 3600 * 1000);
 
-      await db.insert(orders).values({
-        orderDate,
-        userId,
-        totalAmount: 0,
-        status: "Cart",
-      });
+      const newOrder = await db
+        .insert(orders)
+        .values({
+          orderDate,
+          userId,
+          totalAmount: dishPrice * quantity,
+          status: "Cart",
+        })
+        .returning({ orderId: orders.orderId });
 
-      orderId = await db
-        .select(orderId)
-        .from(orders)
-        .orderBy(desc(orders.orderId))[0];
+      orderId = newOrder[0].orderId;
     } else {
       orderId = cart.orderId;
     }
@@ -419,35 +429,49 @@ app.post("/api/cart/add", async (req, res) => {
     const existingItem = await db
       .select()
       .from(orderItems)
-      .where(eq(orderItems.orderId, orderId))
-      .where(eq(orderItems.dishId, dishId));
+      .where(
+        and(eq(orderItems.orderId, orderId), eq(orderItems.dishId, dishId))
+      );
 
     if (existingItem.length > 0) {
-      const currentQty = existingItem[0].quantity;
+      const newQty = existingItem[0].quantity + quantity;
 
       await db
         .update(orderItems)
-        .set({ quantity: currentQty + quantity })
+        .set({ quantity: newQty })
         .where(eq(orderItems.orderItemId, existingItem[0].orderItemId));
-
-      return res.json({
-        message: "Updated item quantity",
-        orderId,
-      });
     } else {
       await db.insert(orderItems).values({
         orderId,
         dishId,
         quantity,
       });
-
-      res.json({
-        message: "Added new item to cart",
-        orderId,
-      });
     }
-  } catch (error) {
-    console.log("Error adding to cart", error);
+
+    const total = await db
+      .select({
+        total: sql`SUM(${orderItems.quantity} * ${dishes.price})`,
+      })
+      .from(orderItems)
+      .innerJoin(dishes, eq(orderItems.dishId, dishes.dishId))
+      .where(eq(orderItems.orderId, orderId));
+
+    const totalAmount = total[0].total ?? 0;
+
+    await db
+      .update(orders)
+      .set({ totalAmount })
+      .where(eq(orders.orderId, orderId));
+
+    return res.json({
+      message:
+        existingItem.length > 0
+          ? "Updated item quantity"
+          : "Added new item",
+      orderId,
+    });
+  } catch (e) {
+    console.log("Error adding to cart", e);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
