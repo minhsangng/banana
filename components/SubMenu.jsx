@@ -141,9 +141,19 @@ export default function SubMenu({ visible, setVisible, type }) {
 
     const handleLogout = async () => {
         try {
+            const refreshToken = await SecureStore.getItemAsync("refreshToken");
+
+            if (refreshToken) {
+                await axios.post(`${API_URL}/auth/logout`, { refreshToken });
+            }
+
+            await SecureStore.deleteItemAsync("accessToken");
+            await SecureStore.deleteItemAsync("refreshToken");
             await SecureStore.deleteItemAsync("userInfo");
+
             setIsLogin(false);
             setVisible(false);
+
         } catch (error) {
             console.log("Logout error:", error);
         } finally {

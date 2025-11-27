@@ -31,5 +31,9 @@ npm i --save react-native-modal
 ```
 
 ```bash
+npm i expo-audio
+```
+
+```bash
 npx expo
 ```

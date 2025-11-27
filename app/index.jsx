@@ -35,16 +35,16 @@ export default function Splash() {
 
         setTimeout(() => {
           if (!userStr) {
-            router.replace("onboard");
+            router.replace("./onboard/");
             return;
           }
 
           const user = JSON.parse(userStr);
 
           if (user.role === "Owner") {
-            router.replace("owner/(tabs)");
+            router.replace("./owner/(tabs)/");
           } else {
-            router.replace("onboard");
+            router.replace("./onboard/");
           }
         }, 3200);
       } catch (error) {

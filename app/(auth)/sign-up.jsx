@@ -20,11 +20,19 @@ export default function SignUpScreen() {
 
     const handleSignup = async () => {
         try {
+            if (!name || !email || !password || !phone) {
+                alert("Vui lòng nhập đầy đủ thông tin");
+                return;
+            }
+
+            const role = isChecked ? "Owner" : "Customer";
+
             const response = await axios.post(`${API_URL}/auth/register`, {
                 fullName: name,
                 email,
                 phoneNumber: phone,
-                password
+                password,
+                role
             });
 
             if (response.data.success) {
@@ -34,8 +42,9 @@ export default function SignUpScreen() {
             }
         } catch (error) {
             console.log(error);
+            alert("Lỗi kết nối server");
         }
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>

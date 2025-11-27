@@ -6,8 +6,7 @@ import {
     TouchableOpacity,
     SafeAreaView,
     Dimensions,
-    StyleSheet,
-    InteractionManager
+    StyleSheet
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -28,31 +27,45 @@ export default function SignInScreen() {
     const [alert, setAlert] = useState(false);
 
     const handleLogin = async () => {
+        if (!email || !password) {
+            return setAlert({ type: "error", message: "Vui lòng nhập đủ thông tin" });
+        }
+
         try {
             const response = await axios.post(`${API_URL}/auth/login`, {
                 email,
-                password: String(password),
+                password
             });
-            
-            if (response.data.success) {
-                setAlert(true);
 
-                await SecureStore.setItemAsync("accessToken", response.data.token);
-                await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
-                setTimeout(() => {
-                    InteractionManager.runAfterInteractions(() => {
-                        if (response.data.user.role === "Customer")
-                            router.replace("../(tabs)/");
-                        else router.replace("../owner/");
-                    });
-                }, 750);
-            } else {
-                console.log(response.data.message || "Đăng nhập thất bại");
+            if (!response.data.success) {
+                return setAlert({ type: "error", message: response.data.message });
             }
+
+            setAlert({ type: "success", message: "Đăng nhập thành công" });
+
+            await SecureStore.setItemAsync("accessToken", response.data.token);
+
+            if (response.data.refreshToken) {
+                await SecureStore.setItemAsync("refreshToken", response.data.refreshToken);
+            }
+
+            await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
+
+            await new Promise(r => setTimeout(r, 700));
+
+            if (response.data.user.role === "Customer") {
+                router.replace("/(tabs)");
+            } else {
+                router.replace("/owner/(tabs)");
+            }
+
         } catch (error) {
-            console.log(error);
+            setAlert({
+                type: "error",
+                message: error.response?.data?.message || "Lỗi hệ thống!"
+            });
         }
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -103,7 +116,7 @@ export default function SignInScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => router.push("/(auth)/forget-password")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")}>
                     <Text style={styles.forgotText}>Quên mật khẩu?</Text>
                 </TouchableOpacity>
 
@@ -126,7 +139,7 @@ export default function SignInScreen() {
                 </View>
             </View>
 
-            <ToastModal width={"auto"} height={"auto"} status={"success"} title={"Welcome back!"} content={null} visible={alert}/>
+            <ToastModal width={"auto"} height={"auto"} status={"success"} title={"Welcome back!"} content={null} visible={alert} />
         </SafeAreaView>
     );
 }
