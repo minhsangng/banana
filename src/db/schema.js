@@ -67,3 +67,13 @@ export const favorites = pgTable("favorites", {
   dishId: integer("dish_id").notNull(),
   userId: integer("user_id").notNull(),
 });
+
+export const refreshTokens = pgTable("refresh_tokens", {
+  refreshId: integer("refresh_id").primaryKey(),
+  token: text("token").notNull().unique(),
+  userId: integer("user_id").notNull(),
+  revoked: boolean("revoked").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  replacedBy: text("replaced_by"),
+});

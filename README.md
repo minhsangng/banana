@@ -15,5 +15,9 @@ npm i bcrypt jsonwebtoken express-rate-limit
 ```
 
 ```bash
+npm i uuid
+```
+
+```bash
 npm run dev
 ```
