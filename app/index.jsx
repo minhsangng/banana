@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, StyleSheet, Dimensions, Image } from "react-native";
+import { View, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { Sound } from "expo-audio";
-import * as SecureStore from "expo-secure-store";
+import { Audio } from "expo-av";
 import { COLORS } from "../constants/colors";
-
-const { width, height } = Dimensions.get("window");
+import { LAYOUT } from "../assets/styles/base.styles";
+import * as SecureStore from "expo-secure-store";
 
 export default function Splash() {
   const router = useRouter();
@@ -13,14 +12,12 @@ export default function Splash() {
 
   const playSound = async () => {
     try {
-      const s = new Sound();
-
-      await s.loadAsync(
+      const { sound } = await Audio.Sound.createAsync(
         require("../assets/audios/babababanana.mp3")
       );
 
-      setSound(s);
-      await s.playAsync();
+      setSound(sound);
+      await sound.playAsync();
     } catch (error) {
       console.log("Error loading sound:", error);
     }
@@ -56,26 +53,16 @@ export default function Splash() {
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (sound) {
+    return sound
+      ? () => {
         sound.unloadAsync();
       }
-    };
+      : undefined;
   }, [sound]);
 
   return (
-    <View style={styles.container}>
+    <View style={[LAYOUT.container, LAYOUT.bg(COLORS.background1), LAYOUT.justifyCenter, LAYOUT.itemsCenter]}>
       <Image source={require("../assets/images/main-logo.png")} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width,
-    height,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background1,
-  },
-});

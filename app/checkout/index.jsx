@@ -13,7 +13,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 import { API_URL } from "../../constants/api";
-import { formatPrice } from "../../constants/formatPrice";
+import { formatPrice } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "../../components/ToastModal";
@@ -30,9 +30,12 @@ export default function CheckoutScreen() {
     const [status, setStatus] = useState();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState(null);
+    const [note, setNote] = useState("");
     const [alert, setAlert] = useState(false);
+    const [change, setChange] = useState(false);
 
     const addressInputRef = useRef(null);
+    const SEVICE_FEE = 0;
 
     /* ------------------- LOAD USER ------------------- */
     useEffect(() => {
@@ -72,12 +75,15 @@ export default function CheckoutScreen() {
         };
 
         loadOrder();
-    }, [userId]);
+    }, [change, userId]);
 
     /* ------------------- TỔNG TIỀN ------------------- */
     const totalAmount = () => {
-        return dataOrder.reduce((sum, item) => {
-            return sum + item.dishes.price * item.order_items.quantity;
+        return dataOrder.reduce((sumOrder, order) => {
+            const sumItems = order.items.reduce((sumItem, item) => {
+                return sumItem + parseFloat(item.price) * item.quantity;
+            }, 0);
+            return sumOrder + sumItems;
         }, 0);
     };
 
@@ -87,8 +93,10 @@ export default function CheckoutScreen() {
             const { data } = await axios.delete(`${API_URL}/orderItem/${orderItemId}`);
             if (data.success) {
                 setDataOrder((prev) =>
-                    prev.filter((item) => item.order_items.orderItemId !== orderItemId)
+                    prev.filter((item) => item.items.orderItemId !== orderItemId)
                 );
+
+                setChange(!change);
             }
         } catch (error) {
             console.log("Error removing item:", error);
@@ -128,24 +136,19 @@ export default function CheckoutScreen() {
             const { data } = await axios.post(`${API_URL}/checkout`, {
                 userId,
                 address,
+                note
             });
+
+            if (data.success) {
+                await axios.post(`${API_URL}/grouporders`, { userId });
+
+                setTimeout(() => { setChange(!change) }, 750);
+            }
 
             setStatus(data.success ? "success" : "error");
             setTitle(data.success ? "Đặt hàng thành công" : "Đặt hàng thất bại");
-            setContent(
-                <View style={[LAYOUT.mt(12)]}>
-                    <Text style={[TEXT.paragraph]}>
-                        {data.success
-                            ? "Vui lòng chờ đủ 3 món để giao hàng"
-                            : "Thử đặt lại nhé"}
-                    </Text>
-                </View>
-            );
-            setAlert(true);
 
-            if (data.success) {
-                setTimeout(() => router.replace("../(tabs)/"), 1200);
-            }
+            setAlert(true);
         } catch (error) {
             console.log("Checkout error:", error);
         }
@@ -214,75 +217,86 @@ export default function CheckoutScreen() {
                             </View>
                         </View>
 
-                        {dataOrder.map((item) => (
-                            <View
-                                key={item.order_items.orderItemId}
-                                style={[
-                                    LAYOUT.row,
-                                    LAYOUT.justifyBetween,
-                                    LAYOUT.mb(14),
-                                    LAYOUT.pb(10),
-                                    LAYOUT.borderb(1, COLORS.background3),
-                                    { borderStyle: "dashed" },
-                                ]}
-                            >
-                                <Image
-                                    style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
-                                    source={
-                                        item.dishes.imageUrl
-                                            ? { uri: item.dishes.imageUrl }
-                                            : require("../../assets/images/background-default.png")
-                                    }
-                                />
-
-                                <View style={[LAYOUT.w("50%")]}>
-                                    <Text numberOfLines={1} style={[TEXT.text]}>
-                                        {item.dishes.dishName}
-                                    </Text>
-
-                                    <View style={[LAYOUT.row, LAYOUT.mt(4)]}>
-                                        <Ionicons name="reader-outline" color={COLORS.paragraph} />
-                                        <Text
-                                            style={[
-                                                TEXT.subText,
-                                                LAYOUT.ml(4),
-                                                { color: COLORS.paragraph },
-                                            ]}
-                                        >
-                                            Ghi chú
-                                        </Text>
-                                    </View>
-
-                                    <TouchableOpacity
-                                        onPress={() => removeOrderItem(item.order_items.orderItemId)}
+                        {dataOrder.map((order) => (
+                            <View key={order.orderId}>
+                                {order.items.map((item) => (
+                                    <View
+                                        key={item.orderItemId}
                                         style={[
-                                            LAYOUT.w(60),
-                                            LAYOUT.py(4),
-                                            LAYOUT.rounded(12),
-                                            LAYOUT.mt(14),
-                                            { backgroundColor: COLORS.background3 },
+                                            LAYOUT.row,
+                                            LAYOUT.justifyBetween,
+                                            LAYOUT.mb(14),
+                                            LAYOUT.pb(10),
+                                            LAYOUT.borderb(1, COLORS.background3),
+                                            { borderStyle: "dashed" },
                                         ]}
                                     >
-                                        <Text style={[TEXT.subText, TEXT.center, { color: COLORS.button }]}>
-                                            Xóa
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
+                                        <Image
+                                            style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
+                                            source={
+                                                item.imageUrl
+                                                    ? { uri: item.imageUrl }
+                                                    : require("../../assets/images/background-default.png")
+                                            }
+                                        />
 
-                                <View style={[LAYOUT.justifyBetween]}>
-                                    <View>
-                                        <Text style={[TEXT.paragraph, { color: COLORS.paragraph }]}>
-                                            {formatPrice(item.dishes.price)} đ
-                                        </Text>
-                                        <Text style={[TEXT.paragraph]}>x{item.order_items.quantity}</Text>
+                                        <View style={[LAYOUT.w("50%")]}>
+                                            <Text numberOfLines={1} style={[TEXT.text]}>
+                                                {item.dishName}
+                                            </Text>
+
+                                            <View style={[LAYOUT.row, LAYOUT.mt(4)]}>
+                                                <Ionicons name="reader-outline" color={COLORS.paragraph} />
+                                                <Text
+                                                    style={[
+                                                        TEXT.subText,
+                                                        LAYOUT.ml(4),
+                                                        { color: COLORS.paragraph },
+                                                    ]}
+                                                >
+                                                    {item.note ? item.note : "Ghi chú"}
+                                                </Text>
+                                            </View>
+
+                                            <TouchableOpacity
+                                                onPress={() => removeOrderItem(item.orderItemId)}
+                                                style={[
+                                                    LAYOUT.w(60),
+                                                    LAYOUT.py(4),
+                                                    LAYOUT.rounded(12),
+                                                    LAYOUT.mt(14),
+                                                    { backgroundColor: COLORS.background3 },
+                                                ]}
+                                            >
+                                                <Text
+                                                    style={[TEXT.subText, TEXT.center, { color: COLORS.button }]}
+                                                >
+                                                    Xóa
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <View style={[LAYOUT.justifyBetween]}>
+                                            <View>
+                                                <Text style={[TEXT.paragraph, { color: COLORS.paragraph }]}>
+                                                    {formatPrice(parseFloat(item.price))} đ
+                                                </Text>
+                                                <Text style={[TEXT.paragraph]}>x{item.quantity}</Text>
+                                            </View>
+
+                                            <Text style={[TEXT.paragraph, { color: COLORS.heading }]}>
+                                                {formatPrice(parseFloat(item.price) * item.quantity)} đ
+                                            </Text>
+                                        </View>
                                     </View>
-
-                                    <Text style={[TEXT.paragraph, { color: COLORS.heading }]}>
-                                        {formatPrice(item.dishes.price * item.order_items.quantity)} đ
-                                    </Text>
-                                </View>
+                                ))}
                             </View>
                         ))}
+
+                        <View style={[LAYOUT.mt(12), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>
+                            <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú</Text>
+                            <TextInput value={note} onChangeText={setNote} style={[LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), TEXT.paragraph, { backgroundColor: COLORS.background3 }]}></TextInput>
+                        </View>
 
                         {/* TỔNG TIỀN */}
                         <View style={[LAYOUT.mt(12)]}>
@@ -293,7 +307,7 @@ export default function CheckoutScreen() {
 
                             <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
                                 <Text style={[TEXT.text]}>Phí dịch vụ</Text>
-                                <Text style={[TEXT.text]}>5.000 đ</Text>
+                                <Text style={[TEXT.text]}>{formatPrice(SEVICE_FEE)} đ</Text>
                             </View>
 
                             <View
@@ -307,7 +321,7 @@ export default function CheckoutScreen() {
                             >
                                 <Text style={[TEXT.text]}>Thanh toán</Text>
                                 <Text style={[TEXT.text]}>
-                                    {formatPrice(totalAmount() + 5000)} đ
+                                    {formatPrice(totalAmount() + SEVICE_FEE)} đ
                                 </Text>
                             </View>
                         </View>

@@ -15,7 +15,7 @@ import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from  "expo-router";
 import { API_URL } from "../constants/api";
-import { formatPrice } from "../constants/formatPrice";
+import { formatPrice } from "../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "./LoadingSpinner";
@@ -35,14 +35,14 @@ export default function PopupSearch({ visible, query, onClose }) {
     try {
       const userStr = await SecureStore.getItemAsync("userInfo");
       if (userStr) {
+        setTimeout(() => setAddToCart(true), 200);
+        setTimeout(() => setAddToCart(false), 1000);
         setDishSelected(dishId);
         const { data } = await axios.post(`${API_URL}/cart/add`, {
           userId: JSON.parse(userStr).userId,
           dishId: dishId,
           quantity: 1
         });
-        setAddToCart(true);
-        setTimeout(() => setAddToCart(false), 1000);
       } else {
         setAlert(true);
       }

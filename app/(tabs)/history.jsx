@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { formatPrice } from "../../constants/formatPrice";
+import { formatPrice } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -24,7 +24,7 @@ const HistoryScreen = () => {
             setIsLogin(true);
 
             const userId = parseInt(JSON.parse(userStr).userId);
-            const { data } = await axios.get(`${API_URL}/history/${userId}`);
+            const { data } = await axios.get(`${API_URL}/passorder/${userId}`);
 
             setHistory(data);
             setLoading(false);
@@ -38,6 +38,7 @@ const HistoryScreen = () => {
     useEffect(() => {
         loadHistory();
     }, []);
+
 
     if (loading) return <LoadingSpinner />;
 
@@ -58,7 +59,6 @@ const HistoryScreen = () => {
                                 numColumns={1}
                                 showsVerticalScrollIndicator={false}
                                 renderItem={({ item }) => {
-                                    // nối tên các món
                                     const dishNames = item.items.map(d => d.dishName).join(" - ");
 
                                     return (
@@ -94,7 +94,7 @@ const HistoryScreen = () => {
                                                 </View>
 
                                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
-                                                    <Text style={[TEXT.text, TEXT.size(16), item.orderStatus === "Success" ? { color: "green" } : { color: "red" }]}>
+                                                    <Text style={[TEXT.text, TEXT.size(16), item.orderStatus === "Hoàn thành" ? { color: "green" } : { color: "red" }]}>
                                                         {item.orderStatus}
                                                     </Text>
                                                     <Text style={[TEXT.text, TEXT.size(16)]}>

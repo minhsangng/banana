@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, TextInput } 
 import { useEffect, useState } from "react";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { formatPrice } from "../../constants/formatPrice";
 import { API_URL } from "../../constants/api";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -16,11 +15,13 @@ const OrderScreen = () => {
     const [orders, setOrders] = useState([]);
     const [isLogin, setIsLogin] = useState(false);
     const [alert, setAlert] = useState(false);
+    const [deleteId, setDeleteId] = useState(0);
+    const [userId, setUserId] = useState(null);
     const [selectedReason, setSelectedReason] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const reasons = [
-        { id: 1, label: "Tôi muốn thay đổi địa chỉ giao" },
+        { id: 1, label: "Tôi muốn thay đổi địa chỉ nhận" },
         { id: 2, label: "Thời gian chờ quá lâu" },
         { id: 3, label: "Tôi không muốn mua nữa" },
         { id: 4, label: "Lý do khác" },
@@ -30,13 +31,12 @@ const OrderScreen = () => {
     const loadOrders = async () => {
         try {
             setLoading(true);
-            /* const userStr = await SecureStore.getItemAsync("userInfo");
-            if (!userStr) return; */
-            const userId = 1;
+            const userStr = await SecureStore.getItemAsync("userInfo");
+            if (!userStr) return;
             setIsLogin(true);
 
-            /* const userId = parseInt(JSON.parse(userStr).userId); */
-            const { data } = await axios.get(`${API_URL}/orders/${userId}`);
+            setUserId(parseInt(JSON.parse(userStr).userId));
+            const { data } = await axios.get(`${API_URL}/currentorder/${userId}`);
 
             setOrders(data);
             setLoading(false);
@@ -46,10 +46,6 @@ const OrderScreen = () => {
             setLoading(false);
         }
     };
-
-    const cancelOrder = () => {
-        setAlert(true);
-    }
 
     const contentCancelAlert = () => {
         return (
@@ -79,12 +75,37 @@ const OrderScreen = () => {
                     <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.button }]}>Hủy</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+                    <TouchableOpacity onPress={() => handleCancer()} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Xác nhận</Text>
                     </TouchableOpacity>
                 </View>
             </View >
         );
+    };
+
+    const cancelOrder = (orderId) => {
+        setAlert(true);
+        setDeleteId(orderId);
+    }
+
+    const handleCancer = async () => {
+        try {
+            setAlert(false);
+
+            const { data } = await axios.get(`${API_URL}/cancelorder/${deleteId}`);
+
+            await axios.post(`${API_URL}/pushnotification`, {
+                userId: userId,
+                title: "Thông báo mới",
+                content: data.message,
+                metadata: {}
+            });
+
+            setSelectedReason(null);
+            loadOrders();
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     useEffect(() => {
@@ -154,7 +175,7 @@ const OrderScreen = () => {
                                                 </View>
 
                                                 <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
-                                                    <TouchableOpacity onPress={cancelOrder}
+                                                    <TouchableOpacity onPress={() => cancelOrder(item.orderId)}
                                                         style={[
                                                             LAYOUT.px(10),
                                                             LAYOUT.py(4),

@@ -24,14 +24,13 @@ export default function Header() {
     const [orders, setOrders] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [type, setType] = useState(null);
-    const [userId, setUserId] = useState(0);
+    const [userId, setUserId] = useState(null);
 
-    // ------------------- LOAD ORDER PROCESSING --------------------
-    const loadOrderProccessing = async () => {
+    const loadOrderProccessing = async (uid) => {
+        if (!uid) return;
+
         try {
-            if (userId === 0) return;
-                
-            const { data } = await axios.get(`${API_URL}/orderbeingprocessed/${userId}`);
+            const { data } = await axios.get(`${API_URL}/orderbeingprocessed/${uid}`);
 
             if (!data || data.length === 0) {
                 setOrders([]);
@@ -41,12 +40,11 @@ export default function Header() {
             const grouped = {};
 
             data.forEach((item) => {
-
                 const orderId = item?.orderId;
 
                 if (!grouped[orderId]) {
                     grouped[orderId] = {
-                        orderId: orderId,
+                        orderId,
                         orderStatus: item.orderStatus ?? "",
                         dishes: []
                     };
@@ -63,7 +61,6 @@ export default function Header() {
         }
     };
 
-    // ------------------- RENDER ORDER --------------------
     const renderOrder = () => {
         if (orders.length === 0) return null;
 
@@ -96,53 +93,57 @@ export default function Header() {
         );
     };
 
-    // ------------------- AUTO ROTATE ORDER --------------------
     useEffect(() => {
-        if (orders.length === 0) return;
+        if (orders.length <= 1) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % orders.length);
         }, 3000);
         
-        loadOrderProccessing();
-
         return () => clearInterval(interval);
-    }, [orders]);
+    }, [orders.length]);
 
-    // ------------------- INIT DATA --------------------
     useEffect(() => {
+        const initData = async () => {
+            updateGreeting();
+
+            const userStr = await SecureStore.getItemAsync("userInfo");
+
+            if (userStr) {
+                const uid = JSON.parse(userStr).userId;
+                setUserId(uid);
+                setIsLogin(true);
+
+                loadOrderProccessing(uid);
+            }
+
+            const greetingInterval = setInterval(updateGreeting, 60 * 1000);
+            return () => clearInterval(greetingInterval);
+        };
+
         initData();
     }, []);
 
-    const initData = async () => {
-        updateGreeting();
-        
-        const userStr = await SecureStore.getItemAsync("userInfo");
-        if (userStr) {
-            setUserId(JSON.parse(userStr).userId);
-            setIsLogin(true);   
+    useEffect(() => {
+        if (userId) {
+            loadOrderProccessing(userId);
         }
-        
-        loadOrderProccessing();
-
-        const greetingInterval = setInterval(updateGreeting, 60 * 1000);
-        return () => clearInterval(greetingInterval);
-    };
+    }, [userId]);
 
     const updateGreeting = () => {
         const hour = new Date().getHours();
 
         const greetings = [
-            { range: [6, 10], title: "Chào buổi sáng", subtitle: "Ngày mới tràn đầy năng lượng!" },
-            { range: [11, 13], title: "Chào buổi trưa", subtitle: "Buổi trưa thật thoải mái!" },
-            { range: [14, 18], title: "Chào buổi chiều", subtitle: "Tiếp tục một ngày hiệu quả!" },
-            { range: [19, 22], title: "Chào buổi tối", subtitle: "Buổi tối thư giãn!" },
+            { range: [6, 10], title: "Chào buổi sáng" },
+            { range: [11, 13], title: "Chào buổi trưa" },
+            { range: [14, 18], title: "Chào buổi chiều" },
+            { range: [19, 22], title: "Chào buổi tối" },
         ];
 
         const current = greetings.find((g) => hour >= g.range[0] && hour <= g.range[1]);
 
         if (!current) {
-            setGreeting(["Chúc ngủ ngon", "Hẹn gặp lại!"]);
+            setGreeting(["Chúc ngủ ngon"]);
             return;
         }
 
@@ -156,10 +157,9 @@ export default function Header() {
         }
     };
 
-    // ------------------- UI --------------------
     return (
         <>
-            <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
+            <View style={[LAYOUT.header, LAYOUT.pt(48)]}>
                 {/* SEARCH BAR */}
                 <View
                     style={[
@@ -227,11 +227,11 @@ export default function Header() {
                 </View>
 
                 {/* GREETING & ORDER */}
-                <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(12)]}>
+                <View style={[LAYOUT.w(width - 60), LAYOUT.mx, LAYOUT.pt(8)]}>
                     <Text style={TEXT.heading}>{greeting[0]}</Text>
 
                     <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
-                        <Text style={[TEXT.paragraph, homeStyles.title]}>{greeting[1]}</Text>
+                        <Text style={[TEXT.paragraph, homeStyles.title]}>Ba ba ba banana...</Text>
 
                         {renderOrder()}
                     </View>

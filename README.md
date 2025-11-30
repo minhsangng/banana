@@ -31,7 +31,11 @@ npm i --save react-native-modal
 ```
 
 ```bash
-npm i expo-audio
+npm i expo-av
+```
+
+```bash
+npm i socket.io-client
 ```
 
 ```bash

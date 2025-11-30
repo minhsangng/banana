@@ -11,6 +11,6 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "app/_layout.jsx"
-, "app/home.jsx"  ],
+, "app/home.jsx", "components/PushNotification.jsx"  ],
   "extends": "expo/tsconfig.base"
 }

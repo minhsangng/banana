@@ -20,7 +20,7 @@ export default function OrderScreen() {
     const [loading, setLoading] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(1);
     const [userId, setUserId] = useState(0);
-    const [storeId, setStoreId] = useState(0);
+    const [deleteId, setDeleteId] = useState(0);
 
     useEffect(() => {
         loadOrders();
@@ -39,9 +39,9 @@ export default function OrderScreen() {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
-            setIsLogin(true);
 
             setUserId(parseInt(JSON.parse(userStr).userId));
+            setIsLogin(true);
 
             let status = "";
             if (currentStatus === 1)
@@ -61,9 +61,31 @@ export default function OrderScreen() {
         }
     };
 
-    const cancelOrder = () => {
+    const cancelOrder = (orderId) => {
         setAlert(true);
+        setDeleteId(orderId);
     }
+
+    const handleCancer = async () => {
+        try {
+            setAlert(false);
+
+            const { data } = await axios.get(`${API_URL}/cancelorder/${deleteId}`);
+
+            await axios.post(`${API_URL}/pushnotification`, {
+                userId: userId,
+                title: "Thông báo mới",
+                content: data.message,
+                metadata: {}
+            });
+
+            setSelectedReason(0);
+            loadOrders();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
 
     const contentCancelAlert = () => {
         return (
@@ -89,12 +111,11 @@ export default function OrderScreen() {
                     {selectedReason === 4 && (<TextInput placeholder="Nhập lý do" style={[LAYOUT.px(14), LAYOUT.py(8), LAYOUT.rounded(12), LAYOUT.mb(20), TEXT.paragraph, { backgroundColor: COLORS.background2 }]}></TextInput>)}
 
                 </View>
-
                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.wFull]}>
                     <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.button }]}>Hủy</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+                    <TouchableOpacity onPress={() => handleCancer()} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Xác nhận</Text>
                     </TouchableOpacity>
                 </View>
@@ -120,7 +141,7 @@ export default function OrderScreen() {
                     </View>
                     {loading ? (<LoadingSpinner />) :
                         (!isLogin ? (<Text style={[TEXT.paragraph, TEXT.center]}>Đăng nhập để đặt hàng ngay</Text>) : (
-                            orders.length === 0 ? <Text style={[TEXT.paragraph, TEXT.center]}>Trống</Text> :
+                            orders.length === 0 ? <Text style={[TEXT.paragraph, TEXT.center]}>Chưa có đơn hàng mới</Text> :
                                 (<FlatList
                                     data={orders}
                                     keyExtractor={(item) => item.orderId.toString()}
@@ -152,17 +173,11 @@ export default function OrderScreen() {
                                                     ]}
                                                 />
 
-                                                <View style={[LAYOUT.ml(12)]}>
-                                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                                        <Text style={[TEXT.text, LAYOUT.w("60%")]} numberOfLines={1}>
+                                                <View style={[LAYOUT.ml(12), LAYOUT.row, LAYOUT.justifyBetween]}>
+                                                    <View style={[LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                                        <Text style={[TEXT.text]} numberOfLines={1}>
                                                             {dishNames}
                                                         </Text>
-                                                        <Text style={[TEXT.text, { color: COLORS.heading }]}>
-                                                            {item.items.length} món
-                                                        </Text>
-                                                    </View>
-
-                                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
                                                         <Text style={[TEXT.text, TEXT.size(16)]}>
                                                             {item.orderStatus}
                                                         </Text>
@@ -170,9 +185,9 @@ export default function OrderScreen() {
                                                             {item.deliveryAddress}
                                                         </Text>
                                                     </View>
-
-                                                    <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
-                                                        <TouchableOpacity onPress={cancelOrder}
+                                                    <View style={[LAYOUT.mt(12), {justifyContent: "flex-end"}]}>
+                                                        {currentStatus === 1 && (<View style={[{gap: 8}]}>
+                                                            <TouchableOpacity onPress={() => cancelOrder(item.orderId)}
                                                             style={[
                                                                 LAYOUT.px(10),
                                                                 LAYOUT.py(4),
@@ -192,6 +207,27 @@ export default function OrderScreen() {
                                                                 Hủy đơn
                                                             </Text>
                                                         </TouchableOpacity>
+                                                            <TouchableOpacity
+                                                                style={[
+                                                                    LAYOUT.px(10),
+                                                                    LAYOUT.py(4),
+                                                                    LAYOUT.w(100),
+                                                                    LAYOUT.rounded(22),
+                                                                    { backgroundColor: COLORS.button }
+                                                                ]}
+                                                            >
+                                                                <Text
+                                                                    style={[
+                                                                        TEXT.text,
+                                                                        TEXT.size(16),
+                                                                        TEXT.center,
+                                                                        { color: COLORS.textLight }
+                                                                    ]}
+                                                                >
+                                                                    Tiếp theo
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </View>)}
                                                     </View>
                                                 </View>
                                             </TouchableOpacity>

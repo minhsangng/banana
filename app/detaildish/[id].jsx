@@ -5,7 +5,7 @@ import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
-import { formatPrice } from "../../constants/formatPrice";
+import { formatPrice } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -15,12 +15,25 @@ const { height, width } = Dimensions.get("window");
 
 const OrderDishScreen = () => {
   const { id: dishId } = useLocalSearchParams();
+  const [userId, setUserId] = useState(0);
   const [dish, setDish] = useState(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [alert, setAlert] = useState(false);
   const [addToCart, setAddToCart] = useState(false);
+  const [note, setNote] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const userStr = await SecureStore.getItemAsync("userInfo");
+      if (userStr)
+        setUserId(JSON.parse(userStr).userId);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   const loadDishDetail = async () => {
     try {
@@ -36,21 +49,40 @@ const OrderDishScreen = () => {
 
   const addCart = async () => {
     try {
-      const userStr = await SecureStore.getItemAsync("userInfo");
-      if (userStr) {
-        const response = await axios.post(`${API_URL}/cart/add`, {
-          userId: JSON.parse(userStr).userId,
+      setTimeout(() => setAddToCart(true), 200);
+      setTimeout(() => setAddToCart(false), 1000);
+      if (userId !== 0) {
+        const { data } = await axios.post(`${API_URL}/cart/add`, {
+          userId: userId,
           dishId: dishId,
-          quantity
+          quantity,
+          note
         });
-        setAddToCart(true);
-        setTimeout(() => setAddToCart(false), 1000);
-        setQuantity(1);
+
+        if (data.success)
+          setQuantity(1);
       } else {
         setAlert(true);
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const addFavorite = async () => {
+    try {
+      setIsFavorite(!isFavorite);
+      if (userId !== 0) {
+        const { data } = await axios.get(`${API_URL}/favorite/${!isFavorite ? "add" : "remove"}/${userId}/${dishId}`);
+
+        if (data.success) {
+          console.log(data.message);
+        }
+      } else {
+        setAlert(true);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -65,6 +97,7 @@ const OrderDishScreen = () => {
   };
 
   useEffect(() => {
+    loadData();
     loadDishDetail();
   }, []);
 
@@ -87,22 +120,23 @@ const OrderDishScreen = () => {
             </Text>
           </View>
 
-          <Ionicons
-            name="heart"
-            size={20}
-            color={COLORS.light}
-            style={[
-              LAYOUT.rounded(20),
-              LAYOUT.p(4),
-              { backgroundColor: COLORS.button },
-            ]}
-          />
+          <TouchableOpacity onPress={addFavorite}>
+            <Ionicons
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={20}
+              color={COLORS.light}
+              style={[
+                LAYOUT.rounded(20),
+                LAYOUT.p(4),
+                { backgroundColor: COLORS.button },
+              ]}
+            ></Ionicons>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* BODY */}
+      {/* MAIN */}
       <ScrollView style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
-        {/* IMAGE */}
         <View
           style={[
             LAYOUT.w(width - 60),
@@ -120,7 +154,6 @@ const OrderDishScreen = () => {
           />
         </View>
 
-        {/* PRICE + QUANTITY */}
         <View
           style={[
             LAYOUT.row,
@@ -172,7 +205,6 @@ const OrderDishScreen = () => {
           </View>
         </View>
 
-        {/* DESCRIPTION */}
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(18)]}>
           <Text style={[TEXT.text, TEXT.size(20)]}>
             {dish.dishName}
@@ -188,13 +220,11 @@ const OrderDishScreen = () => {
           </Text>
         </View>
 
-        {/* NOTE */}
         <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
           <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú:</Text>
-          <TextInput style={[TEXT.paragraph, LAYOUT.px(20), LAYOUT.py(12), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12)]} />
+          <TextInput value={note} onChangeText={setNote} style={[TEXT.paragraph, LAYOUT.px(20), LAYOUT.py(12), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12)]} />
         </View>
 
-        {/* ADD TO CART */}
         <View style={[LAYOUT.my(24), LAYOUT.itemsCenter]}>
           <TouchableOpacity onPress={addCart}
             style={[
@@ -207,8 +237,8 @@ const OrderDishScreen = () => {
               { backgroundColor: COLORS.button, gap: 8 },
             ]}
           >
-            <Ionicons name={addToCart ? "cart" : "cart-outline"} style={addToCart ? {transform: "rotate(-15deg)", color: COLORS.background1} : {}} size={(24)} color={COLORS.textLight}></Ionicons>
-            <Text style={[TEXT.text, TEXT.size(20), TEXT.center, addToCart ? {color: COLORS.background1} : { color: COLORS.light }]}>
+            <Ionicons name={addToCart ? "cart" : "cart-outline"} style={addToCart ? { transform: "rotate(-15deg)", color: COLORS.background1 } : {}} size={(24)} color={COLORS.textLight}></Ionicons>
+            <Text style={[TEXT.text, TEXT.size(20), TEXT.center, addToCart ? { color: COLORS.background1 } : { color: COLORS.light }]}>
               Thêm giỏ hàng
             </Text>
           </TouchableOpacity>

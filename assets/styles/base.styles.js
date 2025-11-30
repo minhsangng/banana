@@ -71,6 +71,9 @@ export const LAYOUT = StyleSheet.create({
   itemsCenter: {
     alignItems: "center",
   },
+  itemsEnd: {
+    alignItems: "flex-end",
+  },
   header: {
     width: width - 60,
     marginHorizontal: "auto",
@@ -165,26 +168,31 @@ export const LAYOUT = StyleSheet.create({
     borderBottomWidth: w,
     borderBottomColor: c,
   }),
-});
-
-export const BUTTON = StyleSheet.create({
-  primary: {
-    backgroundColor: COLORS.button,
-    color: COLORS.textLight,
-    borderRadius: 50,
-    fontFamily: "Modak",
-    fontSize: 22,
-    textAlign: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 12,
+  borderl: (w, c) => ({
+    borderLeftWidth: w,
+    borderLeftColor: c,
+  }),
+  borderr: (w, c) => ({
+    borderRightWidth: w,
+    borderRightColor: c,
+  }),
+  bg: (c) => ({
+    backgroundColor: c,
+  }),
+  color: (c) => ({
+    color: c,
+  }),
+  zIndex: (c) => ({
+    zIndex: c,
+    elevation: c,
+  }),
+  gap: (c) => ({
+    gap: c,
+  }),
+  overflowHidde: {
+    overflow: "hidden",
   },
-  secondary: {
-    backgroundColor: COLORS.background2,
-    borderRadius: 32,
-    fontFamily: TEXT.title,
-    textAlign: "center",
-    height: 25,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
+  overflowScroll: {
+    overflow: "scroll",
+  }
 });

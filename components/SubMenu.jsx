@@ -5,7 +5,7 @@ import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../constants/api";
-import { formatPrice } from "../constants/formatPrice";
+import { formatPrice } from "../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "./ToastModal";
@@ -41,6 +41,7 @@ export default function SubMenu({ visible, setVisible, type }) {
 
     const updateQuantity = async (orderItemId, newQuantity) => {
         try {
+        console.log(newQuantity);
             await axios.post(`${API_URL}/cart/update`, { orderItemId, quantity: newQuantity });
             setDataCart(prev =>
                 prev.map(item =>
