@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "./config/db.js";
-import { users, refreshTokens } from "./db/schema.js"; // thêm refreshTokens schema
+import { users, refreshTokens } from "./db/schema.js";
 import { eq } from "drizzle-orm";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -10,8 +10,8 @@ import { v4 as uuidv4 } from "uuid";
 dotenv.config();
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET; // ACCESS token secret
-const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET; // REFRESH token secret
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || "10");
 
 if (!JWT_SECRET || !REFRESH_SECRET) {
@@ -20,12 +20,11 @@ if (!JWT_SECRET || !REFRESH_SECRET) {
 }
 
 // Expirations (config via env)
-const ACCESS_EXPIRES = process.env.ACCESS_EXPIRES || "15m"; // e.g. 15m
-const REFRESH_EXPIRES = process.env.REFRESH_EXPIRES || "30d"; // e.g. 30d
+const ACCESS_EXPIRES = process.env.ACCESS_EXPIRES || "15m";
+const REFRESH_EXPIRES = process.env.REFRESH_EXPIRES || "30d";
 
 /* ---------------- Helpers ---------------- */
 function signAccessToken(user) {
-  // include small payload; add role if needed
   return jwt.sign(
     {
       id: user.userId,
@@ -51,7 +50,6 @@ function signRefreshToken(user, jti) {
 }
 
 async function saveRefreshTokenToDB(token, userId, expiresAt, replacedBy = null) {
-  // db.insert(refreshTokens)... using your drizzle schema for refresh_tokens
   return await db
     .insert(refreshTokens)
     .values({

@@ -23,6 +23,19 @@ CREATE TABLE "favorites" (
 	"user_id" integer NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "group_order_items" (
+	"group_order_item_id" integer PRIMARY KEY NOT NULL,
+	"group_order_id" integer NOT NULL,
+	"order_id" integer NOT NULL,
+	"user_id" integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "group_orders" (
+	"group_order_id" integer PRIMARY KEY NOT NULL,
+	"store_id" integer NOT NULL,
+	"sum_of_quantity" integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "order_items" (
 	"order_item_id" integer PRIMARY KEY NOT NULL,
 	"order_id" integer NOT NULL,
@@ -42,6 +55,17 @@ CREATE TABLE "orders" (
 	"status" varchar DEFAULT 'Pending' NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "refresh_tokens" (
+	"refresh_id" integer PRIMARY KEY NOT NULL,
+	"token" text NOT NULL,
+	"user_id" integer NOT NULL,
+	"revoked" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"expires_at" timestamp NOT NULL,
+	"replaced_by" text,
+	CONSTRAINT "refresh_tokens_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
 CREATE TABLE "stores" (
 	"store_id" integer PRIMARY KEY NOT NULL,
 	"store_name" varchar NOT NULL,
@@ -53,6 +77,12 @@ CREATE TABLE "stores" (
 	"rate_star" numeric DEFAULT 5 NOT NULL,
 	"user_id" integer,
 	"status" varchar DEFAULT 'Active' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "user_push_tokens" (
+	"user_push_token_id" integer PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"token" varchar NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

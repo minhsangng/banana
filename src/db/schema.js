@@ -1,4 +1,4 @@
-import { pgTable, numeric, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, numeric, varchar, integer, timestamp, boolean, text } from "drizzle-orm/pg-core";
 
 export const dishes = pgTable("dishes", {
   dishId: integer("dish_id").primaryKey(),
@@ -72,8 +72,27 @@ export const refreshTokens = pgTable("refresh_tokens", {
   refreshId: integer("refresh_id").primaryKey(),
   token: text("token").notNull().unique(),
   userId: integer("user_id").notNull(),
-  revoked: boolean("revoked").default(false),
+  revoked: boolean("revoked").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at").notNull(),
   replacedBy: text("replaced_by"),
+});
+
+export const groupOrders = pgTable("group_orders", {
+  groupOrderId: integer("group_order_id").primaryKey(),
+  storeId: integer("store_id").notNull(),
+  sumOfQuantity: integer("sum_of_quantity").notNull(),
+});
+
+export const groupOrderItems = pgTable("group_order_items", {
+  groupOrderItemId: integer("group_order_item_id").primaryKey(),
+  groupOrderId: integer("group_order_id").notNull(),
+  orderId: integer("order_id").notNull(),
+  userId: integer("user_id").notNull(),
+});
+
+export const userPushTokens = pgTable("user_push_tokens", {
+  userPushTokenId: integer("user_push_token_id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  token: varchar("token").notNull(),
 });

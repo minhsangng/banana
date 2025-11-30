@@ -19,5 +19,9 @@ npm i uuid
 ```
 
 ```bash
+npm i expo-server-sdk
+```
+
+```bash
 npm run dev
 ```
