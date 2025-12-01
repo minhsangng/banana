@@ -9,7 +9,7 @@ import * as SecureStore from "expo-secure-store";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
+        shouldShowBanner: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
     }),

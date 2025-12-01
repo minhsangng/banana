@@ -13,11 +13,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 import { API_URL } from "../../constants/api";
-import { formatPrice } from "../../constants/format";
+import { formatPrice, dishImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "../../components/ToastModal";
-import { dishImage } from "../../constants/format";
 
 const { width, height } = Dimensions.get("window");
 
@@ -58,12 +57,10 @@ export default function CheckoutScreen() {
         const loadUser = async () => {
             try {
                 const userStr = await SecureStore.getItemAsync("userInfo");
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    setUserId(parseInt(user.userId));
-                }
+                if (userStr)
+                    setUserId(parseInt(JSON.parse(userStr).userId));
             } catch (error) {
-                console.log("Error loading user:", error);
+                console.error("Lấy thông tin người dùng thất bại: ", error);
             }
         };
         loadUser();
@@ -156,8 +153,6 @@ export default function CheckoutScreen() {
             });
 
             if (data.success) {
-                await axios.post(`${API_URL}/grouporders`, { userId });
-
                 setTimeout(() => { setChange(!change) }, 750);
             }
 
@@ -213,9 +208,9 @@ export default function CheckoutScreen() {
                             onChangeText={(text) => (setAddress(text), getSuggestAddress(text))}
                             style={[TEXT.paragraph]}
                         />
-                        <View style={[LAYOUT.absolute, LAYOUT.top("110%"), LAYOUT.left(0), LAYOUT.row, LAYOUT.flexWrap, LAYOUT.wFull, LAYOUT.gap(14), { zIndex: 99999 }]}>
+                        <View style={[LAYOUT.absolute, LAYOUT.top("130%"), LAYOUT.left(0), LAYOUT.row, LAYOUT.flexWrap, LAYOUT.w("120%"), LAYOUT.gap(14), LAYOUT.zIndex(1)]}>
                             {suggestAddress.map((item) => (
-                                <TouchableOpacity onPress={() => (setAddress(`${item}.`), setSuggestAddress([]), setTimeout(() => addressInputRef.current?.focus(), 150))} key={item} style={[LAYOUT.bg(COLORS.background4), LAYOUT.px(14), LAYOUT.py(4), LAYOUT.rounded(10)]}><Text style={[TEXT.text, TEXT.center]}>{item}</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => (setAddress(`${item}.`), setSuggestAddress([]), setTimeout(() => addressInputRef.current?.focus(), 150))} key={item} style={[LAYOUT.bg(COLORS.background4), LAYOUT.w(44), LAYOUT.py(4), LAYOUT.rounded(10)]}><Text style={[TEXT.text, TEXT.center]}>{item}</Text></TouchableOpacity>
                             ))}
                         </View>
                     </View>
@@ -354,10 +349,10 @@ export default function CheckoutScreen() {
                                 LAYOUT.w(200),
                                 LAYOUT.py(10),
                                 LAYOUT.rounded(20),
-                                { backgroundColor: COLORS.button },
+                                LAYOUT.bg(COLORS.button)
                             ]}
                         >
-                            <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>
+                            <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.textLight)]}>
                                 Đặt Hàng
                             </Text>
                         </TouchableOpacity>

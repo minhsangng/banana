@@ -115,8 +115,8 @@ export default function SignUpScreen() {
                     <Text style={[TEXT.center, TEXT.paragraph, LAYOUT.ml(8), { color: COLORS.paragraph }]}>Tài khoản bán hàng</Text>
                 </View>
 
-                <TouchableOpacity onPress={handleSignup}>
-                    <Text style={[BUTTON.primary]}>Đăng ký</Text>
+                <TouchableOpacity style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.rounded(20)]} onPress={handleSignup}>
+                    <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Đăng ký</Text>
                 </TouchableOpacity>
 
                 <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.pt(14)]}>hoặc</Text>
@@ -128,13 +128,14 @@ export default function SignUpScreen() {
                 <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.mt(32)]}>
                     <Text style={[TEXT.paragraph]}>Đã có tài khoản? </Text>
                     <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>
-                        <Text style={[TEXT.paragraph, { color: COLORS.heading }]}>Đăng Nhập</Text>
+                        <Text style={[TEXT.paragraph, LAYOUT.color(COLORS.heading)]}>Đăng Nhập</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </SafeAreaView>
     );
 }
+
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#F7D72E" },
     headerContainer: {
