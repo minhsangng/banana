@@ -66,6 +66,12 @@ CREATE TABLE "refresh_tokens" (
 	CONSTRAINT "refresh_tokens_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "rooms" (
+	"room_id" integer PRIMARY KEY NOT NULL,
+	"building" varchar,
+	"floor" varchar
+);
+--> statement-breakpoint
 CREATE TABLE "stores" (
 	"store_id" integer PRIMARY KEY NOT NULL,
 	"store_name" varchar NOT NULL,

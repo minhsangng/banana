@@ -96,3 +96,9 @@ export const userPushTokens = pgTable("user_push_tokens", {
   userId: integer("user_id").notNull(),
   token: varchar("token").notNull(),
 });
+
+export const rooms = pgTable("rooms", {
+  room_id: integer("room_id").primaryKey(),
+  building: varchar("building"),
+  floor: varchar("floor"),
+});
