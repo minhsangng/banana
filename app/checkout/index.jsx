@@ -17,6 +17,7 @@ import { formatPrice } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "../../components/ToastModal";
+import { dishImage } from "../../constants/format";
 
 const { width, height } = Dimensions.get("window");
 
@@ -26,16 +27,31 @@ export default function CheckoutScreen() {
     const [userId, setUserId] = useState(null);
     const [dataOrder, setDataOrder] = useState([]);
     const [address, setAddress] = useState("");
-
     const [status, setStatus] = useState();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState(null);
     const [note, setNote] = useState("");
     const [alert, setAlert] = useState(false);
     const [change, setChange] = useState(false);
-
+    const [suggestAddress, setSuggestAddress] = useState([]);
     const addressInputRef = useRef(null);
     const SEVICE_FEE = 0;
+
+    const getSuggestAddress = async (keyword) => {
+        try {
+            if (!keyword.trim()) {
+                setSuggestAddress([]);
+                return;
+            }
+
+            const { data } = await axios.get(`${API_URL}/address/suggest/${keyword.trim()}`);
+
+            if (data)
+                setSuggestAddress(data);
+        } catch (error) {
+            console.error("Lỗi lấy địa chỉ đề xuất: ", error);
+        }
+    };
 
     /* ------------------- LOAD USER ------------------- */
     useEffect(() => {
@@ -69,7 +85,7 @@ export default function CheckoutScreen() {
                     setDataOrder([]);
                 }
             } catch (error) {
-                console.log("Error loading order:", error);
+                console.log("Error loading checkout:", error);
                 setDataOrder([]);
             }
         };
@@ -185,16 +201,23 @@ export default function CheckoutScreen() {
                             LAYOUT.px(12),
                             LAYOUT.py(4),
                             LAYOUT.rounded(20),
-                            { backgroundColor: COLORS.background3 },
+                            LAYOUT.relative,
+                            LAYOUT.bg(COLORS.background3)
                         ]}
                     >
                         <TextInput
                             ref={addressInputRef}
-                            placeholder="Phòng V6.02 (IUH - CS1)"
+                            placeholder="V6.02"
                             value={address}
-                            onChangeText={setAddress}
+                            selection={{ start: parseInt(`${address.length}`), end: parseInt(`${address.length}`) }}
+                            onChangeText={(text) => (setAddress(text), getSuggestAddress(text))}
                             style={[TEXT.paragraph]}
                         />
+                        <View style={[LAYOUT.absolute, LAYOUT.top("110%"), LAYOUT.left(0), LAYOUT.row, LAYOUT.flexWrap, LAYOUT.wFull, LAYOUT.gap(14), { zIndex: 99999 }]}>
+                            {suggestAddress.map((item) => (
+                                <TouchableOpacity onPress={() => (setAddress(`${item}.`), setSuggestAddress([]), setTimeout(() => addressInputRef.current?.focus(), 150))} key={item} style={[LAYOUT.bg(COLORS.background4), LAYOUT.px(14), LAYOUT.py(4), LAYOUT.rounded(10)]}><Text style={[TEXT.text, TEXT.center]}>{item}</Text></TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
 
                     {/* THÔNG TIN ĐƠN */}
@@ -233,11 +256,7 @@ export default function CheckoutScreen() {
                                     >
                                         <Image
                                             style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
-                                            source={
-                                                item.imageUrl
-                                                    ? { uri: item.imageUrl }
-                                                    : require("../../assets/images/background-default.png")
-                                            }
+                                            source={dishImage(item.imageUrl)}
                                         />
 
                                         <View style={[LAYOUT.w("50%")]}>

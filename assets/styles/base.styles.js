@@ -71,8 +71,14 @@ export const LAYOUT = StyleSheet.create({
   itemsCenter: {
     alignItems: "center",
   },
+  itemsStart: {
+    alignItems: "flex-start",
+  },
   itemsEnd: {
     alignItems: "flex-end",
+  },
+  flexWrap: {
+    flexWrap: "wrap",
   },
   header: {
     width: width - 60,

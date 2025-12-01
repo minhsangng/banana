@@ -11,7 +11,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
-import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
+import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -121,8 +121,8 @@ export default function SignInScreen() {
                 </TouchableOpacity>
 
                 {/* Login Button */}
-                <TouchableOpacity onPress={handleLogin}>
-                    <Text style={[BUTTON.primary]}>Đăng nhập</Text>
+                <TouchableOpacity style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.rounded(20)]} onPress={handleLogin}>
+                    <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Đăng nhập</Text>
                 </TouchableOpacity>
 
                 <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.pt(14)]}>hoặc</Text>
