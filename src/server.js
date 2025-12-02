@@ -188,16 +188,37 @@ app.get("/api/dishes/:categoryId", async (req, res) => {
 });
 
 /* Select dish detail */
-app.get("/api/dish/:dishId", async (req, res) => {
+app.get("/api/dish/:dishId/:userId", async (req, res) => {
   try {
-    const { dishId } = req.params;
+    const { dishId, userId } = req.params;
 
-    const results = await db
+    let results = [];
+    const userFavorites = await db
       .select()
-      .from(dishes)
+      .from(favorites)
       .where(
-        and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
+        and(
+          eq(favorites.userId, parseInt(userId)),
+          eq(favorites.dishId, parseInt(dishId))
+        )
       );
+
+    if (userFavorites.length === 0) {
+      results = await db
+        .select()
+        .from(dishes)
+        .where(
+          and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
+        );
+    } else {
+      results = await db
+        .select({...dishes, userId: favorites.userId})
+        .from(dishes)
+        .innerJoin(favorites, eq(favorites.userId, parseInt(userId)))
+        .where(
+          and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
+        );
+    }
 
     res.status(200).json(results);
   } catch (error) {
@@ -1002,9 +1023,7 @@ app.delete("/api/orderItem/:orderItemId", async (req, res) => {
 /* Get suggest address */
 app.get("/api/address", async (req, res) => {
   try {
-    const results = await db
-      .select()
-      .from(rooms);
+    const results = await db.select().from(rooms);
 
     res.json(results);
   } catch (error) {
