@@ -32,38 +32,58 @@ export default function CheckoutScreen() {
     const [note, setNote] = useState("");
     const [alert, setAlert] = useState(false);
     const [change, setChange] = useState(false);
+    const [addressList, setAddressList] = useState([]);
     const [suggestAddress, setSuggestAddress] = useState([]);
     const addressInputRef = useRef(null);
     const SEVICE_FEE = 0;
 
-    const getSuggestAddress = async (keyword) => {
-        try {
-            if (!keyword.trim()) {
-                setSuggestAddress([]);
-                return;
-            }
-
-            const { data } = await axios.get(`${API_URL}/address/suggest/${keyword.trim()}`);
-
-            if (data)
-                setSuggestAddress(data);
-        } catch (error) {
-            console.error("Lỗi lấy địa chỉ đề xuất: ", error);
+    const getSuggestAddress = (keyword) => {
+        const key = keyword.toString().trim().toUpperCase();
+        if (!key) {
+            setSuggestAddress([]);
+            return;
         }
+
+        const suggestions = [];
+
+        addressList.forEach((r) => {
+            if (r.building.startsWith(key)) {
+                const [minF, maxF] = r.floor.split(",").map((f) => Number(f.trim()));
+
+                for (let f = minF; f <= maxF; f++) {
+                    suggestions.push(`${r.building}${f}`);
+                }
+            }
+        });
+
+        setSuggestAddress(suggestions);
     };
 
-    /* ------------------- LOAD USER ------------------- */
+    /* ------------------- LOAD DATA ------------------- */
     useEffect(() => {
-        const loadUser = async () => {
+        const loadData = async () => {
             try {
-                const userStr = await SecureStore.getItemAsync("userInfo");
-                if (userStr)
+                let userStr = null;
+                let addressData = null;
+
+                await Promise.all([
+                    (userStr = await SecureStore.getItemAsync("userInfo")),
+                    (addressData = await axios.get(`${API_URL}/address`))
+                ]);
+
+                if (userStr) {
                     setUserId(parseInt(JSON.parse(userStr).userId));
+                }
+
+                if (addressData?.data) {
+                    setAddressList(addressData.data);
+                }
             } catch (error) {
                 console.error("Lấy thông tin người dùng thất bại: ", error);
             }
         };
-        loadUser();
+
+        loadData();
     }, []);
 
     /* ------------------- LOAD ORDER ------------------- */
