@@ -4,7 +4,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { formatPrice } from "../../constants/format";
+import { formatPrice, formatImage } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";

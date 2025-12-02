@@ -1,11 +1,11 @@
-import { View, Text, TouchableOpacity, FlatList, ImageBackground, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Image, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { formatPrice } from "../../constants/format";
+import { formatPrice, formatImage } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 
@@ -58,8 +58,8 @@ const RecommendScreen = () => {
                         renderItem={({ item }) => (
                             <TouchableOpacity onPress={()=> router.push(`../detaildish/${item.dishId}`)}
                                 style={[LAYOUT.w("48%"), LAYOUT.mb(16), LAYOUT.relative]}>
-                                <ImageBackground
-                                    source={item.imageUrl ? { uri: item.imageUrl } : require("../../assets/images/background-default.png")}
+                                <Image
+                                    source={formatImage(item.imageUrl)}
                                     style={[LAYOUT.wFull, LAYOUT.h(150), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
                                 />
                                 <Ionicons name="heart" size={16} color={COLORS.button} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10), LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), { backgroundColor: COLORS.light }]}></Ionicons>

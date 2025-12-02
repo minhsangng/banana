@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { formatPrice, dishImage } from "../constants/format";
+import { formatPrice, formatImage } from "../constants/format";
 import { DishAPI } from "../services/dishAPI";
 
 const { width, height } = Dimensions.get("window");
@@ -19,7 +19,7 @@ export default function CategoryFilter({ categoryId, visible }) {
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            const results = await DishAPI.getDishByCategoryId({ categoryId });
+            const results = await DishAPI.getDishByCategoryId(categoryId);
             setData(results);
             setLoading(false);
         };
@@ -52,7 +52,7 @@ export default function CategoryFilter({ categoryId, visible }) {
                         <TouchableOpacity onPress={() => router.push(`../detaildish/${d.dishId}`)} key={d.dishId} style={[LAYOUT.mb(24), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.background3)]}>
                             <Image
                                 style={[LAYOUT.w("100%"), LAYOUT.h(160), LAYOUT.rounded(36)]}
-                                borderRadius={36} source={dishImage(d.imageUrl)} resizeMode="cover" />
+                                borderRadius={36} source={formatImage(d.imageUrl)} resizeMode="cover" />
                             <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
                                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.w("75%"), LAYOUT.pt(4)]}>
                                     <Text style={[TEXT.text]} numberOfLines={1}>{d.dishName}</Text>

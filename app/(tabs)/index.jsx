@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
 import { API_URL } from "../../constants/api";
-import { dishImage } from "../../constants/format";
+import { formatImage } from "../../constants/format";
 import axios from "axios";
 
 import SlideBanner from "../../components/SlideBanner";
@@ -84,7 +84,7 @@ const HomeScreen = () => {
                     <TouchableOpacity key={d.dishId} onPress={() => router.push(`../detaildish/${d.dishId}`)} style={[LAYOUT.border(1, COLORS.border), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110), { overflow: "hidden" }]}>
                       <Image
                         style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]}
-                        source={dishImage(d.imageUrl)}
+                        source={formatImage(d.imageUrl)}
                       ></Image>
                       <Text
                         style={[
@@ -115,7 +115,7 @@ const HomeScreen = () => {
                 {recommends.length === 0 ? (<View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}><Text style={[TEXT.text]}>Chưa có dữ liệu</Text></View>)
                   : recommends.map((data) => (
                     <TouchableOpacity key={data.dishId} onPress={() => router.push(`../detaildish/${data.dishId}`)} style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(8), { overflow: "hidden" }]}>
-                      <Image style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={dishImage(data.imageUrl)}></Image>
+                      <Image style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={formatImage(data.imageUrl)}></Image>
                       <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
                         <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
                           <Text style={TEXT.subText}>5.0</Text>

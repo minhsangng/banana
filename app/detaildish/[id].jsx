@@ -1,46 +1,39 @@
 import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
-import { formatPrice } from "../../constants/format";
+import { formatPrice, formatImage } from "../../constants/format";
+import { UserAPI } from "../../services/userInfo";
+import { DishAPI } from "../../services/dishAPI";
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ToastModal from "../../components/ToastModal";
 
 const { height, width } = Dimensions.get("window");
 
 const OrderDishScreen = () => {
+  const router = useRouter();
   const { id: dishId } = useLocalSearchParams();
   const [userId, setUserId] = useState(0);
   const [dish, setDish] = useState(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [alert, setAlert] = useState(false);
   const [addToCart, setAddToCart] = useState(false);
   const [note, setNote] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const loadData = async () => {
-    try {
-      const userStr = await SecureStore.getItemAsync("userInfo");
-      if (userStr)
-        setUserId(JSON.parse(userStr).userId);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   const loadDishDetail = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API_URL}/dish/${dishId}`);
+      const data = await DishAPI.getDetailDish(dishId, userId);
+      
+      if (data) setIsFavorite(data.userId ? true : false);
 
-      setDish(data[0]);
+      setDish(data);
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -50,7 +43,7 @@ const OrderDishScreen = () => {
   const addCart = async () => {
     try {
       setTimeout(() => setAddToCart(true), 200);
-      setTimeout(() => setAddToCart(false), 1000);
+      setTimeout(() => setAddToCart(false), 1200);
       if (userId !== 0) {
         const { data } = await axios.post(`${API_URL}/cart/add`, {
           userId: userId,
@@ -71,18 +64,14 @@ const OrderDishScreen = () => {
 
   const addFavorite = async () => {
     try {
-      setIsFavorite(!isFavorite);
       if (userId !== 0) {
-        const { data } = await axios.get(`${API_URL}/favorite/${!isFavorite ? "add" : "remove"}/${userId}/${dishId}`);
-
-        if (data.success) {
-          console.log(data.message);
-        }
+        setIsFavorite(!isFavorite);
+        await axios.get(`${API_URL}/favorite/${!isFavorite ? "add" : "remove"}/${userId}/${dishId}`);
       } else {
         setAlert(true);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Thêm yêu thích thất bại: ", error);
     }
   };
 
@@ -97,9 +86,16 @@ const OrderDishScreen = () => {
   };
 
   useEffect(() => {
-    loadData();
+    const loadUser = async () => {
+      const userId = await UserAPI.getUserInfo();
+      setUserId(userId);
+    };
+    loadUser();
     loadDishDetail();
   }, []);
+
+  useEffect(() => {
+  }, [isFavorite]);
 
   if (loading || !dish) return <LoadingSpinner />;
 
@@ -148,7 +144,7 @@ const OrderDishScreen = () => {
           ]}
         >
           <Image
-            source={dish.imageUrl ? { uri: dish.imageUrl } : require("../../assets/images/background-default.png")}
+            source={formatImage(dish.imageUrl)}
             style={[LAYOUT.border(1, COLORS.border), LAYOUT.wFull, LAYOUT.hFull, LAYOUT.rounded(28), { overflow: "hidden" }]}
             resizeMode="cover"
           />

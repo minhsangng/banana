@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { formatPrice } from "../../constants/format";
+import { formatPrice, formatImage } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";

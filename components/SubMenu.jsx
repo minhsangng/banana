@@ -5,7 +5,7 @@ import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../constants/api";
-import { formatPrice } from "../constants/format";
+import { formatPrice, formatImage } from "../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "./ToastModal";
@@ -253,7 +253,7 @@ export default function SubMenu({ visible, setVisible, type }) {
                                 renderItem={({ item }) => (
                                     <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pb(20), LAYOUT.pt(12), { borderStyle: "dashed" }]}>
                                         <Image
-                                            source={item.dishes.imageUrl ? { uri: item.dishes.imageUrl } : require("../assets/images/background-default.png")}
+                                            source={formatImage(item.dishes.imageUrl)}
                                             style={[LAYOUT.w(80), LAYOUT.h(80), LAYOUT.rounded(20)]}
                                         />
 

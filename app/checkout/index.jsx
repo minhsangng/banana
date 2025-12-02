@@ -13,7 +13,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 import { API_URL } from "../../constants/api";
-import { formatPrice, dishImage } from "../../constants/format";
+import { formatPrice, formatImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import ToastModal from "../../components/ToastModal";
@@ -271,7 +271,7 @@ export default function CheckoutScreen() {
                                     >
                                         <Image
                                             style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
-                                            source={dishImage(item.imageUrl)}
+                                            source={formatImage(item.imageUrl)}
                                         />
 
                                         <View style={[LAYOUT.w("50%")]}>
