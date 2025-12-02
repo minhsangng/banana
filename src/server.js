@@ -1000,28 +1000,13 @@ app.delete("/api/orderItem/:orderItemId", async (req, res) => {
 });
 
 /* Get suggest address */
-app.get("/api/address/suggest/:keyword", async (req, res) => {
+app.get("/api/address", async (req, res) => {
   try {
-    const keyword = req.params.keyword?.toString().trim().toUpperCase() || "";
-
-    if (!keyword) return res.json([]);
-
     const results = await db
       .select()
-      .from(rooms)
-      .where(ilike(rooms.building, `${keyword}%`));
+      .from(rooms);
 
-    const suggestions = [];
-
-    results.forEach((r) => {
-      const [minF, maxF] = r.floor.split(",").map((f) => Number(f.trim()));
-
-      for (let f = minF; f <= maxF; f++) {
-        suggestions.push(`${r.building}${f}`);
-      }
-    });
-
-    return res.json(suggestions);
+    res.json(results);
   } catch (error) {
     res.status(500).json(error);
   }
