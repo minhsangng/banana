@@ -16,13 +16,17 @@ import { API_URL } from "../../constants/api";
 import { formatPrice, formatImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import * as Location from "expo-location";
 import ToastModal from "../../components/ToastModal";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const { width, height } = Dimensions.get("window");
+const SEVICE_FEE = 0;
 
 export default function CheckoutScreen() {
     const router = useRouter();
 
+    const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
     const [dataOrder, setDataOrder] = useState([]);
     const [address, setAddress] = useState("");
@@ -32,43 +36,74 @@ export default function CheckoutScreen() {
     const [note, setNote] = useState("");
     const [alert, setAlert] = useState(false);
     const [change, setChange] = useState(false);
-    const [addressList, setAddressList] = useState([]);
-    const [suggestAddress, setSuggestAddress] = useState([]);
+    const [rawRooms, setRawRooms] = useState([]);
+    const [allCodes, setAllCodes] = useState([]);
+    const [query, setQuery] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
     const addressInputRef = useRef(null);
-    const SEVICE_FEE = 0;
 
-    const getSuggestAddress = (keyword) => {
-        const key = keyword.toString().trim().toUpperCase();
-        if (!key) {
-            setSuggestAddress([]);
-            return;
+    const parseRange = (s) => {
+        if (s == null) return [0, 0];
+        const str = s.toString().trim();
+        if (str === "") return [0, 0];
+
+        const cleaned = str.replace(/\s+/g, "");
+        if (cleaned.includes("-")) {
+            const [a, b] = cleaned.split("-").map(x => Number(x));
+            return [Math.min(a, b), Math.max(a, b)];
         }
+        if (cleaned.includes(",")) {
+            const parts = cleaned.split(",");
+            const a = Number(parts[0]);
+            const b = Number(parts[1] ?? parts[0]);
+            return [Math.min(a, b), Math.max(a, b)];
+        }
+        const n = Number(cleaned);
+        return [n, n];
+    };
 
-        const suggestions = [];
+    const pad2 = (n) => String(n).padStart(2, "0");
 
-        addressList.forEach((r) => {
-            if (r.building.startsWith(key)) {
-                const [minF, maxF] = r.floor.split(",").map((f) => Number(f.trim()));
+    const normalize = (s) =>
+        s
+            .toString()
+            .toUpperCase()
+            .replace(/\s+/g, "")
+            .replace(/\./g, "");
 
-                for (let f = minF; f <= maxF; f++) {
-                    suggestions.push(`${r.building}${f}`);
+    const expandRooms = (roomsList) => {
+        const codes = [];
+        if (!Array.isArray(roomsList)) return codes;
+
+        roomsList.forEach((r) => {
+            const building = (r.building ?? "").toString().trim().toUpperCase();
+            if (!building) return;
+
+            const [minF, maxF] = parseRange(r.floor);
+            const [minR, maxR] = parseRange(r.room);
+
+            for (let f = minF; f <= maxF; f++) {
+                for (let rm = minR; rm <= maxR; rm++) {
+                    const code = `${building}${f}.${pad2(rm)}`;
+                    codes.push(code);
                 }
             }
         });
 
-        setSuggestAddress(suggestions);
+        return Array.from(new Set(codes)).sort();
     };
 
-    /* ------------------- LOAD DATA ------------------- */
     useEffect(() => {
         const loadData = async () => {
             try {
                 let userStr = null;
                 let addressData = null;
+                let pos = null;
 
                 await Promise.all([
                     (userStr = await SecureStore.getItemAsync("userInfo")),
-                    (addressData = await axios.get(`${API_URL}/address`))
+                    (addressData = await axios.get(`${API_URL}/address`)),
+                    pos = await getUserLocation()
                 ]);
 
                 if (userStr) {
@@ -76,22 +111,53 @@ export default function CheckoutScreen() {
                 }
 
                 if (addressData?.data) {
-                    setAddressList(addressData.data);
+                    setRawRooms(addressData.data || []);
                 }
+                
+                console.log(pos);
             } catch (error) {
                 console.error("Lấy thông tin người dùng thất bại: ", error);
+                setRawRooms([]);
             }
         };
 
         loadData();
     }, []);
 
-    /* ------------------- LOAD ORDER ------------------- */
+    useEffect(() => {
+        const codes = expandRooms(rawRooms);
+        setAllCodes(codes);
+    }, [rawRooms]);
+
+    useEffect(() => {
+        const key = (query ?? "").toString().trim();
+        if (!key) {
+            setSuggestions([]);
+            return;
+        }
+
+        const keyNorm = normalize(key);
+
+        const maxResults = 200;
+        const result = [];
+
+        for (let i = 0; i < allCodes.length; i++) {
+            const code = allCodes[i];
+            if (normalize(code).startsWith(keyNorm)) {
+                result.push(code);
+                if (result.length >= maxResults) break;
+            }
+        }
+
+        setSuggestions(result);
+    }, [query, allCodes]);
+
     useEffect(() => {
         if (!userId) return;
 
         const loadOrder = async () => {
             try {
+                setLoading(true);
                 const { data } = await axios.get(`${API_URL}/ordercheckout/${userId}`);
                 if (Array.isArray(data)) {
                     setDataOrder(data);
@@ -101,8 +167,9 @@ export default function CheckoutScreen() {
                 } else {
                     setDataOrder([]);
                 }
+                setLoading(false);
             } catch (error) {
-                console.log("Error loading checkout:", error);
+                console.error("Thanh toán thất bại: ", error);
                 setDataOrder([]);
             }
         };
@@ -110,7 +177,6 @@ export default function CheckoutScreen() {
         loadOrder();
     }, [change, userId]);
 
-    /* ------------------- TỔNG TIỀN ------------------- */
     const totalAmount = () => {
         return dataOrder.reduce((sumOrder, order) => {
             const sumItems = order.items.reduce((sumItem, item) => {
@@ -120,7 +186,6 @@ export default function CheckoutScreen() {
         }, 0);
     };
 
-    /* ------------------- XOÁ MÓN ------------------- */
     const removeOrderItem = async (orderItemId) => {
         try {
             const { data } = await axios.delete(`${API_URL}/orderItem/${orderItemId}`);
@@ -132,11 +197,21 @@ export default function CheckoutScreen() {
                 setChange(!change);
             }
         } catch (error) {
-            console.log("Error removing item:", error);
+            console.error("Cập nhật đơn hàng thất bại: ", error);
         }
     };
 
-    /* ------------------- CHECKOUT ------------------- */
+    const getUserLocation = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return null;
+
+        let location = await Location.getCurrentPositionAsync({});
+        return {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+        };
+    };
+
     const checkout = async () => {
         if (!address.trim()) {
             setStatus("warning");
@@ -166,10 +241,13 @@ export default function CheckoutScreen() {
         }
 
         try {
+            const pos = await getUserLocation();
             const { data } = await axios.post(`${API_URL}/checkout`, {
                 userId,
                 address,
-                note
+                note,
+                lat: pos.lat,
+                lng: pos.lng
             });
 
             if (data.success) {
@@ -224,15 +302,50 @@ export default function CheckoutScreen() {
                             ref={addressInputRef}
                             placeholder="V6.02"
                             value={address}
-                            selection={{ start: parseInt(`${address.length}`), end: parseInt(`${address.length}`) }}
-                            onChangeText={(text) => (setAddress(text), getSuggestAddress(text))}
+                            selection={{
+                                start: address.length,
+                                end: address.length
+                            }}
+                            onChangeText={(text) => {
+                                setAddress(text);
+                                setQuery(text);
+                            }}
                             style={[TEXT.paragraph]}
                         />
-                        <View style={[LAYOUT.absolute, LAYOUT.top("130%"), LAYOUT.left(0), LAYOUT.row, LAYOUT.flexWrap, LAYOUT.w("120%"), LAYOUT.gap(14), LAYOUT.zIndex(1)]}>
-                            {suggestAddress.map((item) => (
-                                <TouchableOpacity onPress={() => (setAddress(`${item}.`), setSuggestAddress([]), setTimeout(() => addressInputRef.current?.focus(), 150))} key={item} style={[LAYOUT.bg(COLORS.background4), LAYOUT.w(44), LAYOUT.py(4), LAYOUT.rounded(10)]}><Text style={[TEXT.text, TEXT.center]}>{item}</Text></TouchableOpacity>
-                            ))}
-                        </View>
+
+                        {suggestions.length > 0 && (
+                            <View
+                                style={[
+                                    LAYOUT.absolute,
+                                    LAYOUT.top("130%"),
+                                    LAYOUT.left(0),
+                                    LAYOUT.row,
+                                    LAYOUT.flexWrap,
+                                    LAYOUT.w("112%"),
+                                    LAYOUT.gap(8),
+                                    LAYOUT.zIndex(1)
+                                ]}
+                            >
+                                {suggestions.map((item) => (
+                                    <TouchableOpacity
+                                        key={item}
+                                        onPress={() => {
+                                            setAddress(item);
+                                            setQuery(item);
+                                            setSuggestions([]);
+                                        }}
+                                        style={[
+                                            LAYOUT.bg(COLORS.background4),
+                                            LAYOUT.w(60),
+                                            LAYOUT.py(6),
+                                            LAYOUT.rounded(10)
+                                        ]}
+                                    >
+                                        <Text style={[TEXT.text, TEXT.center]}>{item}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
                     </View>
 
                     {/* THÔNG TIN ĐƠN */}
@@ -378,6 +491,7 @@ export default function CheckoutScreen() {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
+                {loading && <LoadingSpinner />}
             </View>
 
             <ToastModal visible={alert} status={status} title={title} content={content} />
