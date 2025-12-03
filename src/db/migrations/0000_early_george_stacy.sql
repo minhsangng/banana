@@ -52,7 +52,8 @@ CREATE TABLE "orders" (
 	"payment_method" varchar DEFAULT 'Cash' NOT NULL,
 	"note" varchar,
 	"delivery_address" varchar,
-	"status" varchar DEFAULT 'Pending' NOT NULL
+	"status" varchar DEFAULT 'Pending' NOT NULL,
+	"position" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "refresh_tokens" (
@@ -69,7 +70,8 @@ CREATE TABLE "refresh_tokens" (
 CREATE TABLE "rooms" (
 	"room_id" integer PRIMARY KEY NOT NULL,
 	"building" varchar,
-	"floor" varchar
+	"floor" varchar,
+	"room" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "stores" (

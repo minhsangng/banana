@@ -29,6 +29,7 @@ import job from "./config/cron.js";
 import { Expo } from "expo-server-sdk";
 import cors from "cors";
 import authRouter, { protect } from "./auth.js";
+import { getRounds } from "bcrypt";
 
 const app = express();
 const PORT = ENV.PORT || 5001;
@@ -212,7 +213,7 @@ app.get("/api/dish/:dishId/:userId", async (req, res) => {
         );
     } else {
       results = await db
-        .select({...dishes, userId: favorites.userId})
+        .select({ ...dishes, userId: favorites.userId })
         .from(dishes)
         .innerJoin(favorites, eq(favorites.userId, parseInt(userId)))
         .where(
@@ -1050,7 +1051,7 @@ function buildingsAreNear(b1, b2) {
 
   if (i1 === -1 || i2 === -1) return false;
 
-  return Math.abs(i1 - i2) <= 1;
+  return Math.abs(i1 - i2) <= 2;
 }
 
 function isNearAddress(addr1, addr2) {
@@ -1059,15 +1060,152 @@ function isNearAddress(addr1, addr2) {
 
   if (!a || !b) return false;
 
-  const sameFloor = a.floor === b.floor;
   const nearBuilding = buildingsAreNear(a.building, b.building);
-
-  return sameFloor && nearBuilding;
+  if (nearBuilding) {
+    if (a.floor === b.floor) {
+      return true;
+    } else {
+      return Math.abs(a.floor - b.floor) <= 2;
+    }
+  } else return false;
 }
 
-app.post("/api/checkout", async (req, res) => {
+app.get("/api/checkout/:userId", async (req, res) => {
   try {
-    const { userId, address, note } = req.body;
+    const { userId } = req.params;
+
+    // Lấy các đơn đang chờ
+    const pendingOrders = await db
+      .select({
+        orderId: orders.orderId,
+        userId: orders.userId,
+        storeId: stores.storeId,
+        quantity: orderItems.quantity,
+        dishId: orderItems.dishId,
+        address: orders.deliveryAddress,
+      })
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
+      .where(and(eq(orders.status, "Đang chờ"), eq(orders.userId, userId)));
+
+    if (pendingOrders.length === 0) {
+      return res.json({ success: true, message: "Không có đơn để gộp" });
+    }
+
+    const storeGroups = {};
+    pendingOrders.forEach((o) => {
+      if (!storeGroups[o.storeId]) storeGroups[o.storeId] = [];
+      storeGroups[o.storeId].push(o);
+    });
+
+    for (const storeId of Object.keys(storeGroups)) {
+      const ordersInStore = storeGroups[storeId];
+
+      let existingGroup = await db
+        .select()
+        .from(groupOrders)
+        .where(
+          and(
+            eq(groupOrders.storeId, parseInt(storeId)),
+            lt(groupOrders.sumOfQuantity, 3)
+          )
+        );
+
+      let groupOrderId;
+
+      if (existingGroup.length === 0) {
+        /* const created = await db
+          .insert(groupOrders)
+          .values({
+            storeId,
+            sumOfQuantity: totalQuantity,
+          })
+          .returning({ groupOrderId: groupOrders.groupOrderId });
+
+        groupOrderId = created[0].groupOrderId; */
+      } else {
+        groupOrderId = existingGroup[0].groupOrderId;
+
+        const rows = await db
+          .select({
+            groupOrderId: groupOrders.groupOrderId,
+            storeId: groupOrders.storeId,
+            sumOfQuantity: groupOrders.sumOfQuantity,
+            userId: groupOrderItems.userId,
+            orderId: groupOrderItems.orderId,
+          })
+          .from(groupOrders)
+          .innerJoin(
+            groupOrderItems,
+            eq(groupOrderItems.groupOrderId, groupOrders.groupOrderId)
+          )
+          .where(eq(groupOrders.groupOrderId, groupOrderId));
+
+        const grouped = {};
+
+        rows.forEach((row) => {
+          const id = row.groupOrderId;
+          if (!grouped[id]) {
+            grouped[id] = {
+              groupOrderId: row.groupOrderId,
+              storeId: row.storeId,
+              sumOfQuantity: row.sumOfQuantity,
+              items: [],
+            };
+          }
+          grouped[id].items.push({ orderId: row.orderId, userId: row.userId });
+        });
+
+        const orderGrouped = Object.values(grouped)[0];
+
+        let orderIds = [];
+        for (const item of orderGrouped.items) {
+          if (!orderIds.includes(item.orderId)) orderIds.push(item.orderId);
+        }
+
+        const allOrders = await db
+          .select()
+          .from(orders)
+          .where(inArray(orders.orderId, orderIds));
+
+        let filterOrders = [];
+        let addedOrderIds = [];
+        for (let i = 0; i < allOrders.length - 1; i++) {
+          for (let j = i + 1; j < allOrders.length; j++) {
+            if (
+              isNearAddress(
+                allOrders[i].deliveryAddress,
+                allOrders[j].deliveryAddress
+              )
+            ) {
+              if (!addedOrderIds.has(allOrders[i].orderId)) {
+                filterOrders.push(allOrders[i]);
+                addedOrderIds.add(allOrders[i].orderId);
+              }
+              if (!addedOrderIds.has(allOrders[j].orderId)) {
+                filterOrders.push(allOrders[j]);
+                addedOrderIds.add(allOrders[j].orderId);
+              }
+            }
+          }
+        }
+
+        console.log(filterOrders);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi khi tạo đơn hàng" });
+  }
+});
+
+/* app.get("/api/checkout/:userId", async (req, res) => {
+  try {
+    /* const { userId, address, note } = req.body;
 
     const carts = await db
       .select()
@@ -1094,8 +1232,7 @@ app.post("/api/checkout", async (req, res) => {
         })
         .where(eq(orders.orderId, cart.orderId));
     }
-
-    /* Group */
+    
     const pendingOrders = await db
       .select({
         orderId: orders.orderId,
@@ -1121,21 +1258,10 @@ app.post("/api/checkout", async (req, res) => {
       storeGroups[o.storeId].push(o);
     });
 
-    const baseAddress = address;
+    let allFilteredOrders = [];
 
     for (const storeId of Object.keys(storeGroups)) {
       const ordersInStore = storeGroups[storeId];
-
-      const filteredOrders = ordersInStore.filter((o) =>
-        isNearAddress(o.deliveryAddress, baseAddress)
-      );
-
-      if (filteredOrders.length === 0) continue;
-
-      const totalQuantity = filteredOrders.reduce(
-        (sum, o) => sum + o.quantity,
-        0
-      );
 
       let existingGroup = await db
         .select()
@@ -1150,7 +1276,7 @@ app.post("/api/checkout", async (req, res) => {
       let groupOrderId;
 
       if (existingGroup.length === 0) {
-        const created = await db
+        /* const created = await db
           .insert(groupOrders)
           .values({
             storeId,
@@ -1162,45 +1288,70 @@ app.post("/api/checkout", async (req, res) => {
       } else {
         groupOrderId = existingGroup[0].groupOrderId;
 
-        await db
-          .update(groupOrders)
-          .set({ sumOfQuantity: totalQuantity })
-          .where(eq(groupOrders.groupOrderId, groupOrderId));
-      }
-
-      for (const o of filteredOrders) {
-        await db
-          .insert(groupOrderItems)
-          .values({
-            groupOrderId,
-            userId: o.userId,
-            orderId: o.orderId,
+        const rows = await db
+          .select({
+            groupOrderId: groupOrders.groupOrderId,
+            storeId: groupOrders.storeId,
+            sumOfQuantity: groupOrders.sumOfQuantity,
+            userId: groupOrderItems.userId,
+            orderId: groupOrderItems.orderId,
           })
-          .onConflictDoNothing();
-      }
-
-      const finalGroup = await db
-        .select()
-        .from(groupOrders)
-        .where(eq(groupOrders.groupOrderId, groupOrderId));
-
-      if (finalGroup[0].sumOfQuantity >= 3) {
-        const userLists = await db
-          .select({ userId: users.userId, orderId: groupOrderItems.orderId })
           .from(groupOrders)
           .innerJoin(
             groupOrderItems,
             eq(groupOrderItems.groupOrderId, groupOrders.groupOrderId)
           )
-          .innerJoin(users, eq(users.userId, groupOrderItems.userId))
-          .where(eq(groupOrders.groupOrderId, finalGroup[0].groupOrderId));
+          .where(eq(groupOrders.groupOrderId, groupOrderId));
 
-        const uniqueUserLists = Array.from(
-          new Map(userLists.map((u) => [u.orderId, u])).values()
-        );
+        const grouped = {};
 
-        console.log(uniqueUserLists);
+        rows.forEach((row) => {
+          const id = row.groupOrderId;
+          if (!grouped[id]) {
+            grouped[id] = {
+              groupOrderId: row.groupOrderId,
+              storeId: row.storeId,
+              sumOfQuantity: row.sumOfQuantity,
+              items: [],
+            };
+          }
+          grouped[id].items.push({ orderId: row.orderId, userId: row.userId });
+        });
 
+        const orderGrouped = Object.values(grouped)[0];
+
+        let orderIds = [];
+        for (const item of orderGrouped.items) {
+          orderIds.push(item.orderId);
+        }
+
+        const orderNearest = await db
+          .select()
+          .from(orders)
+          .where(inArray(orders.orderId, orderIds));
+
+        let filterOrdersMap = new Map();
+
+        for (let i = 0; i < orderNearest.length-1; i++) {
+          for (let j = i + 1; j < orderNearest.length; j++) {
+            const a = orderNearest[i];
+            const b = orderNearest[j];
+
+            if (isNearAddress(a.deliveryAddress, b.deliveryAddress)) {
+              filterOrdersMap.set(a.orderId, a);
+              filterOrdersMap.set(b.orderId, b);
+            }
+          }
+        }
+
+        const filterOrders = Array.from(filterOrdersMap.values());
+
+        allFilteredOrders.push(...filterOrders);
+      }
+    }
+    res.json(allFilteredOrders);
+
+    /* 
         for (const u of uniqueUserLists) {
           const userToken = await db
             .select()
@@ -1237,7 +1388,7 @@ app.post("/api/checkout", async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Lỗi khi tạo đơn hàng" });
   }
-});
+}); */
 
 app.get("/api/orderpending", async (req, res) => {
   try {

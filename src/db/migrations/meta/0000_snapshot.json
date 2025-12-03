@@ -1,5 +1,5 @@
 {
-  "id": "6a920152-7540-4785-b8a3-ac9eea8dac76",
+  "id": "011359fd-8748-44ea-9f57-6a7f5c2a2016",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -307,6 +307,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Pending'"
+        },
+        "position": {
+          "name": "position",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -400,6 +406,12 @@
         },
         "floor": {
           "name": "floor",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "room": {
+          "name": "room",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false

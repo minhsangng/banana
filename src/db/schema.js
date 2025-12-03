@@ -52,6 +52,7 @@ export const orders = pgTable("orders", {
   note: varchar("note"),
   deliveryAddress: varchar("delivery_address"),
   status: varchar("status").notNull().default("Pending"),
+  position: varchar("position"),
 });
 
 export const orderItems = pgTable("order_items", {
@@ -101,4 +102,5 @@ export const rooms = pgTable("rooms", {
   room_id: integer("room_id").primaryKey(),
   building: varchar("building"),
   floor: varchar("floor"),
+  room: varchar("room"),
 });
