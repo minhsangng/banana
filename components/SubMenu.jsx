@@ -30,9 +30,11 @@ export default function SubMenu({ visible, setVisible, type }) {
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (userStr) {
                 const user = JSON.parse(userStr);
-                const userId = parseInt(user?.userId);
-                const { data } = await axios.get(`${API_URL}/cart/get/${userId}`);
-                setDataCart(data || []);
+                if (user.role !== "Owner") {
+                    const userId = parseInt(user?.userId);
+                    const { data } = await axios.get(`${API_URL}/cart/get/${userId}`);
+                    setDataCart(data || []);
+                }
             }
         } catch (e) {
             console.log("Load cart failed", e);
@@ -41,7 +43,7 @@ export default function SubMenu({ visible, setVisible, type }) {
 
     const updateQuantity = async (orderItemId, newQuantity) => {
         try {
-        console.log(newQuantity);
+            console.log(newQuantity);
             await axios.post(`${API_URL}/cart/update`, { orderItemId, quantity: newQuantity });
             setDataCart(prev =>
                 prev.map(item =>

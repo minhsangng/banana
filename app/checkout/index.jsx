@@ -16,7 +16,6 @@ import { API_URL } from "../../constants/api";
 import { formatPrice, formatImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import * as Location from "expo-location";
 import ToastModal from "../../components/ToastModal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -98,12 +97,10 @@ export default function CheckoutScreen() {
             try {
                 let userStr = null;
                 let addressData = null;
-                let pos = null;
 
                 await Promise.all([
                     (userStr = await SecureStore.getItemAsync("userInfo")),
                     (addressData = await axios.get(`${API_URL}/address`)),
-                    pos = await getUserLocation()
                 ]);
 
                 if (userStr) {
@@ -113,8 +110,6 @@ export default function CheckoutScreen() {
                 if (addressData?.data) {
                     setRawRooms(addressData.data || []);
                 }
-                
-                console.log(pos);
             } catch (error) {
                 console.error("Lấy thông tin người dùng thất bại: ", error);
                 setRawRooms([]);
@@ -201,17 +196,6 @@ export default function CheckoutScreen() {
         }
     };
 
-    const getUserLocation = async () => {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") return null;
-
-        let location = await Location.getCurrentPositionAsync({});
-        return {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude
-        };
-    };
-
     const checkout = async () => {
         if (!address.trim()) {
             setStatus("warning");
@@ -241,13 +225,10 @@ export default function CheckoutScreen() {
         }
 
         try {
-            const pos = await getUserLocation();
             const { data } = await axios.post(`${API_URL}/checkout`, {
                 userId,
                 address,
-                note,
-                lat: pos.lat,
-                lng: pos.lng
+                note
             });
 
             if (data.success) {

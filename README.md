@@ -31,6 +31,10 @@ npm i --save react-native-modal
 ```
 
 ```bash
+npm i expo-document-picker
+```
+
+```bash
 npm i expo-av
 ```
 

@@ -1,37 +1,44 @@
-import { View, Text, TouchableOpacity, TextInput, Image, FlatList, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { useState, useEffect } from "react";
 import { COLORS } from "../../../constants/colors";
 import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
-import NavBar from "../../../components/NavBar";
 import { API_URL } from "../../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import NavBar from "../../../components/NavBar";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import ToastModal from "../../../components/ToastModal";
 
 const { width, height } = Dimensions.get("window");
+const orderStatus = [
+    "Giỏ hàng",
+    "Đang chờ",
+    "Đang chuẩn bị",
+    "Đang giao",
+    "Hoàn thành",
+    "Bị hủy",
+];
 
 export default function OrderScreen() {
     const [isLogin, setIsLogin] = useState(false);
     const [orders, setOrders] = useState([]);
     const [alert, setAlert] = useState(false);
-    const [selectedReason, setSelectedReason] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [icon, setIcon] = useState("");
+    const [title, setTitle] = useState("");
     const [currentStatus, setCurrentStatus] = useState(1);
     const [userId, setUserId] = useState(0);
     const [deleteId, setDeleteId] = useState(0);
 
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        loadOrders();
+    }, []);
+
     useEffect(() => {
         loadOrders();
     }, [currentStatus]);
-
-    const reasons = [
-        { id: 1, label: "Tôi muốn thay đổi địa chỉ giao" },
-        { id: 2, label: "Thời gian chờ quá lâu" },
-        { id: 3, label: "Tôi không muốn mua nữa" },
-        { id: 4, label: "Lý do khác" },
-    ];
 
     // ===== LOAD API =====
     const loadOrders = async () => {
@@ -39,20 +46,12 @@ export default function OrderScreen() {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
+            const user = JSON.parse(userStr);
 
-            setUserId(parseInt(JSON.parse(userStr).userId));
+            setUserId(parseInt(user.userId));
             setIsLogin(true);
 
-            let status = "";
-            if (currentStatus === 1)
-                status = "Đang chuẩn bị";
-            else if (currentStatus === 2) {
-                status = "Hoàn thành";
-            } else if (currentStatus === 3) {
-                status = "Bị hủy";
-            }
-
-            const { data } = await axios.get(`${API_URL}/ordersowner/${userId}/${status}`);
+            const { data } = await axios.get(`${API_URL}/ordersowner/${user.userId}/${currentStatus}`);
 
             setOrders(data);
             setLoading(false);
@@ -61,9 +60,28 @@ export default function OrderScreen() {
         }
     };
 
-    const cancelOrder = (orderId) => {
-        setAlert(true);
-        setDeleteId(orderId);
+    const updateStatus = async (orderId, status) => {
+        try {
+            console.log(status);
+            if (status === 4) {
+                setAlert(true);
+                setDeleteId(orderId);
+                setIcon("warning");
+                setTitle("Xác nhận hủy đơn hàng này");
+            } else {
+                const { data } = await axios.post(`${API_URL}/updateorderowner`, {
+                    orderId,
+                    status
+                });
+
+                setIcon(data.success ? "success" : "error");
+                setTitle(data.message);
+                setAlert(true);
+                setTimeout(() => (setAlert(false), loadOrders()), 1200);
+            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     const handleCancer = async () => {
@@ -78,39 +96,15 @@ export default function OrderScreen() {
                 content: data.message,
                 metadata: {}
             });
-
-            setSelectedReason(0);
             loadOrders();
         } catch (error) {
             console.error(error);
         }
     };
 
-
     const contentCancelAlert = () => {
         return (
             <View style={[LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
-                <View style={[LAYOUT.wFull]}>
-                    {reasons.map((item) => (
-                        <View key={item.id} style={[LAYOUT.row, LAYOUT.mb(12)]}>
-                            <TouchableOpacity onPress={() => setSelectedReason(item.id)}>
-                                <Ionicons
-                                    name={
-                                        selectedReason === item.id
-                                            ? "checkmark-circle-outline"
-                                            : "ellipse-outline"
-                                    }
-                                    size={20}
-                                />
-                            </TouchableOpacity>
-
-                            <Text style={[TEXT.text, LAYOUT.ml(6)]}>{item.label}</Text>
-                        </View>
-                    ))}
-
-                    {selectedReason === 4 && (<TextInput placeholder="Nhập lý do" style={[LAYOUT.px(14), LAYOUT.py(8), LAYOUT.rounded(12), LAYOUT.mb(20), TEXT.paragraph, { backgroundColor: COLORS.background2 }]}></TextInput>)}
-
-                </View>
                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.wFull]}>
                     <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.button }]}>Hủy</Text>
@@ -148,8 +142,6 @@ export default function OrderScreen() {
                                     numColumns={1}
                                     showsVerticalScrollIndicator={false}
                                     renderItem={({ item }) => {
-                                        const dishNames = item.items.map(d => d.dishName).join(" - ");
-
                                         return (
                                             <TouchableOpacity
                                                 style={[
@@ -162,58 +154,27 @@ export default function OrderScreen() {
                                                     { borderStyle: "dashed" }
                                                 ]}
                                             >
-                                                <Image
-                                                    source={item.items[0].dishImage ? { uri: item.items[0].dishImage } : require("../../../assets/images/background-default.png")}
-                                                    style={[
-                                                        LAYOUT.w(80),
-                                                        LAYOUT.h(110),
-                                                        LAYOUT.rounded(20),
-                                                        LAYOUT.border(1, COLORS.border),
-                                                        { overflow: "hidden" }
-                                                    ]}
-                                                />
-
-                                                <View style={[LAYOUT.ml(12), LAYOUT.row, LAYOUT.justifyBetween]}>
-                                                    <View style={[LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                                        <Text style={[TEXT.text]} numberOfLines={1}>
-                                                            {dishNames}
-                                                        </Text>
-                                                        <Text style={[TEXT.text, TEXT.size(16)]}>
-                                                            {item.orderStatus}
-                                                        </Text>
-                                                        <Text style={[TEXT.text, TEXT.size(16)]}>
-                                                            {item.deliveryAddress}
-                                                        </Text>
-                                                    </View>
-                                                    <View style={[LAYOUT.mt(12), {justifyContent: "flex-end"}]}>
-                                                        {currentStatus === 1 && (<View style={[{gap: 8}]}>
-                                                            <TouchableOpacity onPress={() => cancelOrder(item.orderId)}
-                                                            style={[
-                                                                LAYOUT.px(10),
-                                                                LAYOUT.py(4),
-                                                                LAYOUT.w(100),
-                                                                LAYOUT.rounded(22),
-                                                                { backgroundColor: COLORS.background3 }
-                                                            ]}
-                                                        >
-                                                            <Text
-                                                                style={[
-                                                                    TEXT.text,
-                                                                    TEXT.size(16),
-                                                                    TEXT.center,
-                                                                    { color: COLORS.heading }
-                                                                ]}
-                                                            >
-                                                                Hủy đơn
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                            <TouchableOpacity
+                                                <View style={[LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                                    <Text style={[TEXT.text]} numberOfLines={1}>
+                                                        #DH264{String(item.orderId).length === 2 ? `0${item.orderId}` : item.orderId}
+                                                    </Text>
+                                                    <Text style={[TEXT.text, TEXT.size(16)]}>
+                                                        Phòng: {item.deliveryAddress}
+                                                    </Text>
+                                                    <Text style={[TEXT.text, TEXT.size(16)]}>
+                                                        Trạng thái: <Text style={[LAYOUT.color(item.orderStatus === "Bị hủy" ? COLORS.heading : item.orderStatus === "Hoàn thành" ? "#73AF6F" : "#67B2D8")]}>{item.orderStatus}</Text>
+                                                    </Text>
+                                                </View>
+                                                <View style={[LAYOUT.mt(12), currentStatus !== 2 ? { justifyContent: "flex-end" } : ""]}>
+                                                    {currentStatus === 1 && (<View style={[{ gap: 8 }]}>
+                                                        {item.orderStatus !== "Đang giao" && (
+                                                            <TouchableOpacity onPress={() => updateStatus(item.orderId, 4)}
                                                                 style={[
                                                                     LAYOUT.px(10),
                                                                     LAYOUT.py(4),
                                                                     LAYOUT.w(100),
                                                                     LAYOUT.rounded(22),
-                                                                    { backgroundColor: COLORS.button }
+                                                                    LAYOUT.bg(COLORS.background3)
                                                                 ]}
                                                             >
                                                                 <Text
@@ -221,14 +182,42 @@ export default function OrderScreen() {
                                                                         TEXT.text,
                                                                         TEXT.size(16),
                                                                         TEXT.center,
-                                                                        { color: COLORS.textLight }
+                                                                        LAYOUT.color(COLORS.heading)
                                                                     ]}
                                                                 >
-                                                                    Tiếp theo
+                                                                    Hủy đơn
                                                                 </Text>
                                                             </TouchableOpacity>
-                                                        </View>)}
-                                                    </View>
+                                                        )}
+                                                        <TouchableOpacity onPress={() => updateStatus(item.orderId, orderStatus.indexOf(item.orderStatus))}
+                                                            style={[
+                                                                LAYOUT.px(10),
+                                                                LAYOUT.py(4),
+                                                                LAYOUT.w(100),
+                                                                LAYOUT.rounded(22),
+                                                                LAYOUT.bg(COLORS.button),
+                                                                LAYOUT.row, LAYOUT.justifyCenter,
+                                                                LAYOUT.itemsCenter,
+                                                                LAYOUT.gap(6)
+                                                            ]}
+                                                        >
+                                                            <Text
+                                                                style={[
+                                                                    TEXT.text,
+                                                                    TEXT.size(16),
+                                                                    TEXT.center,
+                                                                    LAYOUT.color(COLORS.textLight)
+                                                                ]}
+                                                            >
+                                                                Chuyển
+                                                            </Text>
+                                                            <Ionicons name="send-outline" color={COLORS.textLight}></Ionicons>
+                                                        </TouchableOpacity>
+                                                    </View>)}
+                                                    {currentStatus === 2 && (<View style={[{ alignItems: "flex-end" }]}>
+                                                        <Text style={[TEXT.paragraph]}>Hoàn thành:</Text>
+                                                        <Text style={[TEXT.paragraph]}>8:20 PM</Text>
+                                                    </View>)}
                                                 </View>
                                             </TouchableOpacity>
                                         );
@@ -239,7 +228,7 @@ export default function OrderScreen() {
                 </View>
             </View>
 
-            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chọn lý do hủy"} content={contentCancelAlert} visible={alert} />
+            <ToastModal width={"auto"} height={"auto"} status={icon} title={title} content={icon === "warning" ? contentCancelAlert : null} visible={alert} />
         </View>
     );
 }
