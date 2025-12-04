@@ -228,6 +228,28 @@ app.get("/api/dish/:dishId/:userId", async (req, res) => {
   }
 });
 
+app.get("/api/ownerdishdetail/:dishId", async (req, res) => {
+  try {
+    const { dishId } = req.params;
+    
+    const results = await db
+      .select({
+        ...dishes,
+        categoryId: categories.categoryId,
+        categoryName: categories.categoryName,
+      })
+      .from(dishes)
+      .innerJoin(categories, eq(categories.categoryId, dishes.categoryId))
+      .where(eq(dishes.dishId, parseInt(dishId)));
+
+    if (results.length === 0) res.json([]);
+
+    res.json(results);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 app.get("/api/ownerdish/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -246,7 +268,32 @@ app.get("/api/ownerdish/:userId", async (req, res) => {
       })
       .from(dishes)
       .innerJoin(stores, eq(stores.storeId, dishes.storeId))
-      .innerJoin(users, eq(users.userId, userId));
+      .innerJoin(users, eq(users.userId, userId))
+      .where(eq(stores.userId, parseInt(userId)));
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/ownerupdatestatusdish/:dishId/:status", async (req, res) => {
+  try {
+    const { dishId, status } = req.params;
+
+    const results = await db
+      .update(dishes)
+      .set({ status })
+      .where(eq(dishes.dishId, parseInt(dishId)));
+
+    res.json({
+      success: results.rowsAffected !== 0 ? true : false,
+      message:
+        (status === "Active" ? "Mở" : "Khóa") +
+        " món " +
+        (results.rowsAffected !== 0 ? "thành công" : "thất bại"),
+    });
 
     res.status(200).json(results);
   } catch (error) {
@@ -575,12 +622,14 @@ app.get("/api/ordersowner/:userId/:status", async (req, res) => {
       )
       .innerJoin(orders, eq(orders.orderId, groupOrderItems.orderId))
       .innerJoin(stores, eq(stores.storeId, groupOrders.storeId))
+      .innerJoin(users, eq(users.userId, parseInt(userId)))
       .where(
         and(
-          eq(groupOrderItems.userId, parseInt(userId)),
-          status === "Đang chuẩn bị"
+          status === "1"
             ? inArray(orders.status, ["Đang chờ", "Đang giao", "Đang chuẩn bị"])
-            : eq(orders.status, status)
+            : status === "2"
+            ? eq(orders.status, "Hoàn thành")
+            : eq(orders.status, "Bị hủy")
         )
       );
 
@@ -635,6 +684,40 @@ app.get("/api/ordersowner/:userId/:status", async (req, res) => {
   } catch (error) {
     console.log("Error fetching the group orders", error);
     res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+const orderStatus = [
+  "Giỏ hàng",
+  "Đang chờ",
+  "Đang chuẩn bị",
+  "Đang giao",
+  "Hoàn thành",
+  "Bị hủy",
+];
+
+app.post("/api/updateorderowner", async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+
+    const newStatus = orderStatus[parseInt(status) + 1];
+
+    const result = await db
+      .update(orders)
+      .set({ status: newStatus })
+      .where(eq(orders.orderId, parseInt(orderId)));
+
+    if (result.rowsAffected === 0)
+      res.json({
+        success: false,
+        message: "Cập nhật trạng thái đơn hàng thất bại",
+      });
+    res.json({
+      success: true,
+      message: "Cập nhật trạng thái đơn hàng thành công",
+    });
+  } catch (error) {
+    console.error(error);
   }
 });
 
@@ -1070,9 +1153,35 @@ function isNearAddress(addr1, addr2) {
   } else return false;
 }
 
-app.get("/api/checkout/:userId", async (req, res) => {
+app.post("/api/checkout", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId, address, note } = req.body;
+
+    const carts = await db
+      .select()
+      .from(orders)
+      .where(
+        and(eq(orders.userId, parseInt(userId)), eq(orders.status, "Giỏ hàng"))
+      );
+
+    if (carts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Không có đơn giỏ hàng nào để thanh toán",
+      });
+    }
+
+    for (const cart of carts) {
+      await db
+        .update(orders)
+        .set({
+          deliveryAddress: address,
+          orderDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
+          note,
+          status: "Đang chờ",
+        })
+        .where(eq(orders.orderId, cart.orderId));
+    }
 
     // Lấy các đơn đang chờ
     const pendingOrders = await db
@@ -1082,7 +1191,7 @@ app.get("/api/checkout/:userId", async (req, res) => {
         storeId: stores.storeId,
         quantity: orderItems.quantity,
         dishId: orderItems.dishId,
-        address: orders.deliveryAddress,
+        deliveryAddress: orders.deliveryAddress,
       })
       .from(orders)
       .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
@@ -1094,16 +1203,19 @@ app.get("/api/checkout/:userId", async (req, res) => {
       return res.json({ success: true, message: "Không có đơn để gộp" });
     }
 
+    // Gom theo từng store
     const storeGroups = {};
-    pendingOrders.forEach((o) => {
+    for (const o of pendingOrders) {
       if (!storeGroups[o.storeId]) storeGroups[o.storeId] = [];
       storeGroups[o.storeId].push(o);
-    });
+    }
 
-    for (const storeId of Object.keys(storeGroups)) {
-      const ordersInStore = storeGroups[storeId];
+    // Xử lý từng store
+    for (const storeId in storeGroups) {
+      const ordersOfStore = storeGroups[storeId];
 
-      let existingGroup = await db
+      // Tìm group còn slot
+      const existGroup = await db
         .select()
         .from(groupOrders)
         .where(
@@ -1113,93 +1225,70 @@ app.get("/api/checkout/:userId", async (req, res) => {
           )
         );
 
-      let groupOrderId;
-
-      if (existingGroup.length === 0) {
-        /* const created = await db
+      // Không có group → tạo group mới
+      if (existGroup.length === 0) {
+        const created = await db
           .insert(groupOrders)
           .values({
             storeId,
-            sumOfQuantity: totalQuantity,
+            sumOfQuantity: 1,
           })
           .returning({ groupOrderId: groupOrders.groupOrderId });
 
-        groupOrderId = created[0].groupOrderId; */
-      } else {
-        groupOrderId = existingGroup[0].groupOrderId;
-
-        const rows = await db
-          .select({
-            groupOrderId: groupOrders.groupOrderId,
-            storeId: groupOrders.storeId,
-            sumOfQuantity: groupOrders.sumOfQuantity,
-            userId: groupOrderItems.userId,
-            orderId: groupOrderItems.orderId,
-          })
-          .from(groupOrders)
-          .innerJoin(
-            groupOrderItems,
-            eq(groupOrderItems.groupOrderId, groupOrders.groupOrderId)
-          )
-          .where(eq(groupOrders.groupOrderId, groupOrderId));
-
-        const grouped = {};
-
-        rows.forEach((row) => {
-          const id = row.groupOrderId;
-          if (!grouped[id]) {
-            grouped[id] = {
-              groupOrderId: row.groupOrderId,
-              storeId: row.storeId,
-              sumOfQuantity: row.sumOfQuantity,
-              items: [],
-            };
-          }
-          grouped[id].items.push({ orderId: row.orderId, userId: row.userId });
+        await db.insert(groupOrderItems).values({
+          groupOrderId: created[0].groupOrderId,
+          userId,
+          orderId: ordersOfStore[0].orderId,
         });
 
-        const orderGrouped = Object.values(grouped)[0];
+        continue;
+      }
 
-        let orderIds = [];
-        for (const item of orderGrouped.items) {
-          if (!orderIds.includes(item.orderId)) orderIds.push(item.orderId);
-        }
+      // Có group → thử gộp đơn
+      const group = existGroup[0];
+      const groupId = group.groupOrderId;
 
-        const allOrders = await db
-          .select()
-          .from(orders)
-          .where(inArray(orders.orderId, orderIds));
+      const rows = await db
+        .select({
+          orderId: groupOrderItems.orderId,
+          deliveryAddress: orders.deliveryAddress,
+        })
+        .from(groupOrderItems)
+        .innerJoin(orders, eq(orders.orderId, groupOrderItems.orderId))
+        .where(eq(groupOrderItems.groupOrderId, groupId));
 
-        let filterOrders = [];
-        let addedOrderIds = [];
-        for (let i = 0; i < allOrders.length - 1; i++) {
-          for (let j = i + 1; j < allOrders.length; j++) {
-            if (
-              isNearAddress(
-                allOrders[i].deliveryAddress,
-                allOrders[j].deliveryAddress
-              )
-            ) {
-              if (!addedOrderIds.has(allOrders[i].orderId)) {
-                filterOrders.push(allOrders[i]);
-                addedOrderIds.add(allOrders[i].orderId);
-              }
-              if (!addedOrderIds.has(allOrders[j].orderId)) {
-                filterOrders.push(allOrders[j]);
-                addedOrderIds.add(allOrders[j].orderId);
-              }
-            }
-          }
-        }
+      // Tập hợp địa chỉ trong group
+      const addressList = rows.map((r) => r.deliveryAddress);
 
-        console.log(filterOrders);
+      // Tìm đơn nào của user phù hợp để thêm
+      const canAdd = ordersOfStore.filter((o) =>
+        addressList.some((addr) => isNearAddress(addr, o.deliveryAddress))
+      );
+
+      if (canAdd.length === 0) continue;
+
+      // Update sumOfQuantity
+      await db
+        .update(groupOrders)
+        .set({
+          sumOfQuantity: group.sumOfQuantity + canAdd.length,
+        })
+        .where(eq(groupOrders.groupOrderId, groupId));
+
+      // Thêm đơn mới
+      for (const o of canAdd) {
+        await db.insert(groupOrderItems).values({
+          groupOrderId: groupId,
+          userId,
+          orderId: o.orderId,
+        });
       }
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Lỗi khi tạo đơn hàng" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
