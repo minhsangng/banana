@@ -34,14 +34,15 @@ const OrderScreen = () => {
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
             setIsLogin(true);
-
-            setUserId(parseInt(JSON.parse(userStr).userId));
-            const { data } = await axios.get(`${API_URL}/currentorder/${userId}`);
+            
+            const uid = parseInt(JSON.parse(userStr).userId);
+            setUserId(uid);
+            const { data } = await axios.get(`${API_URL}/currentorder/${uid}`);
 
             setOrders(data);
             setLoading(false);
         } catch (error) {
-            console.log("Lỗi API orders:", error);
+            console.log("Lấy danh sách đơn hàng thất bại: ", error);
         } finally {
             setLoading(false);
         }

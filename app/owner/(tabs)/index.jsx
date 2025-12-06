@@ -1,13 +1,11 @@
 import { View, ImageBackground, Dimensions } from "react-native";
 import { useState, useEffect } from "react";
-import { COLORS } from "../../../constants/colors";
-import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
-import { Ionicons } from "@expo/vector-icons";
+import { LAYOUT } from "../../../assets/styles/base.styles";
 import NavBar from "../../../components/NavBar";
 import * as SecureStore from "expo-secure-store";
 import PushNotification from "../../../components/PushNotification";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 export default function HomeScreen() {
     const [isLogin, setIsLogin] = useState(false);

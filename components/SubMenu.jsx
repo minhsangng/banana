@@ -200,12 +200,12 @@ export default function SubMenu({ visible, setVisible, type }) {
                 <View style={[LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx()]}>
                     {type !== "cart" ?
                         type !== "notify" ? (<View style={[LAYOUT.pb(12), LAYOUT.relative, LAYOUT.hFull]}>
-                            <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <TouchableOpacity onPress={()=> router.push("../../account/")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
                                 <Ionicons name="person-outline" size={24} color={COLORS.textLight} />
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Thông tin tài khoản</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <TouchableOpacity onPress={()=>router.push("../(auth)/change-password")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
                                 <Ionicons name="key-outline" size={24} color={COLORS.textLight} />
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Đặt lại mật khẩu</Text>
                             </TouchableOpacity>

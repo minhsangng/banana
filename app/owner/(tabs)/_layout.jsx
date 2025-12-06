@@ -30,35 +30,35 @@ const TabsLayout = () => {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="order"
           options={{
             title: "Order",
-            tabBarIcon: ({ color, size }) => <Ionicons name="bag-check-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="bag-check-outline" size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="dish"
           options={{
             title: "Dish",
-            tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="statistic"
           options={{
             title: "Statistic",
-            tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="support"
           options={{
             title: "Support",
-            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
           }}
         />
       </Tabs>

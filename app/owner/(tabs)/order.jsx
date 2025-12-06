@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import { COLORS } from "../../../constants/colors";
 import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ const orderStatus = [
 ];
 
 export default function OrderScreen() {
+    const router = useRouter();
     const [isLogin, setIsLogin] = useState(false);
     const [orders, setOrders] = useState([]);
     const [alert, setAlert] = useState(false);
@@ -46,12 +48,12 @@ export default function OrderScreen() {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
-            const user = JSON.parse(userStr);
+            const uid = JSON.parse(userStr).userId;
 
-            setUserId(parseInt(user.userId));
+            setUserId(uid);
             setIsLogin(true);
 
-            const { data } = await axios.get(`${API_URL}/ordersowner/${user.userId}/${currentStatus}`);
+            const { data } = await axios.get(`${API_URL}/ordersowner/${uid}/${currentStatus}`);
 
             setOrders(data);
             setLoading(false);
@@ -62,22 +64,25 @@ export default function OrderScreen() {
 
     const updateStatus = async (orderId, status) => {
         try {
-            console.log(status);
             if (status === 4) {
                 setAlert(true);
                 setDeleteId(orderId);
                 setIcon("warning");
                 setTitle("Xác nhận hủy đơn hàng này");
             } else {
-                const { data } = await axios.post(`${API_URL}/updateorderowner`, {
-                    orderId,
-                    status
-                });
+                if (status === 3) {
+                    router.push("../../payment/");
+                } else {
+                    const { data } = await axios.post(`${API_URL}/updateorderowner`, {
+                        orderId,
+                        status
+                    });
 
-                setIcon(data.success ? "success" : "error");
-                setTitle(data.message);
-                setAlert(true);
-                setTimeout(() => (setAlert(false), loadOrders()), 1200);
+                    setIcon(data.success ? "success" : "error");
+                    setTitle(data.message);
+                    setAlert(true);
+                    setTimeout(() => (setAlert(false), loadOrders()), 1200);
+                }
             }
         } catch (error) {
             console.error(error);

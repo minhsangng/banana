@@ -1,4 +1,4 @@
-import { View, Text, Dimensions } from "react-native";
+import { View, Text, ImageBackground, Dimensions } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { COLORS } from "../../../constants/colors";
@@ -24,8 +24,8 @@ export default function StatisticScreen() {
     return (
         <View style={[LAYOUT.container]}>
             <NavBar isLogin={isLogin} heading={"Thống kê"} />
-            <View style={[LAYOUT.main, LAYOUT.h(height * 0.77)]}>
-
+            <View style={[LAYOUT.main, LAYOUT.h(height * 0.77), { overflow: "hidden" }]}>
+                <ImageBackground source={require("../../../assets/images/background-dashboard.png")} style={[LAYOUT.wFull, LAYOUT.hFull]}></ImageBackground>
             </View>
         </View>
     );

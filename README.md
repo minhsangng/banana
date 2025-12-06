@@ -7,10 +7,6 @@ npm i expo@54.0.5
 ```
 
 ```bash
-npm i @clerk/clerk-expo@2.15.3
-```
-
-```bash
 npm i react-native-easy-grid
 ```
 
@@ -32,6 +28,14 @@ npm i --save react-native-modal
 
 ```bash
 npm i expo-document-picker
+```
+
+```bash
+npm i react-native-picker-select
+```
+
+```bash
+npm i expo-image-manipulator
 ```
 
 ```bash

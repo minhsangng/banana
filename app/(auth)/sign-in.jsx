@@ -24,6 +24,8 @@ export default function SignInScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [icon, setIcon] = useState("");
+    const [title, setTitle] = useState("");
     const [alert, setAlert] = useState(false);
 
     const handleLogin = async () => {
@@ -32,38 +34,36 @@ export default function SignInScreen() {
         }
 
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, {
+            const { data } = await axios.post(`${API_URL}/auth/login`, {
                 email,
                 password
             });
 
-            if (!response.data.success) {
-                return setAlert({ type: "error", message: response.data.message });
+            setIcon(data.success ? "success" : "error");
+            setTitle(data.success ? "Đăng nhập thành công" : "Đăng nhập thất bại");
+            setAlert(true);
+
+            await SecureStore.setItemAsync("accessToken", data.token);
+
+            if (data.refreshToken) {
+                await SecureStore.setItemAsync("refreshToken", data.refreshToken);
             }
 
-            setAlert({ type: "success", message: "Đăng nhập thành công" });
-
-            await SecureStore.setItemAsync("accessToken", response.data.token);
-
-            if (response.data.refreshToken) {
-                await SecureStore.setItemAsync("refreshToken", response.data.refreshToken);
-            }
-
-            await SecureStore.setItemAsync("userInfo", JSON.stringify(response.data.user));
+            await SecureStore.setItemAsync("userInfo", JSON.stringify(data.user));
 
             await new Promise(r => setTimeout(r, 700));
 
-            if (response.data.user.role === "Customer") {
+            if (data.user.role === "Customer") {
                 router.replace("/(tabs)");
             } else {
                 router.replace("/owner/(tabs)");
             }
-
         } catch (error) {
-            setAlert({
-                type: "error",
-                message: error.response?.data?.message || "Lỗi hệ thống!"
-            });
+            setIcon("error");
+            setTitle(error.response?.data?.message || "Lỗi hệ thống");
+            setAlert(true);
+
+            setTimeout(() => setAlert(false), 1100);
         }
     };
 
@@ -116,7 +116,7 @@ export default function SignInScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)/reset-password")}>
                     <Text style={styles.forgotText}>Quên mật khẩu?</Text>
                 </TouchableOpacity>
 
@@ -139,14 +139,13 @@ export default function SignInScreen() {
                 </View>
             </View>
 
-            <ToastModal width={"auto"} height={"auto"} status={"success"} title={"Welcome back!"} content={null} visible={alert} />
+            <ToastModal status={icon} title={title} content={null} visible={alert} />
         </SafeAreaView>
     );
 }
 
 
 const styles = StyleSheet.create({
-    // PAGE
     container: {
         flex: 1,
         backgroundColor: COLORS.background1,
@@ -158,7 +157,6 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
 
-    // MAIN WRAPPER
     formWrapper: {
         flex: 1,
         backgroundColor: "#FFF7E7",
@@ -183,7 +181,6 @@ const styles = StyleSheet.create({
         fontFamily: "GochiHand",
     },
 
-    // INPUT LABEL
     label: {
         fontSize: 18,
         fontFamily: "GochiHand",
@@ -191,7 +188,6 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
 
-    // INPUT
     input: {
         backgroundColor: "#F4E9B4",
         paddingVertical: 14,
@@ -202,7 +198,6 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
 
-    // PASSWORD
     passwordContainer: {
         flexDirection: "row",
         alignItems: "center",

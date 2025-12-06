@@ -13,12 +13,17 @@ export function formatPrice(price) {
   return parts[1] ? `${intPart},${parts[1]}` : intPart;
 };
 
-export function formatImage({ uri }) {
+export function formatImage(uri) {
   const defaultSource = require("../assets/images/background-default.png");
-  const isValidUrl =
-    typeof uri === "string" && uri.startsWith("http") && uri.length > 10;
 
-  const source = isValidUrl ? { uri } : defaultSource;
+  if (!uri) return defaultSource;
+
+  const isBase64 = typeof uri === "string" && uri.startsWith("data:image/");
+  const isValidUrl = typeof uri === "string" && uri.startsWith("http") && uri.length > 10;
+
+  if (isBase64 || isValidUrl) {
+    return {uri: uri};
+  }
   
-  return source;
-};
+  return defaultSource;
+}

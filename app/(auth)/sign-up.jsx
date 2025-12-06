@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { API_URL } from "../../constants/api";
-import { LAYOUT, TEXT, BUTTON } from "../../assets/styles/base.styles";
+import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 
 const { height } = Dimensions.get("window");
