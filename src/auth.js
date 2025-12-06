@@ -6,6 +6,7 @@ import { users, refreshTokens } from "./db/schema.js";
 import { eq } from "drizzle-orm";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
+import { sendEmail } from "./sendEmail.js";
 
 dotenv.config();
 const router = express.Router();
@@ -38,7 +39,6 @@ function signAccessToken(user) {
 }
 
 function signRefreshToken(user, jti) {
-  // include jti to be able to rotate / track
   return jwt.sign(
     {
       id: user.userId,
@@ -49,7 +49,12 @@ function signRefreshToken(user, jti) {
   );
 }
 
-async function saveRefreshTokenToDB(token, userId, expiresAt, replacedBy = null) {
+async function saveRefreshTokenToDB(
+  token,
+  userId,
+  expiresAt,
+  replacedBy = null
+) {
   return await db
     .insert(refreshTokens)
     .values({
@@ -70,7 +75,10 @@ async function revokeRefreshTokenInDB(token, replacedBy = null) {
 }
 
 async function findRefreshTokenInDB(token) {
-  const rows = await db.select().from(refreshTokens).where(eq(refreshTokens.token, token));
+  const rows = await db
+    .select()
+    .from(refreshTokens)
+    .where(eq(refreshTokens.token, token));
   return rows.length ? rows[0] : null;
 }
 
@@ -82,7 +90,9 @@ router.post("/register", async (req, res) => {
     if (!role) role = "Customer";
 
     if (!fullName || !email || !phoneNumber || !password) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
     }
 
     email = email.trim().toLowerCase();
@@ -110,14 +120,9 @@ router.post("/register", async (req, res) => {
 
     const user = inserted[0];
 
-    // Optionally, issue tokens immediately (auto-login)
-    res.status(201).json({
-      success: true,
-      message: "Register success"
-    });
-
-    // compute expiresAt timestamp for refresh token (Date)
-    const refreshExpiryDate = new Date(Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES));
+    const refreshExpiryDate = new Date(
+      Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES)
+    );
 
     await saveRefreshTokenToDB(refreshToken, user.userId, refreshExpiryDate);
 
@@ -129,7 +134,7 @@ router.post("/register", async (req, res) => {
         email: user.email,
       },
       token: accessToken,
-      refreshToken, // mobile: store in SecureStore
+      refreshToken,
     });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
@@ -142,29 +147,35 @@ router.post("/login", async (req, res) => {
   try {
     let { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
     }
     email = email.trim().toLowerCase();
 
     const results = await db.select().from(users).where(eq(users.email, email));
     if (results.length === 0) {
-      // security: you can return generic message "Invalid credentials"
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     const accessToken = signAccessToken(user);
 
-    // Create refresh token (rotation) and store in DB
     const refreshJti = uuidv4();
     const refreshToken = signRefreshToken(user, refreshJti);
-    const refreshExpiryDate = new Date(Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES));
+    const refreshExpiryDate = new Date(
+      Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES)
+    );
 
     await saveRefreshTokenToDB(refreshToken, user.userId, refreshExpiryDate);
 
@@ -188,49 +199,65 @@ router.post("/login", async (req, res) => {
 router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ success: false, message: "Missing refreshToken" });
+    if (!refreshToken)
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing refreshToken" });
 
-    // verify signature
     let payload;
     try {
       payload = jwt.verify(refreshToken, REFRESH_SECRET);
     } catch (err) {
-      return res.status(401).json({ success: false, message: "Invalid refresh token" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid refresh token" });
     }
 
-    // check db record
     const dbToken = await findRefreshTokenInDB(refreshToken);
     if (!dbToken) {
-      return res.status(401).json({ success: false, message: "Refresh token not found" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Refresh token not found" });
     }
 
     if (dbToken.revoked) {
-      return res.status(401).json({ success: false, message: "Refresh token revoked" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Refresh token revoked" });
     }
 
-    // check expiry (DB) just in case
     if (new Date(dbToken.expiresAt) < new Date()) {
-      return res.status(401).json({ success: false, message: "Refresh token expired" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Refresh token expired" });
     }
 
-    // All good -> rotate: revoke old token and issue new refresh + new access
-    // revoke old
     await revokeRefreshTokenInDB(refreshToken);
 
-    // fetch user
-    const userRows = await db.select().from(users).where(eq(users.userId, payload.id));
+    const userRows = await db
+      .select()
+      .from(users)
+      .where(eq(users.userId, payload.id));
     if (!userRows.length) {
-      return res.status(401).json({ success: false, message: "User no longer exists" });
+      return res
+        .status(401)
+        .json({ success: false, message: "User no longer exists" });
     }
     const user = userRows[0];
 
     const newAccessToken = signAccessToken(user);
     const newJti = uuidv4();
     const newRefreshToken = signRefreshToken(user, newJti);
-    const newRefreshExpiry = new Date(Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES));
+    const newRefreshExpiry = new Date(
+      Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES)
+    );
 
-    // Save new refresh token to DB
-    await saveRefreshTokenToDB(newRefreshToken, user.userId, newRefreshExpiry, null);
+    await saveRefreshTokenToDB(
+      newRefreshToken,
+      user.userId,
+      newRefreshExpiry,
+      null
+    );
 
     res.json({
       success: true,
@@ -247,11 +274,14 @@ router.post("/refresh-token", async (req, res) => {
 router.post("/logout", async (req, res) => {
   try {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ success: false, message: "Missing refreshToken" });
+    if (!refreshToken)
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing refreshToken" });
 
     const dbToken = await findRefreshTokenInDB(refreshToken);
     if (!dbToken) {
-      return res.json({ success: true, message: "Logged out" }); // idempotent
+      return res.json({ success: true, message: "Logged out" });
     }
 
     await revokeRefreshTokenInDB(refreshToken);
@@ -265,30 +295,42 @@ router.post("/logout", async (req, res) => {
 /* ---------------- Đặt lại mật khẩu ------------------ */
 router.post("/change-password", protect, async (req, res) => {
   try {
-    const userId = req.user.id;  // từ middleware protect
+    const userId = req.user.id;
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Nhập đầy đủ mật khẩu" });
     }
 
-    // Lấy user từ DB
-    const userRows = await db.select().from(users).where(eq(users.userId, userId));
-    if (!userRows.length) return res.status(404).json({ success: false, message: "User not found" });
+    const userRows = await db
+      .select()
+      .from(users)
+      .where(eq(users.userId, userId));
+    if (!userRows.length)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     const user = userRows[0];
 
-    // So sánh password hiện tại
     const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match) return res.status(401).json({ success: false, message: "Mật khẩu hiện tại không đúng" });
+    if (!match)
+      return res
+        .status(401)
+        .json({ success: false, message: "Mật khẩu hiện tại không đúng" });
 
-    // Hash mật khẩu mới
     const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-    // Update password
-    await db.update(users).set({ password: hashed }).where(eq(users.userId, userId));
+    await db
+      .update(users)
+      .set({ password: hashed })
+      .where(eq(users.userId, userId));
 
-    // Optionally: revoke tất cả refresh tokens
-    await db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.userId, userId));
+    await db
+      .update(refreshTokens)
+      .set({ revoked: true })
+      .where(eq(refreshTokens.userId, userId));
 
     res.json({ success: true, message: "Đổi mật khẩu thành công" });
   } catch (err) {
@@ -298,30 +340,106 @@ router.post("/change-password", protect, async (req, res) => {
 });
 
 /* ---------------- Quên mật khẩu ------------------ */
-router.post("/reset-password", async (req, res) => {
-  const { token, newPassword } = req.body;
-  if (!token || !newPassword) return res.status(400).json({ success: false, message: "Missing fields" });
-
+router.post("/forgot-password", async (req, res) => {
   try {
-    const resets = await db.select().from(passwordResetsTable).where(eq(passwordResetsTable.token, token));
-    if (!resets.length) return res.status(400).json({ success: false, message: "Token invalid" });
+    const { email } = req.body;
+    
+    const userRows = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()));
 
-    const reset = resets[0];
-    if (isBefore(new Date(reset.expires), new Date())) return res.status(400).json({ success: false, message: "Token expired" });
+    if (!userRows.length) {
+      return res.json({ success: true }); 
+    }
 
-    const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    const user = userRows[0];
 
-    await db.update(usersTable).set({ password: hashed }).where(eq(usersTable.userId, reset.userId));
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Xóa token sau khi reset
-    await db.delete(passwordResetsTable).where(eq(passwordResetsTable.id, reset.id));
+    await db.insert(refreshTokens).values({
+      userId: user.userId,
+      token: resetToken,
+      expires
+    });
 
-    res.json({ success: true, message: "Mật khẩu đã được đặt lại thành công" });
+    await sendEmail(
+      email,
+      "Mã khôi phục mật khẩu",
+      `<h3>Mã OTP của bạn: <b>${otp}</b></h3>`
+    );
+
+    res.json({
+      success: true,
+      message: "OTP đã được gửi đến email",
+      resetToken
+    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: "Lỗi server" });
   }
+});
+
+router.post("/verify-otp", async (req, res) => {
+  const { otp, resetToken } = req.body;
+
+  const rows = await db
+    .select()
+    .from(refreshTokens)
+    .where(eq(refreshTokens.token, resetToken));
+
+  if (!rows.length)
+    return res.status(400).json({ success: false, message: "Token không hợp lệ" });
+
+  const reset = rows[0];
+
+  if (reset.otp !== otp)
+    return res.status(400).json({ success: false, message: "OTP sai" });
+
+  if (new Date(reset.expires) < new Date())
+    return res.status(400).json({ success: false, message: "OTP hết hạn" });
+
+  res.json({
+    success: true,
+    allowReset: true,
+    resetToken
+  });
+});
+
+router.post("/reset-password", async (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  const rows = await db
+    .select()
+    .from(passwordResetsTable)
+    .where(eq(passwordResetsTable.token, resetToken));
+
+  if (!rows.length)
+    return res.status(400).json({ success: false, message: "Token không hợp lệ" });
+
+  const reset = rows[0];
+
+  if (new Date(reset.expires) < new Date())
+    return res.status(400).json({ success: false, message: "Token hết hạn" });
+
+  const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  await db
+    .update(users)
+    .set({ password: hashed })
+    .where(eq(users.userId, reset.userId));
+
+  await db
+    .delete(passwordResetsTable)
+    .where(eq(passwordResetsTable.id, reset.id));
+
+  res.json({
+    success: true,
+    message: "Đặt lại mật khẩu thành công"
+  });
 });
 
 /* ---------------- Middleware bảo vệ ------------------ */
@@ -336,10 +454,12 @@ export function protect(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    console.log("JWT VERIFY ERROR:", err.message);
+  return res.status(401).json({ success: false, message: "Invalid token" });
   }
 }
 
@@ -347,7 +467,6 @@ export default router;
 
 /* ---------------- Utility: parse expiry to ms ---------------- */
 function parseRefreshExpiryToMs(expStr) {
-  // expStr examples: "30d", "15m"
   const num = parseInt(expStr.slice(0, -1));
   const unit = expStr.slice(-1);
 
@@ -361,7 +480,6 @@ function parseRefreshExpiryToMs(expStr) {
     case "s":
       return num * 1000;
     default:
-      // default to days if unknown
       return num * 24 * 60 * 60 * 1000;
   }
 }

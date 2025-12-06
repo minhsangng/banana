@@ -7,7 +7,7 @@ export const dishes = pgTable("dishes", {
   categoryId: integer("category_id").notNull(),
   price: numeric("price", { precision: 10, scale: 3 }),
   description: varchar("description"),
-  imageUrl: varchar("image_url"),
+  imageUrl: text("image_url"),
   selled: integer("selled").notNull().default(0),
   availability: integer("availability").notNull(1),
   status: varchar("status").notNull().default("Active"),

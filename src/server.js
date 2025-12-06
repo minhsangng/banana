@@ -1,4 +1,4 @@
-import express, { response } from "express";
+import express from "express";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
 import {
@@ -28,8 +28,7 @@ import {
 import job from "./config/cron.js";
 import { Expo } from "expo-server-sdk";
 import cors from "cors";
-import authRouter, { protect } from "./auth.js";
-import { getRounds } from "bcrypt";
+import authRouter from "./auth.js";
 
 const app = express();
 const PORT = ENV.PORT || 5001;
@@ -45,7 +44,8 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.post("/api/updatepushtoken", async (req, res) => {
   try {
@@ -231,7 +231,7 @@ app.get("/api/dish/:dishId/:userId", async (req, res) => {
 app.get("/api/ownerdishdetail/:dishId", async (req, res) => {
   try {
     const { dishId } = req.params;
-    
+
     const results = await db
       .select({
         ...dishes,
@@ -314,6 +314,81 @@ app.get("/api/dishes", async (req, res) => {
   }
 });
 
+app.post("/api/updatedishinfo", async (req, res) => {
+  try {
+    const { dishId, dishName, categoryId, price, description, image } =
+      req.body;
+
+    const rows = await db
+      .select()
+      .from(dishes)
+      .where(eq(dishes.dishId, parseInt(dishId)));
+
+    if (rows.length === 0) {
+      return res.json({ success: false, message: "Dish not found" });
+    }
+
+    const oldData = rows[0];
+
+    const updateData = {};
+
+    if (dishName !== oldData.dishName) updateData.dishName = dishName;
+    if (categoryId !== oldData.categoryId) updateData.categoryId = categoryId;
+    if (price) updateData.price = price;
+    if (description) updateData.description = description;
+    if (image !== oldData.imageUrl) updateData.imageUrl = image;
+
+    await db
+      .update(dishes)
+      .set({
+        dishName: updateData.dishName,
+        categoryId: updateData.categoryId,
+        price: updateData.price,
+        description: updateData.description,
+        imageUrl: updateData.imageUrl,
+      })
+      .where(eq(dishes.dishId, parseInt(dishId)));
+
+    res.json({ success: true, message: "Cập nhật thành công" });
+  } catch (error) {
+    console.log("Error update dish", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/api/owneradddish", async (req, res) => {
+  try {
+    const { dishName, userId, categoryId, price, description, image } =
+      req.body;
+
+    const storeRecords = await db
+      .select({ storeId: stores.storeId })
+      .from(stores)
+      .where(eq(stores.userId, parseInt(userId)))
+      .limit(1);
+
+    const storeId = storeRecords[0].storeId;
+
+    const rows = await db.insert(dishes).values({
+      dishName,
+      storeId: parseInt(storeId),
+      categoryId,
+      price,
+      description,
+      imageUrl: image,
+    });
+
+    if (!rows) {
+      return res.json({ success: false, message: "Thêm món mới thất bại" });
+    }
+
+    return res.json({ success: true, message: "Thêm món mới thành công" });
+  } catch (error) {
+    console.log("Error add dish", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 /* Select dish best seller in limit range */
 app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   try {
@@ -379,6 +454,74 @@ app.get("/api/users", async (req, res) => {
       .limit(10);
 
     res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the users", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/accountuser/:userId/:role", async (req, res) => {
+  try {
+    const { userId, role } = req.params;
+
+    if (role === "Owner") {
+      const results = await db
+        .select({
+          ...users,
+          storeName: stores.storeName,
+          location: stores.location,
+          bankName: stores.bankName,
+          bankNumber: stores.bankNumber,
+        })
+        .from(users)
+        .innerJoin(stores, eq(stores.userId, users.userId))
+        .where(eq(users.userId, parseInt(userId)));
+
+      res.status(200).json(results);
+    }
+
+    const results = await db
+      .select()
+      .from(users)
+      .where(eq(users.userId, parseInt(userId)));
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the users", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/api/updateaccount", async (req, res) => {
+  try {
+    const {
+      userId,
+      fullName,
+      email,
+      phoneNumber,
+      role,
+      storeName,
+      location,
+      bankName,
+      bankNumber,
+    } = req.body;
+    
+    const resultUser = await db
+      .update(users)
+      .set({ fullName, email, phoneNumber })
+      .where(eq(users.userId, parseInt(userId)));
+      
+    if (role === "Owner") {
+      const resultStore = await db
+        .update(stores)
+        .set({ storeName, location, bankName, bankNumber })
+        .where(eq(stores.userId, parseInt(userId)));
+    }
+  
+    if (resultUser.rowsAffected === 0)
+      res.json({success: false, message: "Cập nhật thông tin cá nhân thất bại"});
+      
+    res.json({success: true, message: "Cập nhật thông tin cá nhân thành công"});
   } catch (error) {
     console.log("Error fetching the users", error);
     res.status(500).json({ error: "Something went wrong" });

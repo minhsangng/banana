@@ -23,5 +23,9 @@ npm i expo-server-sdk
 ```
 
 ```bash
+npm i nodemailer
+```
+
+```bash
 npm run dev
 ```
