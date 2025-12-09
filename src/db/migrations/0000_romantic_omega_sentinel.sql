@@ -11,10 +11,17 @@ CREATE TABLE "dishes" (
 	"category_id" integer NOT NULL,
 	"price" numeric(10, 3),
 	"description" varchar,
-	"image_url" varchar,
+	"image_url" text,
+	"rate_star" numeric DEFAULT 5 NOT NULL,
 	"selled" integer DEFAULT 0 NOT NULL,
 	"availability" integer NOT NULL,
 	"status" varchar DEFAULT 'Active' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "employees" (
+	"employee_id" integer PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"store_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "favorites" (
@@ -33,7 +40,8 @@ CREATE TABLE "group_order_items" (
 CREATE TABLE "group_orders" (
 	"group_order_id" integer PRIMARY KEY NOT NULL,
 	"store_id" integer NOT NULL,
-	"sum_of_quantity" integer NOT NULL
+	"sum_of_quantity" integer NOT NULL,
+	"delivery_area" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
@@ -52,8 +60,8 @@ CREATE TABLE "orders" (
 	"payment_method" varchar DEFAULT 'Cash' NOT NULL,
 	"note" varchar,
 	"delivery_address" varchar,
-	"status" varchar DEFAULT 'Pending' NOT NULL,
-	"position" varchar
+	"timer" varchar DEFAULT 'Giao ngay' NOT NULL,
+	"status" varchar DEFAULT 'Pending' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "refresh_tokens" (

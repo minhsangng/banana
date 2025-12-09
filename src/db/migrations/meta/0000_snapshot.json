@@ -1,5 +1,5 @@
 {
-  "id": "011359fd-8748-44ea-9f57-6a7f5c2a2016",
+  "id": "83423ee0-e1e2-4d72-a69e-22fee2a6b1a0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -77,9 +77,16 @@
         },
         "image_url": {
           "name": "image_url",
-          "type": "varchar",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "rate_star": {
+          "name": "rate_star",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
         },
         "selled": {
           "name": "selled",
@@ -100,6 +107,37 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Active'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.employees": {
+      "name": "employees",
+      "schema": "",
+      "columns": {
+        "employee_id": {
+          "name": "employee_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -199,6 +237,12 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "delivery_area": {
+          "name": "delivery_area",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -301,18 +345,19 @@
           "primaryKey": false,
           "notNull": false
         },
+        "timer": {
+          "name": "timer",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Giao ngay'"
+        },
         "status": {
           "name": "status",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true,
           "default": "'Pending'"
-        },
-        "position": {
-          "name": "position",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},

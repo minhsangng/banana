@@ -87,7 +87,7 @@ router.post("/register", async (req, res) => {
   try {
     let { fullName, email, phoneNumber, password, role } = req.body;
 
-    if (!role) role = "Customer";
+    if (!role || role !== "") role = "Customer";
 
     if (!fullName || !email || !phoneNumber || !password) {
       return res

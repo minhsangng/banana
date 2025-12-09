@@ -1,4 +1,12 @@
-import { pgTable, numeric, varchar, integer, timestamp, boolean, text } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  numeric,
+  varchar,
+  integer,
+  timestamp,
+  boolean,
+  text,
+} from "drizzle-orm/pg-core";
 
 export const dishes = pgTable("dishes", {
   dishId: integer("dish_id").primaryKey(),
@@ -8,6 +16,7 @@ export const dishes = pgTable("dishes", {
   price: numeric("price", { precision: 10, scale: 3 }),
   description: varchar("description"),
   imageUrl: text("image_url"),
+  rateStar: numeric("rate_star").notNull().default(5.0),
   selled: integer("selled").notNull().default(0),
   availability: integer("availability").notNull(1),
   status: varchar("status").notNull().default("Active"),
@@ -51,8 +60,8 @@ export const orders = pgTable("orders", {
   paymentMethod: varchar("payment_method").notNull().default("Cash"),
   note: varchar("note"),
   deliveryAddress: varchar("delivery_address"),
+  timer: varchar("timer").notNull().default("Giao ngay"),
   status: varchar("status").notNull().default("Pending"),
-  position: varchar("position"),
 });
 
 export const orderItems = pgTable("order_items", {
@@ -83,6 +92,7 @@ export const groupOrders = pgTable("group_orders", {
   groupOrderId: integer("group_order_id").primaryKey(),
   storeId: integer("store_id").notNull(),
   sumOfQuantity: integer("sum_of_quantity").notNull(),
+  deliveryArea: varchar("delivery_area"),
 });
 
 export const groupOrderItems = pgTable("group_order_items", {
@@ -103,4 +113,10 @@ export const rooms = pgTable("rooms", {
   building: varchar("building"),
   floor: varchar("floor"),
   room: varchar("room"),
+});
+
+export const employees = pgTable("employees", {
+  employeeId: integer("employee_id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  storeId: integer("store_id").notNull(),
 });
