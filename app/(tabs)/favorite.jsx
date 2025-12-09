@@ -1,17 +1,20 @@
-import { View, Text, FlatList, TouchableOpacity, ImageBackground, Dimensions } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions } from "react-native";
 import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { formatPrice, formatImage } from "../../constants/format";
 import { API_URL } from "../../constants/api";
+import { UserAPI } from "../../services/userInfo";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 const { width, height } = Dimensions.get("window");
 
 const FavoriteScreen = () => {
+    const router = useRouter();
     const [favorites, setFavorites] = useState([]);
     const [isLogin, setIsLogin] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -34,6 +37,18 @@ const FavoriteScreen = () => {
             console.log("Lỗi không thể kết nối API ", error);
         }
     }
+
+    const removeFavorite = async (dishId) => {
+        try {
+            const userId = await UserAPI.getUserInfo();
+            if (userId !== 0) {
+                await axios.get(`${API_URL}/favorite/remove/${userId}/${dishId}`);
+                setFavorites((prev) => prev.filter(item => item.dishId !== dishId));
+            }
+        } catch (error) {
+            console.error("Lỗi: ", error);
+        }
+    };
 
     useEffect(() => {
         loadFavorites();
@@ -59,18 +74,20 @@ const FavoriteScreen = () => {
                                 showsVerticalScrollIndicator={false}
                                 columnWrapperStyle={{ justifyContent: "space-between" }}
                                 renderItem={({ item }) => (
-                                    <TouchableOpacity
+                                    <TouchableOpacity onPress={() => router.push(`../detaildish/${item.dishId}`)}
                                         style={[LAYOUT.w("48%"), LAYOUT.mb(16), LAYOUT.relative]}>
-                                        <ImageBackground
-                                            source={item.imageUrl ? { uri: item.imageUrl } : require("../../assets/images/background-default.png")}
+                                        <Image
+                                            source={formatImage(item.imageUrl)}
                                             style={[LAYOUT.wFull, LAYOUT.h(150), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
                                         />
-                                        <Ionicons name="heart" size={16} color={COLORS.button} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10), LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), { backgroundColor: COLORS.light }]}></Ionicons>
+                                        <TouchableOpacity onPress={() => removeFavorite(item.dishId)} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10)]}>
+                                            <Ionicons name="heart" size={16} color={COLORS.button} style={[LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), { backgroundColor: COLORS.light }]}></Ionicons>
+                                        </TouchableOpacity>
                                         <Text style={[TEXT.text, TEXT.size(16), LAYOUT.absolute, LAYOUT.right(0), LAYOUT.bottom(50), LAYOUT.px(6), LAYOUT.roundedtl(22), LAYOUT.roundedbl(22), { color: COLORS.textLight, backgroundColor: COLORS.button }]}>{formatPrice(item.price)} đ</Text>
                                         <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
                                             <Text style={[TEXT.text, TEXT.size(18), LAYOUT.w("65%")]} numberOfLines={1}>{item.dishName}</Text>
                                             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.px(4), LAYOUT.py(1), LAYOUT.rounded(22), { backgroundColor: COLORS.button, gap: 2 }]}>
-                                                <Text style={[TEXT.text, TEXT.size(16), { color: COLORS.textLight }]}>5.0</Text>
+                                                <Text style={[TEXT.text, TEXT.size(16), { color: COLORS.textLight }]}>{item.rateStar}</Text>
                                                 <Ionicons name="star" size={14} color={COLORS.background1}></Ionicons>
                                             </View>
                                         </View>

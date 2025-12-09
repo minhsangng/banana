@@ -47,5 +47,17 @@ npm i socket.io-client
 ```
 
 ```bash
+npm i expo-notifications
+```
+
+```bash
+npm i react-native-wheel-picker-expo
+```
+
+```bash
+npm i react-native-qrcode-svg vietnam-qr-pay
+```
+
+```bash
 npx expo
 ```

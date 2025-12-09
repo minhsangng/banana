@@ -8,6 +8,8 @@ import { COLORS } from "../../constants/colors";
 import { API_URL } from "../../constants/api";
 import { formatImage } from "../../constants/format";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import * as Notifications from "expo-notifications";
 
 import SlideBanner from "../../components/SlideBanner";
 import Categories from "../../components/Categories";
@@ -22,6 +24,60 @@ const HomeScreen = () => {
   const [dataBS, setDataBS] = useState([]);
   const [recommends, setRecommends] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const notifycation = async () => {
+    try {
+      const userStr = await SecureStore.getItemAsync("userInfo");
+      const uid = JSON.parse(userStr).userId;
+      const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
+      
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    const checkAndNotify = async () => {
+      try {
+        const newData = await notifycation();
+
+        const newString = JSON.stringify(newData);
+
+        const lastString = await SecureStore.getItemAsync("lastData");
+
+        if (newString !== lastString) {
+          sendLocalNotification(newData);
+
+          await SecureStore.setItemAsync("lastData", newString);
+        }
+      } catch (e) {
+        console.log("Error:", e);
+      }
+    };
+
+    checkAndNotify();
+
+    const interval = setInterval(checkAndNotify, 1 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const sendLocalNotification = async (data) => {
+    if (!data || data.length === 0) return;
+
+    const text = data
+      .map(item => `Đã có ${item.count} người đặt món ${item.dishName}`)
+      .join("; ");
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Thông báo mới",
+        body: text,
+      },
+      trigger: null,
+    });
+  };
 
   const loadBestSeller = async () => {
     const { data } = await axios.get(`${API_URL}/dishes/bestseller/4`);
@@ -116,13 +172,10 @@ const HomeScreen = () => {
                   : recommends.map((data) => (
                     <TouchableOpacity key={data.dishId} onPress={() => router.push(`../detaildish/${data.dishId}`)} style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(8), { overflow: "hidden" }]}>
                       <Image style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={formatImage(data.imageUrl)}></Image>
-                      <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5), LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
-                        <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), homeStyles.rateContainer]}>
-                          <Text style={TEXT.subText}>5.0</Text>
+                      <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5)]}>
+                        <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), LAYOUT.bg(COLORS.button), homeStyles.rateContainer]}>
+                          <Text style={[TEXT.subText, LAYOUT.color(COLORS.textLight)]}>{data.rateStar}</Text>
                           <Ionicons name="star" style={{ fontSize: 14, color: COLORS.background1 }}></Ionicons>
-                        </View>
-                        <View style={[LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.p(4), homeStyles.favoritesContainer]}>
-                          <Ionicons name="heart" style={{ fontSize: 14, color: COLORS.heading }}></Ionicons>
                         </View>
                       </View>
                     </TouchableOpacity>

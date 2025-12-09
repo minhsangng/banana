@@ -29,36 +29,36 @@ const TabsLayout = () => {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Home",
-            tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />
+            title: "Trang chủ",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="order"
           options={{
-            title: "Order",
-            tabBarIcon: ({ color, size }) => <Ionicons name="bag-check-outline" size={size} color={color} />
+            title: "Đơn hàng",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "bag-check" : "bag-check-outline"} size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="dish"
           options={{
-            title: "Dish",
-            tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />
+            title: "Thực đơn",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "restaurant" : "restaurant-outline"} size={size} color={color} />
           }}
         />
         <Tabs.Screen
-          name="statistic"
+          name="employee"
           options={{
-            title: "Statistic",
-            tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />
+            title: "Nhân viên",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
           }}
         />
         <Tabs.Screen
           name="support"
           options={{
-            title: "Support",
-            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
+            title: "Hỗ trợ",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"} size={size} color={color} />
           }}
         />
       </Tabs>

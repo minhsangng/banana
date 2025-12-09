@@ -71,10 +71,11 @@ export default function OrderScreen() {
                 setTitle("Xác nhận hủy đơn hàng này");
             } else {
                 if (status === 3) {
-                    router.push("../../payment/");
+                    router.push(`../../payment/${orderId}`);
                 } else {
                     const { data } = await axios.post(`${API_URL}/updateorderowner`, {
                         orderId,
+                        paymentMethod: "Tiền mặt",
                         status
                     });
 
@@ -148,14 +149,14 @@ export default function OrderScreen() {
                                     showsVerticalScrollIndicator={false}
                                     renderItem={({ item }) => {
                                         return (
-                                            <TouchableOpacity
+                                            <TouchableOpacity onPress={() => router.push(`../../detailorder/${item.orderId}`) }
                                                 style={[
                                                     LAYOUT.wFull,
                                                     LAYOUT.mb(20),
                                                     LAYOUT.row,
                                                     LAYOUT.justifyBetween,
                                                     LAYOUT.pb(12),
-                                                    LAYOUT.borderb(1, COLORS.background3),
+                                                    LAYOUT.borderb(1, COLORS.background4),
                                                     { borderStyle: "dashed" }
                                                 ]}
                                             >
@@ -214,14 +215,14 @@ export default function OrderScreen() {
                                                                     LAYOUT.color(COLORS.textLight)
                                                                 ]}
                                                             >
-                                                                Chuyển
+                                                                {item.orderStatus === "Đang chuẩn bị" ? "Giao hàng" : item.orderStatus === "Đang giao" ? "Thanh toán" : ""}
                                                             </Text>
                                                             <Ionicons name="send-outline" color={COLORS.textLight}></Ionicons>
                                                         </TouchableOpacity>
                                                     </View>)}
-                                                    {currentStatus === 2 && (<View style={[{ alignItems: "flex-end" }]}>
-                                                        <Text style={[TEXT.paragraph]}>Hoàn thành:</Text>
-                                                        <Text style={[TEXT.paragraph]}>8:20 PM</Text>
+                                                    {currentStatus !== 1 && (<View style={[{ alignItems: "flex-end" }]}>
+                                                        <Text style={[TEXT.paragraph]}>{item.orderDate.slice(0, 10)}</Text>
+                                                        <Text style={[TEXT.paragraph]}>{item.orderDate.slice(11, 16)}</Text>
                                                     </View>)}
                                                 </View>
                                             </TouchableOpacity>
@@ -233,7 +234,7 @@ export default function OrderScreen() {
                 </View>
             </View>
 
-            <ToastModal width={"auto"} height={"auto"} status={icon} title={title} content={icon === "warning" ? contentCancelAlert : null} visible={alert} />
+            <ToastModal status={icon} title={title} content={icon === "warning" ? contentCancelAlert : null} visible={alert} />
         </View>
     );
 }

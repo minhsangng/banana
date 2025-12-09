@@ -27,3 +27,9 @@ export function formatImage(uri) {
   
   return defaultSource;
 }
+
+export function formatOrderId(orderId) {
+  const baseId = "#DH264";
+  
+  return `${baseId}${orderId < 10 ? orderId : "00" + orderId >= 10 && orderId < 100 ? "0" + orderId : orderId}`;
+}

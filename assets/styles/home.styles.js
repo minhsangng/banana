@@ -47,7 +47,6 @@ export const homeStyles = StyleSheet.create({
   },
   rateContainer: {
     gap: 6,
-    backgroundColor: COLORS.textLight,
   },
   favoritesContainer: {
     backgroundColor: COLORS.textLight,

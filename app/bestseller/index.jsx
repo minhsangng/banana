@@ -39,9 +39,9 @@ const BestSellerScreen = () => {
                 </View>
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82)]}>
-                <Text style={[LAYOUT.mt(20), TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Khám phá ngay nhưng món ngon nhất!</Text>
+                <Text style={[LAYOUT.my(20), TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Khám phá ngay nhưng món ngon nhất!</Text>
 
-                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
+                <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
                     <FlatList
                         data={dishes}
                         keyExtractor={(item) => item.dishId}
@@ -55,7 +55,7 @@ const BestSellerScreen = () => {
                                     source={formatImage(item.imageUrl)}
                                     style={[LAYOUT.wFull, LAYOUT.h(150), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), LAYOUT.overflowHidden]}
                                 />
-                                <Ionicons name="heart" size={16} color={COLORS.button} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10), LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), LAYOUT.bg(COLORS.light)]}></Ionicons>
+                                <Ionicons name="heart-outline" size={16} color={COLORS.button} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10), LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), LAYOUT.bg(COLORS.light)]}></Ionicons>
                                 <Text style={[TEXT.text, TEXT.size(16), LAYOUT.absolute, LAYOUT.right(0), LAYOUT.bottom(50), LAYOUT.px(6), LAYOUT.roundedtl(22), LAYOUT.roundedbl(22), { color: COLORS.textLight, backgroundColor: COLORS.button }]}>{formatPrice(item.price)} đ</Text>
                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
                                     <Text style={[TEXT.text, TEXT.size(18), LAYOUT.w("65%")]} numberOfLines={1}>{item.dishName}</Text>

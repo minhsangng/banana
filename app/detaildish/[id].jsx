@@ -29,9 +29,11 @@ const OrderDishScreen = () => {
   const loadDishDetail = async () => {
     try {
       setLoading(true);
+      const userId = await UserAPI.getUserInfo();
+      setUserId(userId);
       const data = await DishAPI.getDetailDish(dishId, userId);
-      
-      if (data) setIsFavorite(data.userId ? true : false);
+
+      setIsFavorite(data.favoriteId ? true : false);
 
       setDish(data);
       setLoading(false);
@@ -65,13 +67,15 @@ const OrderDishScreen = () => {
   const addFavorite = async () => {
     try {
       if (userId !== 0) {
-        setIsFavorite(!isFavorite);
-        await axios.get(`${API_URL}/favorite/${!isFavorite ? "add" : "remove"}/${userId}/${dishId}`);
+        const newStatus = !isFavorite;
+        setIsFavorite(newStatus);
+
+        await axios.get(`${API_URL}/favorite/${newStatus ? "add" : "remove"}/${userId}/${dishId}`);
       } else {
         setAlert(true);
       }
     } catch (error) {
-      console.error("Thêm yêu thích thất bại: ", error);
+      console.error("Lỗi: ", error);
     }
   };
 
@@ -86,11 +90,6 @@ const OrderDishScreen = () => {
   };
 
   useEffect(() => {
-    const loadUser = async () => {
-      const userId = await UserAPI.getUserInfo();
-      setUserId(userId);
-    };
-    loadUser();
     loadDishDetail();
   }, []);
 

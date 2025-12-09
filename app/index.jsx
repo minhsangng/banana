@@ -38,7 +38,7 @@ export default function Splash() {
 
           const user = JSON.parse(userStr);
 
-          if (user.role === "Owner") {
+          if (user.role === "Owner" || user.role === "Employee") {
             router.replace("./owner/(tabs)/");
           } else {
             router.replace("./onboard/");

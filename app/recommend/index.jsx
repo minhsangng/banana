@@ -46,9 +46,9 @@ const RecommendScreen = () => {
                 </View>
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82)]}>
-                <Text style={[LAYOUT.mt(20), TEXT.text, TEXT.center, { color: COLORS.heading }]}>Khám phá ngay nhưng món ngon nhất!</Text>
+                <Text style={[LAYOUT.my(20), TEXT.text, TEXT.center, { color: COLORS.heading }]}>Khám phá ngay nhưng món ngon nhất!</Text>
 
-                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
+                <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
                     <FlatList
                         data={dishes}
                         keyExtractor={(item) => item.dishId}

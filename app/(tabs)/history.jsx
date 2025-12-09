@@ -1,9 +1,10 @@
-import { View, Text, TouchableOpacity, Image, Dimensions, FlatList } from "react-native";
-import { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, Dimensions, FlatList, RefreshControl } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import {useRouter} from "expo-router";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { formatPrice, formatImage } from "../../constants/format";
+import { formatPrice, formatOrderId } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -11,9 +12,11 @@ import * as SecureStore from "expo-secure-store";
 const { width, height } = Dimensions.get("window");
 
 const HistoryScreen = () => {
+    const router = useRouter();
     const [history, setHistory] = useState([]);
     const [isLogin, setIsLogin] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     // ===== LOAD API =====
     const loadHistory = async () => {
@@ -34,6 +37,11 @@ const HistoryScreen = () => {
             setLoading(false);
         }
     };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadHistory().finally(() => setRefreshing(false));
+    }, []);
 
     useEffect(() => {
         loadHistory();
@@ -58,58 +66,54 @@ const HistoryScreen = () => {
                                 keyExtractor={(item) => item.orderId.toString()}
                                 numColumns={1}
                                 showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                }
                                 renderItem={({ item }) => {
                                     const dishNames = item.items.map(d => d.dishName).join(" - ");
 
                                     return (
-                                        <TouchableOpacity
+                                        <TouchableOpacity onPress={() => router.push(`../detailorder/${item.orderId}`)}
                                             style={[
                                                 LAYOUT.wFull,
                                                 LAYOUT.mb(20),
-                                                LAYOUT.row,
                                                 LAYOUT.justifyBetween,
                                                 LAYOUT.pb(12),
-                                                LAYOUT.borderb(1, COLORS.background4)
+                                                LAYOUT.borderb(1, COLORS.background4),
+                                                {borderStyle: "dashed"}
                                             ]}
                                         >
-                                            <Image
-                                                source={item.items[0].dishImage ? { uri: item.items[0].dishImage } : require("../../assets/images/background-default.png")}
-                                                style={[
-                                                    LAYOUT.w(80),
-                                                    LAYOUT.h(110),
-                                                    LAYOUT.rounded(20),
-                                                    LAYOUT.border(1, COLORS.border),
-                                                    { overflow: "hidden" }
-                                                ]}
-                                            />
-
-                                            <View style={[LAYOUT.ml(12)]}>
+                                            <View style={[LAYOUT.wFull]}>
                                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                                    <Text style={[TEXT.text, LAYOUT.w("60%")]} numberOfLines={1}>
-                                                        {dishNames}
+                                                    <Text style={[TEXT.text, TEXT.size(20)]} numberOfLines={1}>
+                                                        {formatOrderId(item.orderId)}
                                                     </Text>
-                                                    <Text style={[TEXT.text, { color: COLORS.heading }]}>
-                                                        {item.items.length} món
+                                                    <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(item.orderStatus === "Hoàn thành" ? "green" : item.orderStatus === "Bị hủy" ? "red" : COLORS.background4)]}>
+                                                        {item.orderStatus}
                                                     </Text>
                                                 </View>
 
                                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
-                                                    <Text style={[TEXT.text, TEXT.size(16), item.orderStatus === "Hoàn thành" ? { color: "green" } : { color: "red" }]}>
-                                                        {item.orderStatus}
+                                                    <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(COLORS.paragraph)]}>
+                                                        {dishNames}
                                                     </Text>
-                                                    <Text style={[TEXT.text, TEXT.size(16)]}>
-                                                        {item.deliveryAddress}
+                                                    <Text style={[TEXT.text, TEXT.size(14)]}>
+                                                        Giao: {item.deliveryAddress}
                                                     </Text>
                                                 </View>
-
-                                                <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
-                                                    <TouchableOpacity
+                                            </View>
+                                            <View>
+                                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
+                                                    <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.heading }]}>
+                                                        {formatPrice(item.totalAmount)} đ
+                                                    </Text>
+                                                    {item.orderStatus === "Hoàn thành" && (<TouchableOpacity
                                                         style={[
                                                             LAYOUT.px(10),
                                                             LAYOUT.py(4),
                                                             LAYOUT.w(100),
                                                             LAYOUT.rounded(22),
-                                                            { backgroundColor: COLORS.button }
+                                                            LAYOUT.bg(COLORS.button)
                                                         ]}
                                                     >
                                                         <Text
@@ -117,12 +121,12 @@ const HistoryScreen = () => {
                                                                 TEXT.text,
                                                                 TEXT.size(16),
                                                                 TEXT.center,
-                                                                { color: COLORS.textLight }
+                                                                LAYOUT.color(COLORS.textLight)
                                                             ]}
                                                         >
                                                             Đặt lại
                                                         </Text>
-                                                    </TouchableOpacity>
+                                                    </TouchableOpacity>)}
                                                 </View>
                                             </View>
                                         </TouchableOpacity>

@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { COLORS } from "../../constants/colors";
-import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import apiClient from "../../constants/apiClient";
-import ToastModal from "../../components/ToastModal";
+import { COLORS } from "../../../constants/colors";
+import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
+import apiClient from "../../../constants/apiClient";
+import ToastModal from "../../../components/ToastModal";
 import * as SecureStore from "expo-secure-store";
 
 const { height } = Dimensions.get("window");
@@ -83,7 +83,7 @@ export default function ChangePwScreen() {
         <SafeAreaView style={LAYOUT.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
-                    <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in")}>
+                    <TouchableOpacity onPress={() => router.back()}>
                         <Ionicons name="chevron-back-outline" size={22} color={COLORS.heading} />
                     </TouchableOpacity>
 

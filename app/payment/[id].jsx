@@ -1,4 +1,4 @@
-import { View, Text, Image, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, Dimensions, TouchableOpacity } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,11 +6,30 @@ import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 import axios from "axios";
 import { API_URL } from "../../constants/api";
+import QRCode from 'react-native-qrcode-svg';
+import { QRPay } from 'vietnam-qr-pay';
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ToastModal from "../../components/ToastModal";
+import { formatOrderId, formatPrice } from "../../constants/format";
 
 const { width, height } = Dimensions.get("window");
+
+const bankNameToBIN = {
+    "vietcombank": "970436",
+    "vcb": "970436",
+
+    "techcombank": "970407",
+    "tcb": "970407",
+
+    "mb bank": "970422",
+    "mb": "970422",
+    "mbland": "970422",
+
+    "bidv": "970418",
+
+    "acb": "970416"
+};
 
 export default function PaymentScreen() {
     const router = useRouter();
@@ -21,15 +40,30 @@ export default function PaymentScreen() {
     const [alert, setAlert] = useState(false);
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
+    const [QR, setQR] = useState(null);
 
     const loadData = async () => {
         try {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
             const user = JSON.parse(userStr);
-            const { data } = await axios.get(`${API_URL}/accountuser/${user.userId}/${user.role}`);
+            const { data } = await axios.get(`${API_URL}/paymentinfo/${orderId}/${user.userId}/${user.role}`);
 
             setUserInfo(data[0]);
+
+            const bankName = data[0].bankName.toString().toLowerCase().trim();
+            const bankBin = bankNameToBIN[bankName];
+
+            const qrPay = QRPay.initVietQR({
+                bankBin: bankBin,
+                bankNumber: data[0].bankNumber.toString(),
+                amount: data[0].totalAmount.toString(),
+                purpose: `Thanh toán đơn hàng ${formatOrderId(orderId)}`
+            });
+
+            const payload = qrPay.build();
+
+            setQR(payload);
             setLoading(false);
         } catch (error) {
             console.log(error);
@@ -40,13 +74,14 @@ export default function PaymentScreen() {
         try {
             const { data } = await axios.post(`${API_URL}/updateorderowner`, {
                 orderId,
-                status: "Đang giao"
+                paymentMethod: selectPayment === 1 ? "Tiền mặt" : "Ngân hàng",
+                status: 3
             });
 
             setIcon(data.success ? "success" : "error");
             setTitle(data.message);
             setAlert(true);
-            setTimeout(() => router.back(), 1200);
+            setTimeout(() => router.replace("../owner/(tabs)/order"), 1200);
         } catch (error) {
             console.error(error);
         }
@@ -76,12 +111,13 @@ export default function PaymentScreen() {
                             <Text style={[TEXT.text, TEXT.size(16), TEXT.center, selectPayment === 1 ? LAYOUT.color(COLORS.textLight) : ""]}>Tiền mặt</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setSelectPayment(2)} style={[LAYOUT.bg(selectPayment === 2 ? COLORS.background4 : COLORS.background3), LAYOUT.py(6), LAYOUT.rounded(12), LAYOUT.w("48%")]}>
-                            <Text style={[TEXT.text, TEXT.size(16), TEXT.center, selectPayment === 2 ? LAYOUT.color(COLORS.textLight) : ""]}>Chuyển</Text>
+                            <Text style={[TEXT.text, TEXT.size(16), TEXT.center, selectPayment === 2 ? LAYOUT.color(COLORS.textLight) : ""]}>QR thanh toán</Text>
                         </TouchableOpacity>
                     </View>
-
+                    
+                    <Text style={[TEXT.text, LAYOUT.my(12)]}>Thanh toán: {formatPrice(userInfo.totalAmount)} đ</Text>
                     {selectPayment === 1 ? (<Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.mt(32)]}>Nhấn Hoàn thành để hoàn thành đơn hàng sau khi đã được thanh toán đủ giá trị đơn hàng</Text>) : (<>
-                        <Image src={""} style={[LAYOUT.w(180), LAYOUT.h(180), LAYOUT.mt(32), LAYOUT.border(1, COLORS.border), LAYOUT.bg("rgba(0,0,0,0.1)")]} />
+                        <QRCode value={QR} size={240} style={[LAYOUT.border(1, COLORS.border), LAYOUT.bg("rgba(0,0,0,0.1)")]} />
                         <Text style={[TEXT.text, TEXT.size(24), LAYOUT.color("blue"), LAYOUT.mt(14)]}>{userInfo?.bankName}</Text>
                         <Text style={[TEXT.text, TEXT.size(24), LAYOUT.color("gray")]}>{userInfo?.bankNumber}</Text>
                     </>)}

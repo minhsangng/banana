@@ -25,6 +25,7 @@ export default function Header() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [type, setType] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [countNotify, setCountNotify] = useState(0);
 
     const loadOrderProccessing = async (uid) => {
         if (!uid) return;
@@ -93,13 +94,19 @@ export default function Header() {
         );
     };
 
+    const loadNotify = async () => {
+        const lastString = await SecureStore.getItemAsync("lastData");
+        const count = await JSON.parse(lastString);
+        setCountNotify(count.length);
+    }
+
     useEffect(() => {
         if (orders.length <= 1) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % orders.length);
         }, 3000);
-        
+
         return () => clearInterval(interval);
     }, [orders.length]);
 
@@ -148,6 +155,7 @@ export default function Header() {
         }
 
         setGreeting([current.title, current.subtitle]);
+        loadNotify();
     };
 
     const handleSubmit = () => {
@@ -203,17 +211,20 @@ export default function Header() {
                     />
 
                     {/* RIGHT ICONS */}
-                    <View style={[LAYOUT.row, { gap: 6 }]}>
+                    <View style={[LAYOUT.row, LAYOUT.gap(6)]}>
                         <Ionicons
                             name="cart-outline"
                             style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
                             onPress={() => (setType("cart"), setMenuVisible(true))}
                         />
-                        <Ionicons
-                            name="notifications-outline"
-                            style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
-                            onPress={() => (setType("notify"), setMenuVisible(true))}
-                        />
+                        <View style={[LAYOUT.relative]}>
+                            <Ionicons
+                                name="notifications-outline"
+                                style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
+                                onPress={() => (setType("notify"), setMenuVisible(true))}
+                            />
+                            <Text style={[TEXT.text, LAYOUT.color(COLORS.heading), LAYOUT.rounded(20), LAYOUT.absolute, LAYOUT.top(-6), LAYOUT.right(5)]}>{countNotify !== 0 ? countNotify : ""}</Text>
+                        </View>
                         <Ionicons
                             name="person-outline"
                             style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
@@ -233,7 +244,7 @@ export default function Header() {
                     <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
                         <Text style={[TEXT.paragraph, homeStyles.title]}>Ba ba ba banana...</Text>
 
-                        {renderOrder()}
+                        {orders.length !== 0 && renderOrder()}
                     </View>
                 </View>
 

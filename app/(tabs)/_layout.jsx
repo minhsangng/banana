@@ -29,36 +29,36 @@ const TabsLayout = () => {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Home",
-            tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+            title: "Trang chủ",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="order"
           options={{
-            title: "Order",
-            tabBarIcon: ({ color, size }) => <Ionicons name="bag-check-outline" size={size} color={color} />,
+            title: "Đơn hàng",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "bag-check" : "bag-check-outline"} size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="favorite"
           options={{
-            title: "Favorite",
-            tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
+            title: "Yêu thích",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "heart" : "heart-outline"} size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="history"
           options={{
-            title: "History",
-            tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
+            title: "Lịch sử",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "receipt" : "receipt-outline"} size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="support"
           options={{
-            title: "Support",
-            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />,
+            title: "Hỗ trợ",
+            tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"} size={size} color={color} />,
           }}
         />
       </Tabs>

@@ -16,6 +16,7 @@ import { API_URL } from "../../constants/api";
 import { formatPrice, formatImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import WheelPickerExpo from "react-native-wheel-picker-expo";
 import ToastModal from "../../components/ToastModal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -28,18 +29,72 @@ export default function CheckoutScreen() {
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
     const [dataOrder, setDataOrder] = useState([]);
-    const [address, setAddress] = useState("");
+
     const [status, setStatus] = useState();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState(null);
     const [note, setNote] = useState("");
     const [alert, setAlert] = useState(false);
+
     const [change, setChange] = useState(false);
     const [rawRooms, setRawRooms] = useState([]);
     const [allCodes, setAllCodes] = useState([]);
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const addressInputRef = useRef(null);
+    const [address, setAddress] = useState("");
+
+    const [hour, setHour] = useState(0);
+    const [minute, setMinute] = useState(0);
+
+    const hours = [...Array(24)].map((_, i) => ({ label: String(i).padStart(2, "0"), value: i }));
+    const minutes = [...Array(60)].map((_, i) => ({ label: String(i).padStart(2, "0"), value: i }));
+
+    const timerOrder = () => {
+        setStatus("edit");
+        setTitle("Chọn giờ giao hàng");
+        setContent((
+            <View style={[LAYOUT.mt(12)]}>
+                <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.itemsCenter]}>
+                    <WheelPickerExpo
+                        height={200}
+                        width={100}
+                        itemHeight={200}
+                        selectedStyle={{
+                            borderColor: COLORS.background4,
+                            borderWidth: 1,
+                        }}
+                        items={hours}
+                        initialSelectedIndex={hour}
+                        onChange={({ item }) => setHour(item.value)}
+                    />
+                    <WheelPickerExpo
+                        height={200}
+                        width={100}
+                        itemHeight={200}
+                        selectedStyle={{
+                            borderColor: COLORS.background4,
+                            borderWidth: 1,
+                        }}
+                        items={minutes}
+                        initialSelectedIndex={minute}
+                        onChange={({ item }) => setMinute(item.value)}
+                    />
+                </View>
+
+                <View style={[LAYOUT.mt(20), LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.gap(8)]}>
+                    <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3), LAYOUT.py(8)]} onPress={() => (setAlert(false), setHour(0), setMinute(0))}>
+                        <Text style={[TEXT.text, TEXT.center]}>Hủy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[LAYOUT.w(150), LAYOUT.rounded(12), LAYOUT.bg(COLORS.button), LAYOUT.py(8)]} onPress={() => setAlert(false)}>
+                        <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.textLight)]}>Xác nhận</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        ));
+
+        setAlert(true);
+    };
 
     const parseRange = (s) => {
         if (s == null) return [0, 0];
@@ -211,7 +266,7 @@ export default function CheckoutScreen() {
                             LAYOUT.w(200),
                             LAYOUT.py(10),
                             LAYOUT.rounded(20),
-                            { backgroundColor: COLORS.button },
+                            LAYOUT.bg(COLORS.button),
                         ]}
                     >
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>
@@ -228,6 +283,7 @@ export default function CheckoutScreen() {
             const { data } = await axios.post(`${API_URL}/checkout`, {
                 userId,
                 address,
+                timer: (hour !== 0 && minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Hẹn giao",
                 note
             });
 
@@ -237,10 +293,12 @@ export default function CheckoutScreen() {
 
             setStatus(data.success ? "success" : "error");
             setTitle(data.success ? "Đặt hàng thành công" : "Đặt hàng thất bại");
+            setContent(null);
 
             setAlert(true);
+            setTimeout(() => router.replace("../(tabs)/"), 1200);
         } catch (error) {
-            console.log("Checkout error:", error);
+            console.log("Thanh toán thất bại: ", error);
         }
     };
 
@@ -261,218 +319,219 @@ export default function CheckoutScreen() {
 
             {/* MAIN */}
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
-                <ScrollView
-                    style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* ĐỊA CHỈ */}
-                    <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.mb(8), { gap: 24 }]}>
-                        <Text style={[TEXT.text]}>Địa chỉ nhận</Text>
-                        <Ionicons name="pin-outline" size={20} color={COLORS.button} />
-                    </View>
-                    <View
-                        style={[
-                            LAYOUT.px(12),
-                            LAYOUT.py(4),
-                            LAYOUT.rounded(20),
-                            LAYOUT.relative,
-                            LAYOUT.bg(COLORS.background3)
-                        ]}
+                {loading ? <LoadingSpinner /> :
+                    <ScrollView
+                        style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}
+                        showsVerticalScrollIndicator={false}
                     >
-                        <TextInput
-                            ref={addressInputRef}
-                            placeholder="V6.02"
-                            value={address}
-                            selection={{
-                                start: address.length,
-                                end: address.length
-                            }}
-                            onChangeText={(text) => {
-                                setAddress(text);
-                                setQuery(text);
-                            }}
-                            style={[TEXT.paragraph]}
-                        />
-
-                        {suggestions.length > 0 && (
-                            <View
-                                style={[
-                                    LAYOUT.absolute,
-                                    LAYOUT.top("130%"),
-                                    LAYOUT.left(0),
-                                    LAYOUT.row,
-                                    LAYOUT.flexWrap,
-                                    LAYOUT.w("112%"),
-                                    LAYOUT.gap(8),
-                                    LAYOUT.zIndex(1)
-                                ]}
-                            >
-                                {suggestions.map((item) => (
-                                    <TouchableOpacity
-                                        key={item}
-                                        onPress={() => {
-                                            setAddress(item);
-                                            setQuery(item);
-                                            setSuggestions([]);
-                                        }}
-                                        style={[
-                                            LAYOUT.bg(COLORS.background4),
-                                            LAYOUT.w(60),
-                                            LAYOUT.py(6),
-                                            LAYOUT.rounded(10)
-                                        ]}
-                                    >
-                                        <Text style={[TEXT.text, TEXT.center]}>{item}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-
-                    {/* THÔNG TIN ĐƠN */}
-                    <View style={[LAYOUT.mt(24)]}>
+                        {/* ĐỊA CHỈ */}
+                        <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.mb(8), { gap: 24 }]}>
+                            <Text style={[TEXT.text]}>Địa chỉ nhận</Text>
+                            <Ionicons name="pin-outline" size={20} color={COLORS.button} />
+                        </View>
                         <View
                             style={[
-                                LAYOUT.row,
-                                LAYOUT.justifyBetween,
-                                LAYOUT.pb(6),
-                                LAYOUT.mb(12),
-                                LAYOUT.borderb(1, COLORS.background3),
+                                LAYOUT.px(12),
+                                LAYOUT.py(4),
+                                LAYOUT.rounded(20),
+                                LAYOUT.relative,
+                                LAYOUT.bg(COLORS.background3)
                             ]}
                         >
-                            <Text style={[TEXT.text]}>Thông tin đơn hàng</Text>
-                            <View style={[LAYOUT.row]}>
-                                <Text style={[TEXT.subText, LAYOUT.mr(4), { color: COLORS.paragraph }]}>
-                                    Giao ngay
-                                </Text>
-                                <Ionicons name="time-outline" color={COLORS.paragraph} />
-                            </View>
+                            <TextInput
+                                ref={addressInputRef}
+                                placeholder="V6.02"
+                                value={address}
+                                selection={{
+                                    start: address.length,
+                                    end: address.length
+                                }}
+                                onChangeText={(text) => {
+                                    setAddress(text);
+                                    setQuery(text);
+                                }}
+                                style={[TEXT.paragraph]}
+                            />
+
+                            {suggestions.length > 0 && (
+                                <View
+                                    style={[
+                                        LAYOUT.absolute,
+                                        LAYOUT.top("130%"),
+                                        LAYOUT.left(0),
+                                        LAYOUT.row,
+                                        LAYOUT.flexWrap,
+                                        LAYOUT.w("112%"),
+                                        LAYOUT.gap(8),
+                                        LAYOUT.zIndex(1)
+                                    ]}
+                                >
+                                    {suggestions.map((item) => (
+                                        <TouchableOpacity
+                                            key={item}
+                                            onPress={() => {
+                                                setAddress(item);
+                                                setQuery(item);
+                                                setSuggestions([]);
+                                            }}
+                                            style={[
+                                                LAYOUT.bg(COLORS.background4),
+                                                LAYOUT.w(60),
+                                                LAYOUT.py(6),
+                                                LAYOUT.rounded(10)
+                                            ]}
+                                        >
+                                            <Text style={[TEXT.text, TEXT.center]}>{item}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
                         </View>
 
-                        {dataOrder.map((order) => (
-                            <View key={order.orderId}>
-                                {order.items.map((item) => (
-                                    <View
-                                        key={item.orderItemId}
-                                        style={[
-                                            LAYOUT.row,
-                                            LAYOUT.justifyBetween,
-                                            LAYOUT.mb(14),
-                                            LAYOUT.pb(10),
-                                            LAYOUT.borderb(1, COLORS.background3),
-                                            { borderStyle: "dashed" },
-                                        ]}
-                                    >
-                                        <Image
-                                            style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
-                                            source={formatImage(item.imageUrl)}
-                                        />
-
-                                        <View style={[LAYOUT.w("50%")]}>
-                                            <Text numberOfLines={1} style={[TEXT.text]}>
-                                                {item.dishName}
-                                            </Text>
-
-                                            <View style={[LAYOUT.row, LAYOUT.mt(4)]}>
-                                                <Ionicons name="reader-outline" color={COLORS.paragraph} />
-                                                <Text
-                                                    style={[
-                                                        TEXT.subText,
-                                                        LAYOUT.ml(4),
-                                                        { color: COLORS.paragraph },
-                                                    ]}
-                                                >
-                                                    {item.note ? item.note : "Ghi chú"}
-                                                </Text>
-                                            </View>
-
-                                            <TouchableOpacity
-                                                onPress={() => removeOrderItem(item.orderItemId)}
-                                                style={[
-                                                    LAYOUT.w(60),
-                                                    LAYOUT.py(4),
-                                                    LAYOUT.rounded(12),
-                                                    LAYOUT.mt(14),
-                                                    { backgroundColor: COLORS.background3 },
-                                                ]}
-                                            >
-                                                <Text
-                                                    style={[TEXT.subText, TEXT.center, { color: COLORS.button }]}
-                                                >
-                                                    Xóa
-                                                </Text>
-                                            </TouchableOpacity>
-                                        </View>
-
-                                        <View style={[LAYOUT.justifyBetween]}>
-                                            <View>
-                                                <Text style={[TEXT.paragraph, { color: COLORS.paragraph }]}>
-                                                    {formatPrice(parseFloat(item.price))} đ
-                                                </Text>
-                                                <Text style={[TEXT.paragraph]}>x{item.quantity}</Text>
-                                            </View>
-
-                                            <Text style={[TEXT.paragraph, { color: COLORS.heading }]}>
-                                                {formatPrice(parseFloat(item.price) * item.quantity)} đ
-                                            </Text>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        ))}
-
-                        <View style={[LAYOUT.mt(12), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>
-                            <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú</Text>
-                            <TextInput value={note} onChangeText={setNote} style={[LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), TEXT.paragraph, { backgroundColor: COLORS.background3 }]}></TextInput>
-                        </View>
-
-                        {/* TỔNG TIỀN */}
-                        <View style={[LAYOUT.mt(12)]}>
-                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mb(4)]}>
-                                <Text style={[TEXT.text]}>Tổng đơn</Text>
-                                <Text style={[TEXT.text]}>{formatPrice(totalAmount())} đ</Text>
-                            </View>
-
-                            <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
-                                <Text style={[TEXT.text]}>Phí dịch vụ</Text>
-                                <Text style={[TEXT.text]}>{formatPrice(SEVICE_FEE)} đ</Text>
-                            </View>
-
+                        {/* THÔNG TIN ĐƠN */}
+                        <View style={[LAYOUT.mt(24)]}>
                             <View
                                 style={[
                                     LAYOUT.row,
                                     LAYOUT.justifyBetween,
-                                    LAYOUT.mt(20),
-                                    LAYOUT.pt(10),
-                                    LAYOUT.bordert(1, COLORS.background3),
+                                    LAYOUT.itemsCenter,
+                                    LAYOUT.pb(6),
+                                    LAYOUT.mb(12),
+                                    LAYOUT.borderb(1, COLORS.background3),
                                 ]}
                             >
-                                <Text style={[TEXT.text]}>Thanh toán</Text>
-                                <Text style={[TEXT.text]}>
-                                    {formatPrice(totalAmount() + SEVICE_FEE)} đ
-                                </Text>
+                                <Text style={[TEXT.text]}>Thông tin đơn hàng</Text>
+                                <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter]} onPress={() => timerOrder()}>
+                                    <Text style={[TEXT.subText, TEXT.size(14), LAYOUT.mr(4), { color: COLORS.paragraph }]}>
+                                        {(hour !== 0 && minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Hẹn giao"}
+                                    </Text>
+                                    <Ionicons name="time-outline" size={14} color={COLORS.paragraph} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {dataOrder.map((order) => (
+                                <View key={order.orderId}>
+                                    {order.items.map((item) => (
+                                        <View
+                                            key={item.orderItemId}
+                                            style={[
+                                                LAYOUT.row,
+                                                LAYOUT.justifyBetween,
+                                                LAYOUT.mb(14),
+                                                LAYOUT.pb(10),
+                                                LAYOUT.borderb(1, COLORS.background3),
+                                                { borderStyle: "dashed" },
+                                            ]}
+                                        >
+                                            <Image
+                                                style={[LAYOUT.w(80), LAYOUT.h(110), LAYOUT.rounded(12)]}
+                                                source={formatImage(item.imageUrl)}
+                                            />
+
+                                            <View style={[LAYOUT.w("50%")]}>
+                                                <Text numberOfLines={1} style={[TEXT.text]}>
+                                                    {item.dishName}
+                                                </Text>
+
+                                                <View style={[LAYOUT.row, LAYOUT.mt(4)]}>
+                                                    <Ionicons name="reader-outline" color={COLORS.paragraph} />
+                                                    <Text
+                                                        style={[
+                                                            TEXT.subText,
+                                                            LAYOUT.ml(4),
+                                                            { color: COLORS.paragraph },
+                                                        ]}
+                                                    >
+                                                        {item.note ? item.note : "Ghi chú"}
+                                                    </Text>
+                                                </View>
+
+                                                <TouchableOpacity
+                                                    onPress={() => removeOrderItem(item.orderItemId)}
+                                                    style={[
+                                                        LAYOUT.w(60),
+                                                        LAYOUT.py(4),
+                                                        LAYOUT.rounded(12),
+                                                        LAYOUT.mt(14),
+                                                        { backgroundColor: COLORS.background3 },
+                                                    ]}
+                                                >
+                                                    <Text
+                                                        style={[TEXT.subText, TEXT.center, { color: COLORS.button }]}
+                                                    >
+                                                        Xóa
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+
+                                            <View style={[LAYOUT.justifyBetween]}>
+                                                <View>
+                                                    <Text style={[TEXT.paragraph, { color: COLORS.paragraph }]}>
+                                                        {formatPrice(parseFloat(item.price))} đ
+                                                    </Text>
+                                                    <Text style={[TEXT.paragraph]}>x{item.quantity}</Text>
+                                                </View>
+
+                                                <Text style={[TEXT.paragraph, { color: COLORS.heading }]}>
+                                                    {formatPrice(parseFloat(item.price) * item.quantity)} đ
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            ))}
+
+                            <View style={[LAYOUT.mt(12), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>
+                                <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú</Text>
+                                <TextInput value={note} onChangeText={setNote} style={[LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), TEXT.paragraph, { backgroundColor: COLORS.background3 }]}></TextInput>
+                            </View>
+
+                            {/* TỔNG TIỀN */}
+                            <View style={[LAYOUT.mt(12)]}>
+                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mb(4)]}>
+                                    <Text style={[TEXT.text]}>Tổng đơn</Text>
+                                    <Text style={[TEXT.text]}>{formatPrice(totalAmount())} đ</Text>
+                                </View>
+
+                                <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
+                                    <Text style={[TEXT.text]}>Phí dịch vụ</Text>
+                                    <Text style={[TEXT.text]}>{formatPrice(SEVICE_FEE)} đ</Text>
+                                </View>
+
+                                <View
+                                    style={[
+                                        LAYOUT.row,
+                                        LAYOUT.justifyBetween,
+                                        LAYOUT.mt(20),
+                                        LAYOUT.pt(10),
+                                        LAYOUT.bordert(1, COLORS.background3),
+                                    ]}
+                                >
+                                    <Text style={[TEXT.text]}>Thanh toán</Text>
+                                    <Text style={[TEXT.text]}>
+                                        {formatPrice(totalAmount() + SEVICE_FEE)} đ
+                                    </Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
 
-                    {/* BUTTON */}
-                    <View style={[LAYOUT.mt(32), LAYOUT.itemsCenter, LAYOUT.mb(52)]}>
-                        <TouchableOpacity
-                            onPress={checkout}
-                            style={[
-                                LAYOUT.w(200),
-                                LAYOUT.py(10),
-                                LAYOUT.rounded(20),
-                                LAYOUT.bg(COLORS.button)
-                            ]}
-                        >
-                            <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.textLight)]}>
-                                Đặt Hàng
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-                {loading && <LoadingSpinner />}
+                        {/* BUTTON */}
+                        <View style={[LAYOUT.mt(32), LAYOUT.itemsCenter, LAYOUT.mb(52)]}>
+                            <TouchableOpacity
+                                onPress={checkout}
+                                style={[
+                                    LAYOUT.w(200),
+                                    LAYOUT.py(10),
+                                    LAYOUT.rounded(20),
+                                    LAYOUT.bg(COLORS.button)
+                                ]}
+                            >
+                                <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.textLight)]}>
+                                    Đặt Hàng
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>}
             </View>
 
             <ToastModal visible={alert} status={status} title={title} content={content} />

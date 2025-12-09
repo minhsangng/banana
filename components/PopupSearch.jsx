@@ -2,7 +2,7 @@ import {
   View,
   ScrollView,
   Text,
-  ImageBackground,
+  Image,
   TouchableOpacity,
   Dimensions,
   Modal,
@@ -13,9 +13,9 @@ import { useState, useEffect } from "react";
 import { LAYOUT, TEXT } from "../assets/styles/base.styles";
 import { COLORS } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from  "expo-router";
+import { useRouter } from "expo-router";
 import { API_URL } from "../constants/api";
-import { formatPrice } from "../constants/format";
+import { formatPrice, formatImage } from "../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "./LoadingSpinner";
@@ -77,13 +77,6 @@ export default function PopupSearch({ visible, query, onClose }) {
     loadDataSearch();
   }, [query]);
 
-  if (loading)
-    return (
-      <View style={[LAYOUT.main, { height: height * 0.92 }]}>
-        <LoadingSpinner />
-      </View>
-    );
-
   return (
     <Modal
       visible={!!visible}
@@ -99,54 +92,49 @@ export default function PopupSearch({ visible, query, onClose }) {
             </Text>
 
             <View style={[LAYOUT.pb(110)]}>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {data.length === 0 && (
-                  <View style={[LAYOUT.wFull, LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
-                    <Text style={[TEXT.paragraph, LAYOUT.mt(12), { color: COLORS.paragraph }]}>Không tìm thấy kết quả</Text>
-                  </View>
-                )}
-
-                {data.map((d) => (
-                  <View
-                    key={d.dishId}
-                    style={[
-                      LAYOUT.wFull,
-                      LAYOUT.h(120),
-                      LAYOUT.row,
-                      LAYOUT.borderb(1, COLORS.background3),
-                      LAYOUT.pb(10),
-                      LAYOUT.mt(20),
-                      styles.resultItem,
-                    ]}
-                  >
-                    <ImageBackground
-                      source={
-                        d.imageUrl
-                          ? typeof d.imageUrl === "string"
-                            ? { uri: d.imageUrl }
-                            : d.imageUrl
-                          : require("../assets/images/background-default.png")
-                      }
-                      resizeMode="cover"
-                      style={[LAYOUT.rounded(12), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.border)]}
-                      imageStyle={{ borderRadius: 12 }}
-                    />
-
-                    <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, { width: width - 60 - 80 - 20 }]}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.dishName}</Text>
-                        <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Đã mua {d.selled}</Text>
-                        <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
-                      </View>
-
-                      <TouchableOpacity style={[LAYOUT.pl(12)]} onPress={() => addCart(d.dishId)}>
-                        <Ionicons name={(addToCart && dishSelected == d.dishId) ? "cart" : "cart-outline"} size={22} style={[LAYOUT.p(6), LAYOUT.rounded(20), (addToCart && dishSelected == d.dishId) ? { transform: "rotate(-15deg)", color: COLORS.background1 } : { color: COLORS.light }, { backgroundColor: COLORS.button }]} />
-                      </TouchableOpacity>
+              {loading ? (<LoadingSpinner />) : (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {data.length === 0 && (
+                    <View style={[LAYOUT.wFull, LAYOUT.itemsCenter, LAYOUT.justifyCenter]}>
+                      <Text style={[TEXT.paragraph, LAYOUT.mt(12), { color: COLORS.paragraph }]}>Không tìm thấy kết quả</Text>
                     </View>
-                  </View>
-                ))}
-                <Text style={[LAYOUT.pt(12), TEXT.subText, TEXT.center, { color: COLORS.paragraph }]}>Đã hiển thị tất cả kết quả</Text>
-              </ScrollView>
+                  )}
+
+                  {data.map((d) => (
+                    <TouchableOpacity onPress={() => router.push(`../detaildish/${d.dishId}`)}
+                      key={d.dishId}
+                      style={[
+                        LAYOUT.wFull,
+                        LAYOUT.h(120),
+                        LAYOUT.row,
+                        LAYOUT.borderb(1, COLORS.background3),
+                        LAYOUT.pb(10),
+                        LAYOUT.mt(20),
+                        styles.resultItem,
+                      ]}
+                    >
+                      <Image
+                        source={formatImage(d.imageUrl)}
+                        resizeMode="cover"
+                        style={[LAYOUT.rounded(12), LAYOUT.w(80), LAYOUT.hFull, LAYOUT.border(1, COLORS.border)]}
+                        imageStyle={{ borderRadius: 12 }}
+                      />
+
+                      <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, { width: width - 60 - 80 - 20 }]}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.dishName}</Text>
+                          <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Đã mua {d.selled}</Text>
+                          <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
+                        </View>
+
+                        <TouchableOpacity style={[LAYOUT.pl(12)]} onPress={() => addCart(d.dishId)}>
+                          <Ionicons name={(addToCart && dishSelected === d.dishId) ? "cart" : "cart-outline"} size={22} style={[LAYOUT.p(6), LAYOUT.rounded(20), (addToCart && dishSelected === d.dishId) ? { transform: "rotate(-15deg)", color: COLORS.background1 } : { color: COLORS.light }, { backgroundColor: COLORS.button }]} />
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                  <Text style={[LAYOUT.pt(12), TEXT.subText, TEXT.center, { color: COLORS.paragraph }]}>Đã hiển thị tất cả kết quả</Text>
+                </ScrollView>)}
             </View>
           </View>
         </Pressable>

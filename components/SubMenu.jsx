@@ -20,10 +20,29 @@ export default function SubMenu({ visible, setVisible, type }) {
     const [shouldRender, setShouldRender] = useState(visible);
     const [isLogin, setIsLogin] = useState(false);
     const [header, setHeader] = useState("");
+
     const [dataCart, setDataCart] = useState([]);
+    const [notifyList, setNotifyList] = useState([]);
+
     const [user, setUser] = useState([]);
     const [totalCart, setTotalCart] = useState(0);
     const [alert, setAlert] = useState(false);
+
+    const loadNotify = async () => {
+        try {
+            const userStr = await SecureStore.getItemAsync("userInfo");
+
+            if (!userStr) return;
+
+            const uid = JSON.parse(userStr).userId;
+            const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
+
+            setNotifyList(data || []);
+
+        } catch (error) {
+            console.log("Load notify failed:", error);
+        }
+    };
 
     const loadCart = async () => {
         try {
@@ -43,7 +62,6 @@ export default function SubMenu({ visible, setVisible, type }) {
 
     const updateQuantity = async (orderItemId, newQuantity) => {
         try {
-            console.log(newQuantity);
             await axios.post(`${API_URL}/cart/update`, { orderItemId, quantity: newQuantity });
             setDataCart(prev =>
                 prev.map(item =>
@@ -73,7 +91,18 @@ export default function SubMenu({ visible, setVisible, type }) {
             setUser(user);
         }
         await loadCart();
+        await loadNotify();
     };
+
+    useEffect(() => {
+        if (type === "notify") {
+            const interval = setInterval(() => {
+                loadNotify();
+            }, 6000);
+
+            return () => clearInterval(interval);
+        }
+    }, [type]);
 
     useEffect(() => {
         loadData();
@@ -153,6 +182,7 @@ export default function SubMenu({ visible, setVisible, type }) {
             await SecureStore.deleteItemAsync("accessToken");
             await SecureStore.deleteItemAsync("refreshToken");
             await SecureStore.deleteItemAsync("userInfo");
+            await SecureStore.deleteItemAsync("lastData");
 
             setIsLogin(false);
             setVisible(false);
@@ -200,12 +230,12 @@ export default function SubMenu({ visible, setVisible, type }) {
                 <View style={[LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx()]}>
                     {type !== "cart" ?
                         type !== "notify" ? (<View style={[LAYOUT.pb(12), LAYOUT.relative, LAYOUT.hFull]}>
-                            <TouchableOpacity onPress={()=> router.push("../../account/")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <TouchableOpacity onPress={() => router.push("../../account/")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
                                 <Ionicons name="person-outline" size={24} color={COLORS.textLight} />
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Thông tin tài khoản</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={()=>router.push("../(auth)/change-password")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <TouchableOpacity onPress={() => router.push("../(auth)/change-password")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
                                 <Ionicons name="key-outline" size={24} color={COLORS.textLight} />
                                 <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Đặt lại mật khẩu</Text>
                             </TouchableOpacity>
@@ -233,8 +263,43 @@ export default function SubMenu({ visible, setVisible, type }) {
                             <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert} />
 
                         </View>) : (<View style={[LAYOUT.pt(12)]}>
-                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>Thông báo trống!</Text>
-                        </View>) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
+
+                            {notifyList.length === 0 ? (
+                                <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                                    Thông báo trống!
+                                </Text>
+                            ) : (
+                                <FlatList
+                                    data={notifyList}
+                                    keyExtractor={(item, index) => index.toString()}
+                                    style={[LAYOUT.h("80%")]}
+                                    renderItem={({ item }) => (
+                                        <View
+                                            style={[
+                                                LAYOUT.row,
+                                                LAYOUT.justifyBetween,
+                                                LAYOUT.borderb(1, COLORS.background3),
+                                                LAYOUT.py(12)
+                                            ]}
+                                        >
+                                            <Ionicons
+                                                name="notifications-outline"
+                                                size={24}
+                                                color={COLORS.textLight}
+                                            />
+
+                                            <View style={[LAYOUT.w("80%")]}>
+                                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>
+                                                    Đã có {item.count} người đặt món {item.dishName}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                />
+                            )}
+
+                        </View>
+                        ) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
                             <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
                                 Đăng nhập để thêm giỏ hàng
                             </Text>

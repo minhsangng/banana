@@ -45,18 +45,23 @@ const DishesScreen = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
+    const [role, setRole] = useState(true);
+
     const loadDishes = async () => {
         try {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
-            setIsLogin(true);
+            if (JSON.parse(userStr).role === "Employee") { setRole(false); return; }
+            else {
+                setIsLogin(true);
 
-            const uid = parseInt(JSON.parse(userStr).userId);
-            const { data } = await axios.get(`${API_URL}/ownerdish/${uid}`);
+                const uid = parseInt(JSON.parse(userStr).userId);
+                const { data } = await axios.get(`${API_URL}/ownerdish/${uid}`);
 
-            setDishes(data);
-            setLoading(false);
+                setDishes(data);
+                setLoading(false);
+            }
         } catch (error) {
             console.log("Lấy danh sách món thất bại :", error);
         } finally {
@@ -299,22 +304,22 @@ const DishesScreen = () => {
             console.log(e);
         }
     };
-    
+
     const clearForm = () => {
         setAddName(null);
         setAddCategory(null);
         setAddPrice(null);
         setAddDescription(null);
         setAddImage(null);
-        
+
         setEditName(null);
         setEditCategory(null);
         setEditPrice(null);
         setEditDescription(null);
         setEditImage(null);
-        
+
         setErrorMsg("");
-        
+
         setAlert(false);
     }
 
@@ -329,6 +334,8 @@ const DishesScreen = () => {
     }, []);
 
     if (loading) return <LoadingSpinner />;
+
+    if (!role) return <View style={[LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.h(height), LAYOUT.w(width)]}><Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Không có quyền truy cập</Text></View>;
 
     return (
         <View style={[LAYOUT.container]}>
@@ -442,7 +449,7 @@ const DishesScreen = () => {
                     }
                 </View>
             </View>
-            <ToastModal width={"auto"} height={"auto"} status={icon} title={title} content={icon === "edit" ? contentEdit : icon === "add" ? contentAdd : null} visible={alert} />
+            <ToastModal status={icon} title={title} content={icon === "edit" ? contentEdit : icon === "add" ? contentAdd : null} visible={alert} />
         </View>
     );
 };
