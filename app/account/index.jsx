@@ -25,6 +25,10 @@ export default function AccountScreen() {
     const [bankName, setBankName] = useState("");
     const [bankNumber, setBankNumber] = useState("");
 
+    const [errorName, setErrorName] = useState("");
+    const [errorEmail, setErrorEmail] = useState("");
+    const [errorPhone, setErrorPhone] = useState("");
+
     const [alert, setAlert] = useState(false);
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
@@ -41,12 +45,12 @@ export default function AccountScreen() {
             const role = JSON.parse(userStr).role;
 
             const { data } = await axios.get(`${API_URL}/accountuser/${uid}/${role}`);
-            
+
             if (data) {
                 setFullName(data[0].fullName);
                 setEmail(data[0].email);
                 setPhoneNumber(data[0].phoneNumber);
-                
+
                 if (role === "Owner") {
                     setStoreName(data[0].storeName);
                     setLocation(data[0].location);
@@ -62,12 +66,38 @@ export default function AccountScreen() {
         }
     };
 
+    const validate = () => {
+        let isValid = true;
+
+        setErrorName("");
+        setErrorEmail("");
+        setErrorPhone("");
+
+        if (!isValid) return false;
+
+        const phoneRegex = /^0\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            setErrorPhone("Số liên hệ phải có 10 số và bắt đầu là 0");
+            isValid = false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setErrorEmail("Email chưa đúng định dạng (example@gmail.com)");
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
     const updateInfo = async () => {
+        if (!validate()) return;
+    
         try {
             const userStr = await SecureStore.getItemAsync("userInfo");
             const uid = JSON.parse(userStr).userId;
             const role = JSON.parse(userStr).role;
-            
+
             if (fullName === "" && email === "" && phoneNumber === "") {
                 if ((role === "Owner" && storeName === "" && location === "" && bankName === "" && bankNumber === "") || role !== "Owner") {
                     setIcon("warning");
@@ -116,14 +146,17 @@ export default function AccountScreen() {
                         <View style={[LAYOUT.mb(12)]}>
                             <Text style={[TEXT.text, TEXT.size(16), LAYOUT.mb(4)]}>Họ tên</Text>
                             <TextInput value={fullName} onChangeText={setFullName} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                            {errorName !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorName}</Text>}
                         </View>
                         <View style={[LAYOUT.mb(12)]}>
                             <Text style={[TEXT.text, TEXT.size(16), LAYOUT.mb(4)]}>Email</Text>
-                            <TextInput value={email} onChangeText={setEmail} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                            <TextInput keyboardType="email-address" value={email} onChangeText={setEmail} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                            {errorEmail !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorEmail}</Text>}
                         </View>
                         <View style={[LAYOUT.mb(12)]}>
                             <Text style={[TEXT.text, TEXT.size(16), LAYOUT.mb(4)]}>Liên hệ</Text>
-                            <TextInput value={phoneNumber} onChangeText={setPhoneNumber} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                            <TextInput keyboardType="phone-pad" value={phoneNumber} onChangeText={setPhoneNumber} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                            {errorPhone !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPhone}</Text>}
                         </View>
 
                         {user?.role === "Owner" && (<View>
@@ -143,7 +176,7 @@ export default function AccountScreen() {
                             </View>
                             <View style={[LAYOUT.mb(12)]}>
                                 <Text style={[TEXT.text, TEXT.size(16), LAYOUT.mb(4)]}>Số tài khoản</Text>
-                                <TextInput value={bankNumber} onChangeText={setBankNumber} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
+                                <TextInput keyboardType="number-pad" value={bankNumber} onChangeText={setBankNumber} style={[TEXT.paragraph, TEXT.size(16), LAYOUT.px(20), LAYOUT.py(12), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background3)]} />
                             </View>
                         </View>)}
 
@@ -154,7 +187,7 @@ export default function AccountScreen() {
                 </View>
             </View>
 
-            <ToastModal status={icon} title={title} content={null} visible={alert}/>
+            <ToastModal status={icon} title={title} content={null} visible={alert} />
         </View>
     );
 }

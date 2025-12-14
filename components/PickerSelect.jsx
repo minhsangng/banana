@@ -15,7 +15,7 @@ export default function PickerSelect({options, value, setValue}) {
                         placeholder={{ label: "Chọn danh mục", value: null }}
                         activeItemStyle={{ color: COLORS.button }}
                     />
-                    <Ionicons name="caret-down-outline" color={COLORS.button} size={16} style={[LAYOUT.absolute, LAYOUT.top("22%"), LAYOUT.right(10)]}></Ionicons>
+                    <Ionicons name="caret-down-outline" color={COLORS.button} size={18} style={[LAYOUT.absolute, LAYOUT.top("25%"), LAYOUT.right(10)]}></Ionicons>
                 </View>
     );
 };
@@ -26,8 +26,8 @@ const pickerSelectStyles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 12,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
         marginBottom: 4,
         fontFamily: "GochiHand",
         fontSize: 16,
@@ -38,8 +38,8 @@ const pickerSelectStyles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 12,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
         marginBottom: 4,
         fontFamily: "GochiHand",
         fontSize: 16,

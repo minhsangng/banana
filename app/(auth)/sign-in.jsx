@@ -22,20 +22,52 @@ const { height } = Dimensions.get("window");
 export default function SignInScreen() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
     const [alert, setAlert] = useState(false);
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            return setAlert({ type: "error", message: "Vui lòng nhập đủ thông tin" });
+    const [errorPhone, setErrorPhone] = useState("");
+    const [errorPass, setErrorPass] = useState("");
+
+    const validate = () => {
+        let isValid = true;
+
+        setErrorPhone("");
+        setErrorPass("");
+
+        if (!phoneNumber.trim()) {
+            setErrorPhone("Chưa nhập số điện thoại");
+            isValid = false;
         }
+        if (!password.trim()) {
+            setErrorPass("Chưa nhập mật khẩu");
+            isValid = false;
+        }
+
+        if (!isValid) return false;
+
+        const phoneRegex = /^0\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            setErrorPhone("Số liên hệ phải có 10 số và bắt đầu là 0");
+            isValid = false;
+        }
+
+        if (password.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            setErrorPass("Mật khẩu phải từ 8 ký tự và có ít nhất 1 ký tự đặc biệt");
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
+    const handleLogin = async () => {
+        if (!validate()) return;
 
         try {
             const { data } = await axios.post(`${API_URL}/auth/login`, {
-                email,
+                phoneNumber,
                 password
             });
 
@@ -87,19 +119,20 @@ export default function SignInScreen() {
                 </Text>
 
                 {/* Phone Number */}
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    placeholder="example@gmail.com"
-                    value={email}
-                    onChangeText={setEmail}
+                <Text style={styles.label}>Số điện thoại</Text>
+                <TextInput keyboardType="phone-pad"
+                    placeholder="0123456789"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
                     placeholderTextColor={COLORS.paragraph}
                     style={styles.input}
                 />
+                {errorPhone !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPhone}</Text>}
 
                 {/* Password */}
                 <Text style={styles.label}>Mật khẩu</Text>
                 <View style={styles.passwordContainer}>
-                    <TextInput
+                    <TextInput 
                         placeholder="********"
                         value={password}
                         onChangeText={setPassword}
@@ -115,6 +148,7 @@ export default function SignInScreen() {
                         <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
                     </TouchableOpacity>
                 </View>
+                {errorPass !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(4), LAYOUT.color(COLORS.heading)]}>{errorPass}</Text>}
 
                 <TouchableOpacity onPress={() => router.push("/(auth)/reset-password")}>
                     <Text style={styles.forgotText}>Quên mật khẩu?</Text>
@@ -123,12 +157,6 @@ export default function SignInScreen() {
                 {/* Login Button */}
                 <TouchableOpacity style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.rounded(20)]} onPress={handleLogin}>
                     <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Đăng nhập</Text>
-                </TouchableOpacity>
-
-                <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.pt(14)]}>hoặc</Text>
-
-                <TouchableOpacity style={[LAYOUT.itemsCenter, LAYOUT.mt(14)]}>
-                    <Ionicons name="logo-google" style={[TEXT.size(20), LAYOUT.p(14), LAYOUT.border(1, COLORS.background3), LAYOUT.rounded(44), { color: COLORS.heading, backgroundColor: COLORS.background4 }]}></Ionicons>
                 </TouchableOpacity>
 
                 <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.mt(44)]}>
@@ -195,7 +223,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         fontSize: 16,
         fontFamily: "GochiHand",
-        marginBottom: 15,
+        marginBottom: 6,
     },
 
     passwordContainer: {
@@ -204,7 +232,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F4E9B4",
         borderRadius: 12,
         paddingHorizontal: 12,
-        marginBottom: 10,
+        marginBottom: 6,
     },
 
     passwordInput: {

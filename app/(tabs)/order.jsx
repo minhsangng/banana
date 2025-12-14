@@ -1,31 +1,30 @@
-import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, TextInput } from "react-native";
-import { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, RefreshControl } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { API_URL } from "../../constants/api";
-import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ToastModal from "../../components/ToastModal";
+import { formatImage } from "../../constants/format";
 
 const { width, height } = Dimensions.get("window");
 
 const OrderScreen = () => {
+    const router = useRouter();
+    const [refreshing, setRefreshing] = useState(false);
     const [orders, setOrders] = useState([]);
     const [isLogin, setIsLogin] = useState(false);
-    const [alert, setAlert] = useState(false);
     const [deleteId, setDeleteId] = useState(0);
     const [userId, setUserId] = useState(null);
-    const [selectedReason, setSelectedReason] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const reasons = [
-        { id: 1, label: "Tôi muốn thay đổi địa chỉ nhận" },
-        { id: 2, label: "Thời gian chờ quá lâu" },
-        { id: 3, label: "Tôi không muốn mua nữa" },
-        { id: 4, label: "Lý do khác" },
-    ];
+    const [icon, setIcon] = useState(false);
+    const [title, setTitle] = useState(false);
+    const [content, setContent] = useState(null);
+    const [alert, setAlert] = useState(false);
 
     // ===== LOAD API =====
     const loadOrders = async () => {
@@ -34,7 +33,7 @@ const OrderScreen = () => {
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
             setIsLogin(true);
-            
+
             const uid = parseInt(JSON.parse(userStr).userId);
             setUserId(uid);
             const { data } = await axios.get(`${API_URL}/currentorder/${uid}`);
@@ -51,27 +50,6 @@ const OrderScreen = () => {
     const contentCancelAlert = () => {
         return (
             <View style={[LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
-                <View style={[LAYOUT.wFull]}>
-                    {reasons.map((item) => (
-                        <View key={item.id} style={[LAYOUT.row, LAYOUT.mb(12)]}>
-                            <TouchableOpacity onPress={() => setSelectedReason(item.id)}>
-                                <Ionicons
-                                    name={
-                                        selectedReason === item.id
-                                            ? "checkmark-circle-outline"
-                                            : "ellipse-outline"
-                                    }
-                                    size={20}
-                                />
-                            </TouchableOpacity>
-
-                            <Text style={[TEXT.text, LAYOUT.ml(6)]}>{item.label}</Text>
-                        </View>
-                    ))}
-
-                    {selectedReason === 4 && (<TextInput placeholder="Nhập lý do" style={[LAYOUT.px(14), LAYOUT.py(8), LAYOUT.rounded(12), LAYOUT.mb(20), TEXT.paragraph, { backgroundColor: COLORS.background2 }]}></TextInput>)}
-
-                </View>
                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.wFull]}>
                     <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w(150), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
                         <Text style={[TEXT.text, TEXT.center, { color: COLORS.button }]}>Hủy</Text>
@@ -95,19 +73,30 @@ const OrderScreen = () => {
 
             const { data } = await axios.get(`${API_URL}/cancelorder/${deleteId}`);
 
-            await axios.post(`${API_URL}/pushnotification`, {
-                userId: userId,
-                title: "Thông báo mới",
-                content: data.message,
-                metadata: {}
-            });
+            if (data.success) {
+                await axios.post(`${API_URL}/pushnotification`, {
+                    userId: userId,
+                    title: "Banana - Hủy đơn",
+                    content: data.message,
+                    metadata: {}
+                });
+            }
 
-            setSelectedReason(null);
+            setIcon(data.success ? "success" : "error");
+            setTitle(data.success ? "Hủy đơn thành công" : "Hủy đơn thất bại");
+            setContent(null);
+            setAlert(true);
+
             loadOrders();
         } catch (error) {
             console.error(error);
         }
     };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadOrders().finally(() => setRefreshing(false));
+    }, []);
 
     useEffect(() => {
         loadOrders();
@@ -131,11 +120,14 @@ const OrderScreen = () => {
                                 keyExtractor={(item) => item.orderId.toString()}
                                 numColumns={1}
                                 showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                }
                                 renderItem={({ item }) => {
                                     const dishNames = item.items.map(d => d.dishName).join(" - ");
 
                                     return (
-                                        <TouchableOpacity
+                                        <TouchableOpacity onPress={() => router.push(`../detailorder/${item.orderId}`)}
                                             style={[
                                                 LAYOUT.wFull,
                                                 LAYOUT.mb(20),
@@ -146,7 +138,7 @@ const OrderScreen = () => {
                                             ]}
                                         >
                                             <Image
-                                                source={item.items[0].dishImage ? { uri: item.items[0].dishImage } : require("../../assets/images/background-default.png")}
+                                                source={formatImage(item.items[0].dishImage)}
                                                 style={[
                                                     LAYOUT.w(80),
                                                     LAYOUT.h(110),
@@ -207,7 +199,7 @@ const OrderScreen = () => {
                 </View>
             </View>
 
-            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chọn lý do hủy"} content={contentCancelAlert} visible={alert} />
+            <ToastModal status={icon} title={title} content={content} visible={alert} />
         </View>
     );
 };

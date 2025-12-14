@@ -1,4 +1,4 @@
-import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView, FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,7 +7,6 @@ import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { API_URL } from "../../constants/api";
 import { formatPrice, formatImage } from "../../constants/format";
 import { UserAPI } from "../../services/userInfo";
-import { DishAPI } from "../../services/dishAPI";
 import axios from "axios";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ToastModal from "../../components/ToastModal";
@@ -31,9 +30,9 @@ const OrderDishScreen = () => {
       setLoading(true);
       const userId = await UserAPI.getUserInfo();
       setUserId(userId);
-      const data = await DishAPI.getDetailDish(dishId, userId);
+      const { data } = await axios.get(`${API_URL}/dish/${dishId}/${userId}`);
 
-      setIsFavorite(data.favoriteId ? true : false);
+      setIsFavorite(data.isFavorite);
 
       setDish(data);
       setLoading(false);
@@ -132,111 +131,139 @@ const OrderDishScreen = () => {
 
       {/* MAIN */}
       <ScrollView style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
-        <View
-          style={[
-            LAYOUT.w(width - 60),
-            LAYOUT.h(240),
-            LAYOUT.mx(),
-            LAYOUT.mt(32),
-            LAYOUT.rounded(28),
-            { overflow: "hidden" },
-          ]}
-        >
-          <Image
-            source={formatImage(dish.imageUrl)}
-            style={[LAYOUT.border(1, COLORS.border), LAYOUT.wFull, LAYOUT.hFull, LAYOUT.rounded(28), { overflow: "hidden" }]}
-            resizeMode="cover"
-          />
-        </View>
+        <View style={[
+          LAYOUT.w(width - 60),
+          LAYOUT.mx(),
+          LAYOUT.mt(44),
+        ]}>
+          <View
+            style={[
+              LAYOUT.w(width - 60),
+              LAYOUT.h(240),
+              LAYOUT.mx(),
+              LAYOUT.rounded(28),
+              { overflow: "hidden" },
+            ]}
+          >
+            <Image
+              source={formatImage(dish.imageUrl)}
+              style={[LAYOUT.border(1, COLORS.border), LAYOUT.wFull, LAYOUT.hFull, LAYOUT.rounded(28), { overflow: "hidden" }]}
+              resizeMode="cover"
+            />
+          </View>
 
-        <View
-          style={[
-            LAYOUT.row,
-            LAYOUT.justifyBetween,
-            LAYOUT.itemsCenter,
-            LAYOUT.w(width - 60),
-            LAYOUT.mx(),
-            LAYOUT.mt(24),
-            LAYOUT.pb(8),
-            LAYOUT.borderb(1, COLORS.background3),
-          ]}
-        >
-          <Text style={[TEXT.text, TEXT.size(26), { color: COLORS.heading }]}>
-            {formatPrice(dish.price)} đ
-          </Text>
-
-          <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
-            <TouchableOpacity
-              onPress={() => quantity > 1 && setQuantity(quantity - 1)}
-            >
-              <Ionicons
-                name="remove-outline"
-                size={20}
-                color={COLORS.heading}
-                style={[
-                  LAYOUT.rounded(50),
-                  LAYOUT.p(6),
-                  { backgroundColor: COLORS.background3 },
-                ]}
-              />
-            </TouchableOpacity>
-
-            <Text style={[TEXT.text, TEXT.size(20), LAYOUT.mx(16)]}>
-              {quantity}
+          <View
+            style={[
+              LAYOUT.row,
+              LAYOUT.justifyBetween,
+              LAYOUT.itemsCenter,
+              LAYOUT.mt(24),
+              LAYOUT.pb(8),
+              LAYOUT.borderb(1, COLORS.background3),
+            ]}
+          >
+            <Text style={[TEXT.text, TEXT.size(26), { color: COLORS.heading }]}>
+              {formatPrice(dish.price)} đ
             </Text>
 
-            <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
-              <Ionicons
-                name="add-outline"
-                size={20}
-                color={COLORS.heading}
-                style={[
-                  LAYOUT.rounded(50),
-                  LAYOUT.p(6),
-                  { backgroundColor: COLORS.background3 },
-                ]}
-              />
+            <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
+              <TouchableOpacity
+                onPress={() => quantity > 1 && setQuantity(quantity - 1)}
+              >
+                <Ionicons
+                  name="remove-outline"
+                  size={20}
+                  color={COLORS.heading}
+                  style={[
+                    LAYOUT.rounded(50),
+                    LAYOUT.p(6),
+                    { backgroundColor: COLORS.background3 },
+                  ]}
+                />
+              </TouchableOpacity>
+
+              <Text style={[TEXT.text, TEXT.size(20), LAYOUT.mx(16)]}>
+                {quantity}
+              </Text>
+
+              <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
+                <Ionicons
+                  name="add-outline"
+                  size={20}
+                  color={COLORS.heading}
+                  style={[
+                    LAYOUT.rounded(50),
+                    LAYOUT.p(6),
+                    { backgroundColor: COLORS.background3 },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[LAYOUT.mt(18)]}>
+            <Text style={[TEXT.text, TEXT.size(20)]}>
+              {dish.dishName}
+            </Text>
+            <Text
+              style={[
+                TEXT.subText,
+                LAYOUT.mt(4),
+                { lineHeight: 20, textAlign: "justify" },
+              ]}
+            >
+              {dish.description}
+            </Text>
+          </View>
+
+          <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
+            <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú:</Text>
+            <TextInput value={note} onChangeText={setNote} style={[TEXT.paragraph, LAYOUT.px(20), LAYOUT.py(12), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12)]} />
+          </View>
+
+          <View style={[LAYOUT.my(24), LAYOUT.itemsCenter]}>
+            <TouchableOpacity onPress={addCart}
+              style={[
+                LAYOUT.py(12),
+                LAYOUT.w(200),
+                LAYOUT.rounded(30),
+                LAYOUT.row,
+                LAYOUT.itemsCenter,
+                LAYOUT.justifyCenter,
+                { backgroundColor: COLORS.button, gap: 8 },
+              ]}
+            >
+              <Ionicons name={addToCart ? "cart" : "cart-outline"} style={addToCart ? { transform: "rotate(-15deg)", color: COLORS.background1 } : {}} size={(24)} color={COLORS.textLight}></Ionicons>
+              <Text style={[TEXT.text, TEXT.size(20), TEXT.center, addToCart ? { color: COLORS.background1 } : { color: COLORS.light }]}>
+                Thêm giỏ hàng
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(18)]}>
-          <Text style={[TEXT.text, TEXT.size(20)]}>
-            {dish.dishName}
-          </Text>
-          <Text
-            style={[
-              TEXT.subText,
-              LAYOUT.mt(4),
-              { lineHeight: 20, textAlign: "justify" },
-            ]}
-          >
-            {dish.description}
-          </Text>
-        </View>
+          <View style={[LAYOUT.mt(20)]}>
+            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.bg(COLORS.background3), LAYOUT.py(8), LAYOUT.px(14), LAYOUT.rounded(12), LAYOUT.mb(20)]}>
+              <Text style={[TEXT.text, TEXT.size(24)]}>Đánh giá</Text>
+              {dish.reviews.length !== 0 && <Text style={[TEXT.text, TEXT.size(24), LAYOUT.color(COLORS.heading)]}>{dish.rateStar}/5.0</Text>}
+            </View>
 
-        <View style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(24)]}>
-          <Text style={[TEXT.text, LAYOUT.mb(4)]}>Ghi chú:</Text>
-          <TextInput value={note} onChangeText={setNote} style={[TEXT.paragraph, LAYOUT.px(20), LAYOUT.py(12), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12)]} />
-        </View>
-
-        <View style={[LAYOUT.my(24), LAYOUT.itemsCenter]}>
-          <TouchableOpacity onPress={addCart}
-            style={[
-              LAYOUT.py(12),
-              LAYOUT.w(200),
-              LAYOUT.rounded(30),
-              LAYOUT.row,
-              LAYOUT.itemsCenter,
-              LAYOUT.justifyCenter,
-              { backgroundColor: COLORS.button, gap: 8 },
-            ]}
-          >
-            <Ionicons name={addToCart ? "cart" : "cart-outline"} style={addToCart ? { transform: "rotate(-15deg)", color: COLORS.background1 } : {}} size={(24)} color={COLORS.textLight}></Ionicons>
-            <Text style={[TEXT.text, TEXT.size(20), TEXT.center, addToCart ? { color: COLORS.background1 } : { color: COLORS.light }]}>
-              Thêm giỏ hàng
-            </Text>
-          </TouchableOpacity>
+            <ScrollView style={[LAYOUT.pb(80)]}>
+              {dish.reviews.length === 0 ? <Text style={[TEXT.paragraph, TEXT.center]}>Chưa có lượt đánh giá</Text> : dish.reviews.map((item) => (
+                <View key={item.reviewId} style={[LAYOUT.mb(14), LAYOUT.pb(10), LAYOUT.borderb(1, COLORS.border), { borderStyle: "dashed" }]}>
+                  <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
+                    <Text style={[TEXT.text, TEXT.size(18)]}>{item.userName}</Text>
+                    <View style={[LAYOUT.row, LAYOUT.gap(6), LAYOUT.itemsCenter]}>
+                      <Text style={[TEXT.text]}>{item.rate}</Text>
+                      <Ionicons name="star" size={(18)}></Ionicons>
+                    </View>
+                  </View>
+                  <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(8)]}>
+                    <Ionicons name="chatbox-ellipses-outline" size={16} color={COLORS.paragraph}></Ionicons>
+                    <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(COLORS.paragraph)]}>{item.content}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
         </View>
       </ScrollView>
 

@@ -33,19 +33,17 @@ export default function Splash() {
         setTimeout(() => {
           if (!userStr) {
             router.replace("./onboard/");
-            return;
-          }
-
-          const user = JSON.parse(userStr);
-
-          if (user.role === "Owner" || user.role === "Employee") {
-            router.replace("./owner/(tabs)/");
           } else {
-            router.replace("./onboard/");
+            const user = JSON.parse(userStr);
+
+            if (user.role === "Owner" || user.role === "Employee")
+              router.replace("./owner/(tabs)/");
+            else
+              router.replace("./onboard/");
           }
         }, 3200);
       } catch (error) {
-        console.log("Lỗi load user:", error);
+        console.log("Lỗi lấy thông tin người dùng: ", error);
       }
     };
 

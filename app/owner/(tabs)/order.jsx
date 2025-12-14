@@ -17,6 +17,7 @@ const orderStatus = [
     "Đang chờ",
     "Đang chuẩn bị",
     "Đang giao",
+    "Đã đến",
     "Hoàn thành",
     "Bị hủy",
 ];
@@ -64,13 +65,13 @@ export default function OrderScreen() {
 
     const updateStatus = async (orderId, status) => {
         try {
-            if (status === 4) {
+            if (status === 5) {
                 setAlert(true);
                 setDeleteId(orderId);
                 setIcon("warning");
                 setTitle("Xác nhận hủy đơn hàng này");
             } else {
-                if (status === 3) {
+                if (status === 4) {
                     router.push(`../../payment/${orderId}`);
                 } else {
                     const { data } = await axios.post(`${API_URL}/updateorderowner`, {
@@ -162,7 +163,7 @@ export default function OrderScreen() {
                                             >
                                                 <View style={[LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
                                                     <Text style={[TEXT.text]} numberOfLines={1}>
-                                                        #DH264{String(item.orderId).length === 2 ? `0${item.orderId}` : item.orderId}
+                                                        #{item.orderCode}
                                                     </Text>
                                                     <Text style={[TEXT.text, TEXT.size(16)]}>
                                                         Phòng: {item.deliveryAddress}
@@ -173,8 +174,8 @@ export default function OrderScreen() {
                                                 </View>
                                                 <View style={[LAYOUT.mt(12), currentStatus !== 2 ? { justifyContent: "flex-end" } : ""]}>
                                                     {currentStatus === 1 && (<View style={[{ gap: 8 }]}>
-                                                        {item.orderStatus !== "Đang giao" && (
-                                                            <TouchableOpacity onPress={() => updateStatus(item.orderId, 4)}
+                                                        {item.orderStatus !== "Đang giao" && item.orderStatus !== "Đã đến" && (
+                                                            <TouchableOpacity onPress={() => updateStatus(item.orderId, 5)}
                                                                 style={[
                                                                     LAYOUT.px(10),
                                                                     LAYOUT.py(4),
@@ -215,7 +216,7 @@ export default function OrderScreen() {
                                                                     LAYOUT.color(COLORS.textLight)
                                                                 ]}
                                                             >
-                                                                {item.orderStatus === "Đang chuẩn bị" ? "Giao hàng" : item.orderStatus === "Đang giao" ? "Thanh toán" : ""}
+                                                                {item.orderStatus === "Đang chuẩn bị" ? "Giao hàng" : item.orderStatus === "Đang giao" ? "Đã đến" : "Thanh toán"}
                                                             </Text>
                                                             <Ionicons name="send-outline" color={COLORS.textLight}></Ionicons>
                                                         </TouchableOpacity>

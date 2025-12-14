@@ -4,7 +4,7 @@ import {useRouter} from "expo-router";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
-import { formatPrice, formatOrderId } from "../../constants/format";
+import { formatPrice } from "../../constants/format";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -58,7 +58,7 @@ const HistoryScreen = () => {
                 </View>
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
-                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
+                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
                     {!isLogin ? (<Text style={[TEXT.text, TEXT.center]}>Đăng nhập để đặt hàng ngay</Text>) :
                         (history.length === 0 ? (<Text style={[TEXT.text, TEXT.center]}>Danh sách trống</Text>) :
                             (<FlatList
@@ -86,7 +86,7 @@ const HistoryScreen = () => {
                                             <View style={[LAYOUT.wFull]}>
                                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
                                                     <Text style={[TEXT.text, TEXT.size(20)]} numberOfLines={1}>
-                                                        {formatOrderId(item.orderId)}
+                                                        #{item.orderCode}
                                                     </Text>
                                                     <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(item.orderStatus === "Hoàn thành" ? "green" : item.orderStatus === "Bị hủy" ? "red" : COLORS.background4)]}>
                                                         {item.orderStatus}
@@ -107,7 +107,7 @@ const HistoryScreen = () => {
                                                     <Text style={[TEXT.text, TEXT.size(18), { color: COLORS.heading }]}>
                                                         {formatPrice(item.totalAmount)} đ
                                                     </Text>
-                                                    {item.orderStatus === "Hoàn thành" && (<TouchableOpacity
+                                                    <TouchableOpacity
                                                         style={[
                                                             LAYOUT.px(10),
                                                             LAYOUT.py(4),
@@ -126,7 +126,7 @@ const HistoryScreen = () => {
                                                         >
                                                             Đặt lại
                                                         </Text>
-                                                    </TouchableOpacity>)}
+                                                    </TouchableOpacity>
                                                 </View>
                                             </View>
                                         </TouchableOpacity>

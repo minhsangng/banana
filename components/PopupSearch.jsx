@@ -122,7 +122,8 @@ export default function PopupSearch({ visible, query, onClose }) {
 
                       <View style={[LAYOUT.pl(10), LAYOUT.pt(10), LAYOUT.row, LAYOUT.justifyBetween, { width: width - 60 - 80 - 20 }]}>
                         <View style={{ flex: 1 }}>
-                          <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.dishName}</Text>
+                          <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.storeName}</Text>
+                          <Text style={[TEXT.text, TEXT.size(14)]}>{d.dishName}</Text>
                           <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Đã mua {d.selled}</Text>
                           <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
                         </View>

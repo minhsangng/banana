@@ -127,16 +127,16 @@ const DishesScreen = () => {
                 <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(2), LAYOUT.mb(8)]}>#MA264{detailDish.dishId}</Text>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Tên món ăn</Text>
-                <TextInput value={editName} onChangeText={setEditName} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={editName} onChangeText={setEditName} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Danh mục</Text>
                 <PickerSelect options={options} value={editCategory} setValue={setEditCategory} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Giá bán</Text>
-                <TextInput value={formatPrice(editPrice)} onChangeText={setEditPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={formatPrice(editPrice)} onChangeText={setEditPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Mô tả</Text>
-                <TextInput value={editDescription} onChangeText={setEditDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={editDescription} onChangeText={setEditDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Hình ảnh</Text>
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(8), LAYOUT.mb(4), { overflow: "hidden" }]}>
@@ -147,7 +147,7 @@ const DishesScreen = () => {
                 </View>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Trạng thái</Text>
-                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.px(10), LAYOUT.py(4), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12), LAYOUT.mb(4)]}>
+                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.px(14), LAYOUT.py(10), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(12), LAYOUT.mb(4)]}>
                     <Text style={[TEXT.subText, TEXT.center, TEXT.size(16), LAYOUT.color(detailDish.status !== "Active" ? COLORS.button : "#73AF6F")]}>{detailDish.status === "Active" ? "Đang kinh doanh" : "Ngừng kinh doanh"}</Text>
                 </View>
 
@@ -212,16 +212,16 @@ const DishesScreen = () => {
         return (
             <View style={[LAYOUT.wFull, LAYOUT.mt(12)]}>
                 <Text style={[TEXT.text, TEXT.size(16)]}>Tên món ăn <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
-                <TextInput value={addName} onChangeText={setAddName} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={addName} onChangeText={setAddName} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Danh mục <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
                 <PickerSelect options={options} value={addCategory} setValue={setAddCategory} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Giá bán <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
-                <TextInput value={addPrice} onChangeText={setAddPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={addPrice} onChangeText={setAddPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Mô tả</Text>
-                <TextInput value={addDescription} onChangeText={setAddDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(10), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={addDescription} onChangeText={setAddDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Hình ảnh</Text>
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(8), LAYOUT.mb(6), { overflow: "hidden" }]}>
@@ -333,121 +333,120 @@ const DishesScreen = () => {
         loadCategories();
     }, []);
 
-    if (loading) return <LoadingSpinner />;
-
-    if (!role) return <View style={[LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.h(height), LAYOUT.w(width)]}><Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Không có quyền truy cập</Text></View>;
-
     return (
         <View style={[LAYOUT.container]}>
             <NavBar isLogin={isLogin} heading={"Thực đơn"} />
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.77), { overflow: "hidden" }]}>
-                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(0)]}>
-                    <TouchableOpacity onPress={() => (setIcon("add"), setTitle("Thêm món mới"), setAlert(true))} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(4), LAYOUT.mb(20), LAYOUT.pb(2), LAYOUT.borderb(1, COLORS.background3)]}>
-                        <Ionicons name="add-outline" color={COLORS.button} size={16}></Ionicons>
-                        <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Thêm món</Text>
-                    </TouchableOpacity>
-                    {dishes.length === 0 ? <Text style={[TEXT.paragraph, TEXT.center]}>Danh sách trống</Text> :
-                        (<FlatList
-                            style={[LAYOUT.mb(50)]}
-                            data={dishes}
-                            keyExtractor={(item) => item.dishId.toString()}
-                            numColumns={1}
-                            showsVerticalScrollIndicator={false}
-                            refreshControl={
-                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                {loading ? <LoadingSpinner /> : !role ? (<View style={[LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.h(height * 2 / 3), LAYOUT.w(width), LAYOUT.gap(14)]}><Ionicons name="ban" size={44} color={COLORS.heading}></Ionicons><Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Chức năng dành cho chủ quán</Text></View>)
+                    : (
+                        <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(0)]}>
+                            <TouchableOpacity onPress={() => (setIcon("add"), setTitle("Thêm món mới"), setAlert(true))} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(4), LAYOUT.mb(20), LAYOUT.pb(2), LAYOUT.borderb(1, COLORS.background3)]}>
+                                <Ionicons name="add-outline" color={COLORS.button} size={16}></Ionicons>
+                                <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Thêm món</Text>
+                            </TouchableOpacity>
+                            {dishes.length === 0 ? <Text style={[TEXT.paragraph, TEXT.center]}>Danh sách trống</Text> :
+                                (<FlatList
+                                    style={[LAYOUT.mb(50)]}
+                                    data={dishes}
+                                    keyExtractor={(item) => item.dishId.toString()}
+                                    numColumns={1}
+                                    showsVerticalScrollIndicator={false}
+                                    refreshControl={
+                                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                    }
+                                    renderItem={({ item }) => {
+                                        return (
+                                            <View
+                                                style={[
+                                                    LAYOUT.wFull,
+                                                    LAYOUT.mb(20),
+                                                    LAYOUT.row,
+                                                    LAYOUT.justifyBetween,
+                                                    LAYOUT.pb(12),
+                                                    LAYOUT.borderb(1, COLORS.background4),
+                                                    { borderStyle: "dashed" }
+                                                ]}
+                                            >
+                                                <Image
+                                                    source={formatImage(item.imageUrl)}
+                                                    style={[
+                                                        LAYOUT.w(80),
+                                                        LAYOUT.h(110),
+                                                        LAYOUT.rounded(20),
+                                                        LAYOUT.border(1, COLORS.border),
+                                                        { overflow: "hidden" }
+                                                    ]}
+                                                />
+
+                                                <View style={[LAYOUT.ml(12)]}>
+                                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                                        <Text style={[TEXT.text, LAYOUT.w("50%")]} numberOfLines={1}>
+                                                            {item.dishName}
+                                                        </Text>
+                                                        <TouchableOpacity onPress={() => updateStatus(item.dishId, item.status)}
+                                                            style={[
+                                                                LAYOUT.px(10), LAYOUT.py(4),
+                                                                LAYOUT.w(70),
+                                                                LAYOUT.rounded(22),
+                                                                LAYOUT.bg(COLORS.background3),
+                                                                LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)
+                                                            ]}
+                                                        >
+                                                            <Text
+                                                                style={[
+                                                                    TEXT.text,
+                                                                    TEXT.size(16),
+                                                                    TEXT.center,
+                                                                    LAYOUT.color(COLORS.heading)
+                                                                ]}
+                                                            >
+                                                                {item.status === "Active" ? "Khóa" : "Mở"}
+                                                            </Text>
+                                                            <Ionicons name={item.status === "Active" ? "download-outline" : "share-outline"} size={14} color={COLORS.heading}></Ionicons>
+                                                        </TouchableOpacity>
+                                                    </View>
+
+                                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
+                                                        <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>
+                                                            {formatPrice(item.price)} đ
+                                                        </Text>
+                                                        <TouchableOpacity onPress={() => editDishStatus(item.dishId)}
+                                                            style={[
+                                                                LAYOUT.px(10), LAYOUT.py(4),
+                                                                LAYOUT.w(70),
+                                                                LAYOUT.rounded(22),
+                                                                LAYOUT.bg(COLORS.button),
+                                                                LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)
+                                                            ]}
+                                                        >
+                                                            <Text
+                                                                style={[
+                                                                    TEXT.text,
+                                                                    TEXT.size(16),
+                                                                    TEXT.center,
+                                                                    LAYOUT.color(COLORS.textLight)
+                                                                ]}
+                                                            >
+                                                                Sửa
+                                                            </Text>
+                                                            <Ionicons name="create-outline" size={14} color={COLORS.textLight}></Ionicons>
+                                                        </TouchableOpacity>
+                                                    </View>
+
+                                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
+                                                        <Text style={[TEXT.subText, { color: item.status !== "Active" ? COLORS.heading : "#73AF6F" }]}>
+                                                            {item.status === "Active" ? "Đang kinh doanh" : "Ngưng kinh doanh"}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        );
+                                    }}
+                                />
+                                )
                             }
-                            renderItem={({ item }) => {
-                                return (
-                                    <View
-                                        style={[
-                                            LAYOUT.wFull,
-                                            LAYOUT.mb(20),
-                                            LAYOUT.row,
-                                            LAYOUT.justifyBetween,
-                                            LAYOUT.pb(12),
-                                            LAYOUT.borderb(1, COLORS.background4),
-                                            { borderStyle: "dashed" }
-                                        ]}
-                                    >
-                                        <Image
-                                            source={formatImage(item.imageUrl)}
-                                            style={[
-                                                LAYOUT.w(80),
-                                                LAYOUT.h(110),
-                                                LAYOUT.rounded(20),
-                                                LAYOUT.border(1, COLORS.border),
-                                                { overflow: "hidden" }
-                                            ]}
-                                        />
-
-                                        <View style={[LAYOUT.ml(12)]}>
-                                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                                <Text style={[TEXT.text, LAYOUT.w("50%")]} numberOfLines={1}>
-                                                    {item.dishName}
-                                                </Text>
-                                                <TouchableOpacity onPress={() => updateStatus(item.dishId, item.status)}
-                                                    style={[
-                                                        LAYOUT.px(10), LAYOUT.py(4),
-                                                        LAYOUT.w(70),
-                                                        LAYOUT.rounded(22),
-                                                        LAYOUT.bg(COLORS.background3),
-                                                        LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)
-                                                    ]}
-                                                >
-                                                    <Text
-                                                        style={[
-                                                            TEXT.text,
-                                                            TEXT.size(16),
-                                                            TEXT.center,
-                                                            LAYOUT.color(COLORS.heading)
-                                                        ]}
-                                                    >
-                                                        {item.status === "Active" ? "Khóa" : "Mở"}
-                                                    </Text>
-                                                    <Ionicons name={item.status === "Active" ? "download-outline" : "share-outline"} size={14} color={COLORS.heading}></Ionicons>
-                                                </TouchableOpacity>
-                                            </View>
-
-                                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
-                                                <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>
-                                                    {formatPrice(item.price)} đ
-                                                </Text>
-                                                <TouchableOpacity onPress={() => editDishStatus(item.dishId)}
-                                                    style={[
-                                                        LAYOUT.px(10), LAYOUT.py(4),
-                                                        LAYOUT.w(70),
-                                                        LAYOUT.rounded(22),
-                                                        LAYOUT.bg(COLORS.button),
-                                                        LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)
-                                                    ]}
-                                                >
-                                                    <Text
-                                                        style={[
-                                                            TEXT.text,
-                                                            TEXT.size(16),
-                                                            TEXT.center,
-                                                            LAYOUT.color(COLORS.textLight)
-                                                        ]}
-                                                    >
-                                                        Sửa
-                                                    </Text>
-                                                    <Ionicons name="create-outline" size={14} color={COLORS.textLight}></Ionicons>
-                                                </TouchableOpacity>
-                                            </View>
-
-                                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
-                                                <Text style={[TEXT.subText, { color: item.status !== "Active" ? COLORS.heading : "#73AF6F" }]}>
-                                                    {item.status === "Active" ? "Đang kinh doanh" : "Ngưng kinh doanh"}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                );
-                            }}
-                        />
-                        )
-                    }
-                </View>
+                        </View>
+                    )}
             </View>
             <ToastModal status={icon} title={title} content={icon === "edit" ? contentEdit : icon === "add" ? contentAdd : null} visible={alert} />
         </View>

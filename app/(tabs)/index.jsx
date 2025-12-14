@@ -28,23 +28,33 @@ const HomeScreen = () => {
   const notifycation = async () => {
     try {
       const userStr = await SecureStore.getItemAsync("userInfo");
-      const uid = JSON.parse(userStr).userId;
-      const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
-      
-      return data;
+      if (userStr) {
+        const uid = JSON.parse(userStr).userId;
+        const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
+        return data;
+      } else return;
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
+    const safeStringify = (data) => {
+      try {
+        return JSON.stringify(data ?? {});
+      } catch (e) {
+        console.log("JSON stringify failed:", e);
+        return JSON.stringify({ error: "unserializable" });
+      }
+    };
+
     const checkAndNotify = async () => {
       try {
         const newData = await notifycation();
 
-        const newString = JSON.stringify(newData);
+        const newString = safeStringify(newData);
 
-        const lastString = await SecureStore.getItemAsync("lastData");
+        const lastString = (await SecureStore.getItemAsync("lastData")) ?? "";
 
         if (newString !== lastString) {
           sendLocalNotification(newData);

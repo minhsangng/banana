@@ -25,7 +25,14 @@ export default function Header() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [type, setType] = useState(null);
     const [userId, setUserId] = useState(null);
-    const [countNotify, setCountNotify] = useState(0);
+
+    const fullText = "Ba Ba Ba Banana...";
+    const typingSpeed = 100;
+    const pauseTime = 1800;
+
+    const [displayText, setDisplayText] = useState("");
+    const [index, setIndex] = useState(0);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const loadOrderProccessing = async (uid) => {
         if (!uid) return;
@@ -94,12 +101,6 @@ export default function Header() {
         );
     };
 
-    const loadNotify = async () => {
-        const lastString = await SecureStore.getItemAsync("lastData");
-        const count = await JSON.parse(lastString);
-        setCountNotify(count.length);
-    }
-
     useEffect(() => {
         if (orders.length <= 1) return;
 
@@ -132,10 +133,42 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
-        if (userId) {
-            loadOrderProccessing(userId);
+        let timeout;
+
+        if (!isDeleting && index < fullText.length) {
+            timeout = setTimeout(() => {
+                setDisplayText(fullText.slice(0, index + 1));
+                setIndex(index + 1);
+            }, typingSpeed);
         }
+        else if (!isDeleting && index === fullText.length) {
+            timeout = setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+        else if (isDeleting && index > 0) {
+            timeout = setTimeout(() => {
+                setDisplayText(fullText.slice(0, index - 1));
+                setIndex(index - 1);
+            }, typingSpeed / 2);
+        }
+        else if (isDeleting && index === 0) {
+            setIsDeleting(false);
+        }
+
+        return () => clearTimeout(timeout);
+    }, [index, isDeleting]);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        loadOrderProccessing(userId);
+
+        const interval = setInterval(() => {
+            loadOrderProccessing(userId);
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, [userId]);
+
 
     const updateGreeting = () => {
         const hour = new Date().getHours();
@@ -155,7 +188,6 @@ export default function Header() {
         }
 
         setGreeting([current.title, current.subtitle]);
-        loadNotify();
     };
 
     const handleSubmit = () => {
@@ -180,51 +212,42 @@ export default function Header() {
                     ]}
                 >
                     <TextInput
+                        keyboardType="web-search"
+                        returnKeyType="search"
                         placeholder="Bạn tìm món gì?"
                         style={[
-                            LAYOUT.w(200),
+                            LAYOUT.w(220),
                             LAYOUT.rounded(30),
-                            LAYOUT.px(14),
-                            LAYOUT.py(10),
+                            LAYOUT.pl(14),
+                            LAYOUT.pr(44),
+                            LAYOUT.h(44),
                             TEXT.size(14),
                             homeStyles.searchInput,
                         ]}
-                        returnKeyType="search"
                         value={query}
                         onChangeText={setQuery}
                         onSubmitEditing={handleSubmit}
                     />
 
-                    <Ionicons
-                        name="options-outline"
-                        style={[
-                            LAYOUT.absolute,
-                            LAYOUT.top(6),
-                            LAYOUT.left(164),
-                            LAYOUT.h(28),
-                            LAYOUT.w(28),
-                            LAYOUT.p(4),
-                            LAYOUT.rounded(50),
-                            TEXT.size(18),
-                            homeStyles.searchIcon,
-                        ]}
-                    />
+                    <TouchableOpacity onPress={handleSubmit} style={[LAYOUT.absolute, LAYOUT.top(8), LAYOUT.right(120), LAYOUT.h(28), LAYOUT.w(28)]}>
+                        <Ionicons
+                            name="search-outline"
+                            size={18}
+                            style={[
+                                LAYOUT.rounded(50),
+                                LAYOUT.p(4),
+                                homeStyles.searchIcon,
+                            ]}
+                        />
+                    </TouchableOpacity>
 
                     {/* RIGHT ICONS */}
-                    <View style={[LAYOUT.row, LAYOUT.gap(6)]}>
+                    <View style={[LAYOUT.row, LAYOUT.gap(10)]}>
                         <Ionicons
                             name="cart-outline"
                             style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
                             onPress={() => (setType("cart"), setMenuVisible(true))}
                         />
-                        <View style={[LAYOUT.relative]}>
-                            <Ionicons
-                                name="notifications-outline"
-                                style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
-                                onPress={() => (setType("notify"), setMenuVisible(true))}
-                            />
-                            <Text style={[TEXT.text, LAYOUT.color(COLORS.heading), LAYOUT.rounded(20), LAYOUT.absolute, LAYOUT.top(-6), LAYOUT.right(5)]}>{countNotify !== 0 ? countNotify : ""}</Text>
-                        </View>
                         <Ionicons
                             name="person-outline"
                             style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
@@ -242,7 +265,7 @@ export default function Header() {
                     <Text style={TEXT.heading}>{greeting[0]}</Text>
 
                     <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
-                        <Text style={[TEXT.paragraph, homeStyles.title]}>Ba ba ba banana...</Text>
+                        <Text style={[TEXT.paragraph, homeStyles.title]}>{displayText}</Text>
 
                         {orders.length !== 0 && renderOrder()}
                     </View>

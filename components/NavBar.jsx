@@ -16,12 +16,7 @@ export default function NavBar({ isLogin, heading }) {
         <View style={[LAYOUT.header, LAYOUT.pt(52)]}>
             <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
                 <Text style={[TEXT.heading]}>{heading}</Text>
-                <View style={[LAYOUT.row, { gap: 6 }]}>
-                    <Ionicons
-                        name="notifications-outline"
-                        style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}
-                        onPress={() => (setType("notify"), setMenuVisible(true))}
-                    />
+                <View>
                     <Ionicons
                         name="person-outline"
                         style={[LAYOUT.p(5), LAYOUT.rounded(14), TEXT.size(28), homeStyles.rightIcon]}

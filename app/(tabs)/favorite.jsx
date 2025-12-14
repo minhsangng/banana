@@ -1,5 +1,5 @@
-import { View, Text, FlatList, TouchableOpacity, Image, Dimensions } from "react-native";
-import { useEffect, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, RefreshControl } from "react-native";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { COLORS } from "../../constants/colors";
@@ -17,6 +17,7 @@ const FavoriteScreen = () => {
     const router = useRouter();
     const [favorites, setFavorites] = useState([]);
     const [isLogin, setIsLogin] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const loadFavorites = async () => {
@@ -49,6 +50,11 @@ const FavoriteScreen = () => {
             console.error("Lỗi: ", error);
         }
     };
+    
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadFavorites().finally(() => setRefreshing(false));
+    }, []);
 
     useEffect(() => {
         loadFavorites();
@@ -72,6 +78,9 @@ const FavoriteScreen = () => {
                                 keyExtractor={(item) => item.dishId}
                                 numColumns={2}
                                 showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                }
                                 columnWrapperStyle={{ justifyContent: "space-between" }}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity onPress={() => router.push(`../detaildish/${item.dishId}`)}

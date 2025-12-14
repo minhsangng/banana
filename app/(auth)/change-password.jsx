@@ -18,8 +18,12 @@ import * as SecureStore from "expo-secure-store";
 const { height } = Dimensions.get("window");
 
 export default function ChangePwScreen() {
+    
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showReNewPassword, setShowReNewPassword] = useState(false);
+    
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [reNewPassword, setReNewPassword] = useState("");
@@ -28,21 +32,28 @@ export default function ChangePwScreen() {
     const [alert, setAlert] = useState(false);
 
     const validatePassword = () => {
+        if (currentPassword === "" || newPassword === "" || reNewPassword === "") {
+            setIcon("warning");
+            setTitle("Vui lòng nhập đầy đủ thông tin để đặt lại mật khẩu");
+            setAlert(true);
+            setTimeout(() => setAlert(false), 1100);
+            return false;
+        }
+
         if (newPassword.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
             setIcon("error");
-            setTitle("Mật khẩu mới phải ít nhất 8 ký tự và có ít nhất 1 ký tự đặc biệt");
+            setTitle("Mật khẩu mới phải ít nhất 8 ký tự và có 1 ký tự đặc biệt");
             setAlert(true);
             setTimeout(() => setAlert(false), 1100);
             return false;
         }
         if (newPassword !== reNewPassword) {
             setIcon("error");
-            setTitle("Mật khẩu nhập lại không khớp");
+            setTitle("Nhập lại mật khẩu chưa chính xác");
             setAlert(true);
             setTimeout(() => setAlert(false), 1100);
             return false;
         }
-
 
         return true;
     };
@@ -51,8 +62,6 @@ export default function ChangePwScreen() {
         if (!validatePassword()) return;
 
         try {
-            const userStr = await SecureStore.getItemAsync("userInfo");
-            const user = JSON.parse(userStr);
             const response = await apiClient.post(`/auth/change-password`, {
                 currentPassword,
                 newPassword
@@ -60,7 +69,7 @@ export default function ChangePwScreen() {
 
             if (response.data.success) {
                 setIcon("success");
-                setTitle("Đổi mật khẩu thành công");
+                setTitle("Mật khẩu đã được đặt lạ");
                 setAlert(true);
 
                 setTimeout(() => router.back(), 1200);
@@ -83,7 +92,7 @@ export default function ChangePwScreen() {
         <SafeAreaView style={LAYOUT.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
-                    <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in")}>
+                    <TouchableOpacity onPress={() => router.back()}>
                         <Ionicons name="chevron-back-outline" size={22} color={COLORS.heading} />
                     </TouchableOpacity>
 
@@ -118,16 +127,16 @@ export default function ChangePwScreen() {
                     <TextInput
                         placeholder="********"
                         placeholderTextColor={COLORS.paragraph}
-                        secureTextEntry={!showPassword}
+                        secureTextEntry={!showNewPassword}
                         style={[LAYOUT.wFull, TEXT.paragraph]}
                         value={newPassword}
                         onChangeText={setNewPassword}
                     />
 
                     <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
+                        onPress={() => setShowNewPassword(!showNewPassword)}
                     >
-                        <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
+                        <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showNewPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
                     </TouchableOpacity>
                 </View>
 
@@ -137,23 +146,23 @@ export default function ChangePwScreen() {
                     <TextInput
                         placeholder="********"
                         placeholderTextColor={COLORS.paragraph}
-                        secureTextEntry={!showPassword}
+                        secureTextEntry={!showReNewPassword}
                         style={[LAYOUT.wFull, TEXT.paragraph]}
                         value={reNewPassword}
                         onChangeText={setReNewPassword}
                     />
 
                     <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
+                        onPress={() => setShowReNewPassword(!showReNewPassword)}
                     >
-                        <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
+                        <Ionicons style={[TEXT.size(20), { color: COLORS.heading }]} name={showReNewPassword ? "eye-off-outline" : "eye-outline"}></Ionicons>
                     </TouchableOpacity>
                 </View>
 
                 <View>
-                    <Text style={[TEXT.subText, TEXT.size(14), { color: COLORS.heading }]}>Mật khẩu phải: </Text>
-                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Có ít nhất 8 kí tự.</Text>
-                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Có ít nhất 1 kí tự đặc biệt.</Text>
+                    <Text style={[TEXT.subText, TEXT.size(14), { color: COLORS.heading }]}>Mật khẩu phải có: </Text>
+                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Ít nhất 8 kí tự.</Text>
+                    <Text style={[TEXT.subText]}><Ionicons name="ellipse-outline" size={8} color={COLORS.heading}></Ionicons> Ít nhất 1 kí tự đặc biệt.</Text>
                 </View>
 
                 <TouchableOpacity style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.mt(44), LAYOUT.rounded(20)]} onPress={handleChangePassword}>

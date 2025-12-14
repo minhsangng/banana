@@ -47,8 +47,29 @@ export default function CheckoutScreen() {
     const [hour, setHour] = useState(0);
     const [minute, setMinute] = useState(0);
 
-    const hours = [...Array(24)].map((_, i) => ({ label: String(i).padStart(2, "0"), value: i }));
-    const minutes = [...Array(60)].map((_, i) => ({ label: String(i).padStart(2, "0"), value: i }));
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    const hours = Array
+        .from({ length: 11 }, (_, i) => i + 6)
+        .filter(h => h > currentHour || h === currentHour)
+        .map(h => ({
+            label: String(h).padStart(2, "0"),
+            value: h,
+        }));
+
+    const minutes = Array
+        .from({ length: 60 }, (_, i) => i)
+        .filter(m => {
+            if (hour === currentHour) return m > currentMinute;
+            if (hour === 17) return m <= 15;
+            return true;
+        })
+        .map(m => ({
+            label: String(m).padStart(2, "0"),
+            value: m,
+        }));
 
     const timerOrder = () => {
         setStatus("edit");
@@ -65,7 +86,7 @@ export default function CheckoutScreen() {
                             borderWidth: 1,
                         }}
                         items={hours}
-                        initialSelectedIndex={hour}
+                        initialSelectedIndex={0}
                         onChange={({ item }) => setHour(item.value)}
                     />
                     <WheelPickerExpo
@@ -77,7 +98,7 @@ export default function CheckoutScreen() {
                             borderWidth: 1,
                         }}
                         items={minutes}
-                        initialSelectedIndex={minute}
+                        initialSelectedIndex={0}
                         onChange={({ item }) => setMinute(item.value)}
                     />
                 </View>
@@ -283,7 +304,7 @@ export default function CheckoutScreen() {
             const { data } = await axios.post(`${API_URL}/checkout`, {
                 userId,
                 address,
-                timer: (hour !== 0 && minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Hẹn giao",
+                timer: (hour !== 0 || minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Giao ngay",
                 note
             });
 
@@ -403,7 +424,7 @@ export default function CheckoutScreen() {
                                 <Text style={[TEXT.text]}>Thông tin đơn hàng</Text>
                                 <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter]} onPress={() => timerOrder()}>
                                     <Text style={[TEXT.subText, TEXT.size(14), LAYOUT.mr(4), { color: COLORS.paragraph }]}>
-                                        {(hour !== 0 && minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Hẹn giao"}
+                                        {(hour !== 0 || minute !== 0) ? (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) : "Hẹn giao"}
                                     </Text>
                                     <Ionicons name="time-outline" size={14} color={COLORS.paragraph} />
                                 </TouchableOpacity>

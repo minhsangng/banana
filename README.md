@@ -55,7 +55,11 @@ npm i react-native-wheel-picker-expo
 ```
 
 ```bash
-npm i react-native-qrcode-svg vietnam-qr-pay
+npm i react-native-chart-kit react-native-svg
+```
+
+```bash
+npm i @react-native-community/datetimepicker
 ```
 
 ```bash

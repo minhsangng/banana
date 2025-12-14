@@ -1,5 +1,5 @@
-import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions } from "react-native";
-import { useState, useEffect } from "react";
+import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions, RefreshControl } from "react-native";
+import { useState, useEffect, useCallback } from "react";
 import { COLORS } from "../../../constants/colors";
 import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { API_URL } from "../../../constants/api";
 import ToastModal from "../../../components/ToastModal";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 const { width, height } = Dimensions.get("window");
 
@@ -17,7 +18,6 @@ export default function EmployeeScreen() {
     const [userId, setUserId] = useState(null);
     const [icon, setIcon] = useState(false);
     const [title, setTitle] = useState(false);
-    const [content, setContent] = useState(null);
     const [alert, setAlert] = useState(false);
 
     const [fullName, setFullName] = useState("");
@@ -25,43 +25,130 @@ export default function EmployeeScreen() {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
 
-    const [error, setError] = useState("");
+    const [errorName, setErrorName] = useState("");
+    const [errorEmail, setErrorEmail] = useState("");
+    const [errorPhone, setErrorPhone] = useState("");
+    const [errorPass, setErrorPass] = useState("");
+
     const [role, setRole] = useState(true);
 
-    const initData = async () => {
-        const userStr = await SecureStore.getItemAsync("userInfo");
-        if (userStr) setIsLogin(true);
-        const user = JSON.parse(userStr);
+    const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
-        if (user.role === "Employee") {
-            setRole(false);
-            return;
-        } else {
-            setUserId(user.userId);
+    const loadEmployees = async () => {
+        try {
+            setLoading(true);
+            const userStr = await SecureStore.getItemAsync("userInfo");
+            if (userStr) setIsLogin(true);
+            const user = JSON.parse(userStr);
 
-            const { data } = await axios.get(`${API_URL}/employees/${user.userId}`);
-            setEmployees(data);
+            if (user.role === "Employee") {
+                setRole(false);
+                return;
+            } else {
+                setUserId(user.userId);
+
+                const { data } = await axios.get(`${API_URL}/employees/${user.userId}`);
+                setEmployees(data);
+            }
+            setLoading(false);
+        } catch (error) {
+            console.log("Lỗi lấy danh sách nhân viên: ", error);
         }
     };
 
-    const addEmployee = async () => {
+    const updateStatus = async (userId, status) => {
         try {
-            if (email === "" || password === "" || fullName === "") {
-                setError("* Chưa nhập đầy đủ thông tin");
-            } else {
-                const { data } = await axios.post(`${API_URL}/employee/add`, {
-                    ownerId: userId,
-                    fullName,
-                    email,
-                    phoneNumber,
-                    password
-                });
+            const { data } = await axios.get(`${API_URL}/ownerupdatestatusemployee/${userId}/${status === "Active" ? "Inactive" : "Active"}`);
 
-                setIcon(data.success ? "success" : "error");
-                setTitle(data.message);
-                setContent(null);
+            setIcon(data.success ? "success" : "error");
+            setTitle(data.message);
+
+            setAlert(true);
+            setTimeout(() => (setAlert(false), loadEmployees()), 1000);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const validate = () => {
+        let isValid = true;
+
+        setErrorName("");
+        setErrorEmail("");
+        setErrorPhone("");
+        setErrorPass("");
+
+        if (!fullName.trim()) {
+            setErrorName("Chưa nhập họ tên nhân viên");
+            isValid = false;
+        }
+        if (!email.trim()) {
+            setErrorEmail("Chưa nhập email");
+            isValid = false;
+        }
+        if (!phoneNumber.trim()) {
+            setErrorPhone("Chưa nhập số điện thoại");
+            isValid = false;
+        }
+        if (!password.trim()) {
+            setErrorPass("Chưa nhập mật khẩu");
+            isValid = false;
+        }
+
+        if (!isValid) return false;
+
+        if (password.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            setErrorPass("Mật khẩu phải từ 8 ký tự và có ít nhất 1 ký tự đặc biệt");
+            isValid = false;
+        }
+
+        const phoneRegex = /^0\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            setErrorPhone("Số liên hệ phải có 10 số và bắt đầu là 0");
+            isValid = false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setErrorEmail("Email chưa đúng định dạng (example@gmail.com)");
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
+    const clearForm = () => {
+        setFullName("");
+        setEmail("");
+        setPhoneNumber("");
+        setPassword("");
+
+        setErrorName("");
+        setErrorEmail("");
+        setErrorPhone("");
+        setErrorPass("");
+    };
+
+    const addEmployee = async () => {
+        if (!validate()) return;
+
+        try {
+            const { data: register } = await axios.post(`${API_URL}/auth/register`, {
+                fullName,
+                email,
+                phoneNumber,
+                password,
+                role: "Employee"
+            });
+
+            if (register.success) {
+                const { data: add } = await axios.post(`${API_URL}/employee/add`, { ownerId: userId });
+
+                setIcon(add.success ? "success" : "error");
+                setTitle(add.message);
                 setAlert(true);
-                setTitle(() => setAlert(false), 1100);
+                setTimeout(() => (setAlert(false), clearForm()), 1100);
             }
         } catch (error) {
             console.log(error);
@@ -71,19 +158,24 @@ export default function EmployeeScreen() {
     const contentAdd = () => {
         return (
             <View style={[LAYOUT.wFull, LAYOUT.mt(12)]}>
-                <Text style={[TEXT.text, TEXT.size(16)]}>Họ tên</Text>
-                <TextInput style={[LAYOUT.bg(COLORS.background2), LAYOUT.rounded(12), LAYOUT.px(12), LAYOUT.py(10), LAYOUT.mb(6)]} value={fullName} onChangeText={setFullName} />
-                <Text style={[TEXT.text, TEXT.size(16)]}>Email</Text>
-                <TextInput style={[LAYOUT.bg(COLORS.background2), LAYOUT.rounded(12), LAYOUT.px(12), LAYOUT.py(10), LAYOUT.mb(6)]} value={email} onChangeText={setEmail} />
-                <Text style={[TEXT.text, TEXT.size(16)]}>Liên hệ</Text>
-                <TextInput style={[LAYOUT.bg(COLORS.background2), LAYOUT.rounded(12), LAYOUT.px(12), LAYOUT.py(10), LAYOUT.mb(6)]} value={phoneNumber} onChangeText={setPhoneNumber} />
-                <Text style={[TEXT.text, TEXT.size(16)]}>Mật khẩu</Text>
-                <TextInput style={[LAYOUT.bg(COLORS.background2), LAYOUT.rounded(12), LAYOUT.px(12), LAYOUT.py(10), LAYOUT.mb(6)]} value={password} onChangeText={setPassword} />
+                <Text style={[TEXT.text, TEXT.size(16)]}>Họ tên <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>*</Text></Text>
+                <TextInput style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={fullName} onChangeText={setFullName} />
+                {errorName !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorName}</Text>}
 
-                <Text style={[TEXT.paragraph, LAYOUT.py(4), LAYOUT.color(COLORS.heading)]}>{error}</Text>
+                <Text style={[TEXT.text, TEXT.size(16)]}>Email <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>*</Text></Text>
+                <TextInput keyboardType="email-address" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={email} onChangeText={setEmail} />
+                {errorEmail !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorEmail}</Text>}
+
+                <Text style={[TEXT.text, TEXT.size(16)]}>Liên hệ <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>*</Text></Text>
+                <TextInput keyboardType="number-pad" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={phoneNumber} onChangeText={setPhoneNumber} />
+                {errorPhone !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPhone}</Text>}
+
+                <Text style={[TEXT.text, TEXT.size(16)]}>Mật khẩu <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>*</Text></Text>
+                <TextInput keyboardType="visible-password" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={password} onChangeText={setPassword} />
+                {errorPass !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPass}</Text>}
 
                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.gap(8), LAYOUT.mt(32)]}>
-                    <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.bg(COLORS.background3), LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(12)]}>
+                    <TouchableOpacity onPress={() => (setAlert(false), clearForm())} style={[LAYOUT.bg(COLORS.background3), LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(12)]}>
                         <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Hủy</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => addEmployee()} style={[LAYOUT.bg(COLORS.button), LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(12)]}>
@@ -95,48 +187,63 @@ export default function EmployeeScreen() {
     }
 
     useEffect(() => {
-        initData();
+        loadEmployees();
     }, []);
 
-    if (!role) return <View style={[LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.h(height), LAYOUT.w(width)]}><Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Không có quyền truy cập</Text></View>;
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadEmployees().finally(() => setRefreshing(false));
+    }, []);
 
     return (
         <View style={[LAYOUT.container]}>
             <NavBar isLogin={isLogin} heading={"Nhân viên"} />
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.77), { overflow: "hidden" }]}>
-                <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
-                    <TouchableOpacity onPress={() => (setIcon("edit"), setTitle("Tạo tài khoản nhân viên"), setContent(contentAdd), setError(""), setAlert(true))} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(4), LAYOUT.mb(20), LAYOUT.pb(2), LAYOUT.borderb(1, COLORS.background3)]}>
-                        <Ionicons name="add-outline" color={COLORS.button} size={16}></Ionicons>
-                        <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Tạo tài khoản</Text>
-                    </TouchableOpacity>
-                    <FlatList
-                        data={employees}
-                        keyExtractor={(item) => item.employeeId.toString()}
-                        numColumns={1}
-                        showsVerticalScrollIndicator={false}
-                        renderItem={({ item }) => {
-                            return (
-                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.pb(6), LAYOUT.mb(12), LAYOUT.borderb(1, COLORS.background4), { borderStyle: "dashed" }]}>
-                                    <View style={[LAYOUT.row, LAYOUT.gap(5)]}>
-                                        <Text style={[LAYOUT.w(20)]}>#{item.employeeId}</Text>
-                                        <View>
-                                            <Text>{item.fullName}</Text>
-                                            <Text>{item.phoneNumber}</Text>
+                {loading ? <LoadingSpinner /> : !role ? (<View style={[LAYOUT.justifyCenter, LAYOUT.itemsCenter, LAYOUT.h(height * 2 / 3), LAYOUT.w(width), LAYOUT.gap(14)]}><Ionicons name="ban" size={44} color={COLORS.heading}></Ionicons><Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Chức năng dành cho chủ quán</Text></View>)
+                    : (
+                        <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
+                            <TouchableOpacity onPress={() => (setIcon("add"), setTitle("Thêm nhân viên mới"), setAlert(true))} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(4), LAYOUT.mb(20), LAYOUT.pb(2), LAYOUT.borderb(1, COLORS.background3)]}>
+                                <Ionicons name="add-outline" color={COLORS.button} size={16}></Ionicons>
+                                <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Thêm nhân viên</Text>
+                            </TouchableOpacity>
+                            {employees.length === 0 && <Text style={[TEXT.paragraph, TEXT.center]}>Danh sách nhân viên đang trống</Text>}
+                            <FlatList
+                                data={employees}
+                                keyExtractor={(item) => item.employeeId.toString()}
+                                numColumns={1}
+                                showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                }
+                                renderItem={({ item }) => {
+                                    return (
+                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.pb(6), LAYOUT.mb(12), LAYOUT.borderb(1, COLORS.background4), { borderStyle: "dashed" }]}>
+                                            <View style={[LAYOUT.row, LAYOUT.gap(5)]}>
+                                                <Text style={[TEXT.text, LAYOUT.w(30)]}>#{item.employeeId}</Text>
+                                                <View>
+                                                    <View style={[LAYOUT.row, LAYOUT.itemsCenter]}>
+                                                        <Text style={[TEXT.text, TEXT.size(18)]} numberOfLines={1}>{item.fullName}</Text>
+                                                        <Ionicons name="ellipse" color={item.status === "Active" ? "#73AF6F" : COLORS.heading} size={10} style={[LAYOUT.ml(8), LAYOUT.mr(4)]}></Ionicons>
+                                                        <Text style={[TEXT.subText]}>{item.status === "Active" ? "Đang làm việc" : "Đã nghỉ việc"}</Text>
+                                                    </View>
+                                                    <Text style={[TEXT.paragraph, TEXT.size(16)]}>{item.phoneNumber}</Text>
+                                                </View>
+                                            </View>
+                                            <View>
+                                                <TouchableOpacity onPress={() => updateStatus(item.userId, item.status)} style={[LAYOUT.bg(COLORS.background3), LAYOUT.rounded(12), LAYOUT.py(4), LAYOUT.px(10), LAYOUT.w(70), LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)]}>
+                                                    <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.color(COLORS.heading)]}>{item.status === "Active" ? "Khóa" : "Mở"}</Text>
+                                                    <Ionicons name={item.status === "Active" ? "download-outline" : "share-outline"} size={14} color={COLORS.heading}></Ionicons>
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
-                                    </View>
-                                    <View>
-                                        <TouchableOpacity style={[LAYOUT.bg(COLORS.background3), LAYOUT.w(60), LAYOUT.rounded(12), LAYOUT.py(4)]}>
-                                            <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.color(COLORS.heading)]}>Khóa</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            );
-                        }}
-                    />
-                </View>
+                                    );
+                                }}
+                            />
+                        </View>
+                    )}
             </View>
 
-            <ToastModal status={icon} title={title} content={content} visible={alert} />
+            <ToastModal status={icon} title={title} content={icon === "add" ? contentAdd : null} visible={alert} />
         </View>
     );
 }

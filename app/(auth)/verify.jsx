@@ -5,7 +5,6 @@ import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import ToastModal from "../../components/ToastModal";
-import * as SecureStore from "expo-secure-store";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
 
@@ -18,31 +17,53 @@ export default function VerifyPassScreen() {
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
     const [alert, setAlert] = useState(false);
+    
+    const [errorCode, setErrorCode] = useState("");
+    const [errorPass, setErrorPass] = useState("");
+    
+    const validate = () => {
+        let isValid = true;
+
+        setErrorPass("");
+        
+        if (!code.trim()) {
+            setErrorCode("Chưa nhập mã khôi phục");
+            isValid = false;
+        }
+        if (!pass.trim()) {
+            setErrorPass("Chưa nhập mật khẩu");
+            isValid = false;
+        }
+
+        if (!isValid) return false;
+
+        if (pass.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
+            setErrorPass("Mật khẩu phải từ 8 ký tự và có ít nhất 1 ký tự đặc biệt");
+            isValid = false;
+        }
+
+        return isValid;
+    };
 
     const handleForgot = async () => {
-        if (code === "") {
-            setIcon("error");
-            setTitle("Nhập mã khôi phục");
-            setAlert(true);
-
-            setTimeout(() => setAlert(false), 1100);
-        }
+        if (!validate()) return;
+        
         try {
-            const userStr = await SecureStore.getItemAsync("userInfo");
-            const refreshToken = JSON.parse(userStr).refreshToken;
-            const { data } = await axios.post(`${API_URL}/auth/verify-otp`, { otp: code, resetToken: refreshToken });
+            const { data: verify } = await axios.post(`${API_URL}/auth/verify-otp`, { otp: code });
+            
+            if (verify.success) {
+                const { data: reset } = await axios.post(`${API_URL}/auth/reset-password`, { userId: verify.userId, newPassword: pass });
 
-            if (data.allowReset) {
-                const { data } = await axios.post(`${API_URL}/reset-password`, { resetToken: refreshToken, newPassword: pass })
-
-                setIcon(data.success ? "success" : "error");
-                setTitle(data.success ? "Khôi phục mật khẩu thành công" : "Khôi phục mật khẩu thất bại");
+                setIcon(reset.success ? "success" : "error");
+                setTitle(reset.message);
                 setAlert(true);
-                setTimeout(() => (setAlert(false), router.replace("./sign-in")), 1100);
+                if (reset.success)
+                    setTimeout(() => router.replace("./sign-in"), 1100);
+                setTimeout(() => setAlert(false), 1100);
             }
         } catch (err) {
             setIcon("error");
-            setTitle(err.response?.data?.message || "Lỗi hệ thống");
+            setTitle(err.response?.data?.message || "Lỗi xác thực OTP");
             setAlert(true);
 
             setTimeout(() => setAlert(false), 1100);
@@ -61,13 +82,14 @@ export default function VerifyPassScreen() {
                 </View>
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82), LAYOUT.pt(32), LAYOUT.px(24)]}>
-                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Mã khôi phục</Text>
+                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(12)]}>Mã khôi phục</Text>
                 <TextInput
                     placeholder=""
                     value={code}
                     onChangeText={setCode}
-                    style={[LAYOUT.rounded(12), LAYOUT.py(10), LAYOUT.px(12), LAYOUT.bg(COLORS.background3), LAYOUT.color(COLORS.paragraph), TEXT.subText, TEXT.size(16)]}
+                    style={[LAYOUT.rounded(12), LAYOUT.py(14), LAYOUT.px(18), LAYOUT.bg(COLORS.background3), LAYOUT.color(COLORS.paragraph), TEXT.subText, TEXT.size(16)]}
                 />
+                {errorCode !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorCode}</Text>}
 
                 <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Mật khẩu mới</Text>
                 <TextInput
@@ -76,9 +98,10 @@ export default function VerifyPassScreen() {
                     onChangeText={setPass}
                     style={[LAYOUT.rounded(12), LAYOUT.py(10), LAYOUT.px(12), LAYOUT.bg(COLORS.background3), LAYOUT.color(COLORS.paragraph), TEXT.subText, TEXT.size(16)]}
                 />
+                {errorPass !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPass}</Text>}
 
                 <TouchableOpacity onPress={handleForgot} style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.mt(44), LAYOUT.rounded(20)]}>
-                    <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Nhận mã khôi phục</Text>
+                    <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Xác nhận</Text>
                 </TouchableOpacity>
             </View>
 

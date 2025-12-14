@@ -16,17 +16,16 @@
         "foregroundImage": "./assets/images/main-logo.png",
         "backgroundColor": "#F4DA1F"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.minhsangg.banana"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/main-logo.png"
     },
-
     "plugins": [
       "expo-router",
-
       [
         "expo-splash-screen",
         {
@@ -36,14 +35,12 @@
           "backgroundColor": "#F4DA1F"
         }
       ],
-
       [
         "expo-notifications",
         {
           "icon": "./assets/images/main-logo.png"
         }
       ],
-
       [
         "expo-font",
         {
@@ -53,11 +50,9 @@
           ]
         }
       ],
-
       "expo-secure-store",
       "expo-web-browser"
     ],
-
     "experiments": {
       "typedRoutes": true
     },

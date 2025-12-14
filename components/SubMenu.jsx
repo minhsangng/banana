@@ -22,27 +22,10 @@ export default function SubMenu({ visible, setVisible, type }) {
     const [header, setHeader] = useState("");
 
     const [dataCart, setDataCart] = useState([]);
-    const [notifyList, setNotifyList] = useState([]);
 
     const [user, setUser] = useState([]);
     const [totalCart, setTotalCart] = useState(0);
     const [alert, setAlert] = useState(false);
-
-    const loadNotify = async () => {
-        try {
-            const userStr = await SecureStore.getItemAsync("userInfo");
-
-            if (!userStr) return;
-
-            const uid = JSON.parse(userStr).userId;
-            const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
-
-            setNotifyList(data || []);
-
-        } catch (error) {
-            console.log("Load notify failed:", error);
-        }
-    };
 
     const loadCart = async () => {
         try {
@@ -91,18 +74,7 @@ export default function SubMenu({ visible, setVisible, type }) {
             setUser(user);
         }
         await loadCart();
-        await loadNotify();
     };
-
-    useEffect(() => {
-        if (type === "notify") {
-            const interval = setInterval(() => {
-                loadNotify();
-            }, 6000);
-
-            return () => clearInterval(interval);
-        }
-    }, [type]);
 
     useEffect(() => {
         loadData();
@@ -112,14 +84,6 @@ export default function SubMenu({ visible, setVisible, type }) {
                 <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
                     <Ionicons name="cart-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), { backgroundColor: COLORS.textLight }]} />
                     <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Giỏ Hàng</Text>
-                </View>
-            );
-        }
-        else if (type === "notify") {
-            setHeader(
-                <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.pt(22)]}>
-                    <Ionicons name="notifications-outline" size={32} color={COLORS.heading} style={[LAYOUT.rounded(22), LAYOUT.p(4), { backgroundColor: COLORS.textLight }]} />
-                    <Text style={[TEXT.heading, LAYOUT.ml(20), LAYOUT.pt(6)]}>Thông Báo</Text>
                 </View>
             );
         }
@@ -228,154 +192,116 @@ export default function SubMenu({ visible, setVisible, type }) {
                     {header}
                 </View>
                 <View style={[LAYOUT.w(SUBMENU_WIDTH - 60), LAYOUT.mx()]}>
-                    {type !== "cart" ?
-                        type !== "notify" ? (<View style={[LAYOUT.pb(12), LAYOUT.relative, LAYOUT.hFull]}>
-                            <TouchableOpacity onPress={() => router.push("../../account/")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
-                                <Ionicons name="person-outline" size={24} color={COLORS.textLight} />
-                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Thông tin tài khoản</Text>
-                            </TouchableOpacity>
+                    {type !== "cart" ? (<View style={[LAYOUT.pb(12), LAYOUT.relative, LAYOUT.hFull]}>
+                        <TouchableOpacity onPress={() => router.push("../../account/")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <Ionicons name="person-outline" size={24} color={COLORS.textLight} />
+                            <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Thông tin tài khoản</Text>
+                        </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => router.push("../(auth)/change-password")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
-                                <Ionicons name="key-outline" size={24} color={COLORS.textLight} />
-                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Đặt lại mật khẩu</Text>
-                            </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push("../(auth)/change-password")} style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <Ionicons name="key-outline" size={24} color={COLORS.textLight} />
+                            <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Đặt lại mật khẩu</Text>
+                        </TouchableOpacity>
 
-                            <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
-                                <Ionicons name="cog-outline" size={24} color={COLORS.textLight} />
-                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Cài đặt</Text>
-                            </TouchableOpacity>
+                        <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pt(20), LAYOUT.pb(22)]}>
+                            <Ionicons name="cog-outline" size={24} color={COLORS.textLight} />
+                            <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>Cài đặt</Text>
+                        </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[
-                                    LAYOUT.row,
-                                    LAYOUT.itemsCenter,
-                                    LAYOUT.absolute,
-                                    LAYOUT.bottom(250)
-                                ]}
-                                onPress={() => setAlert(true)}
-                            >
-                                <Ionicons name="log-out-outline" size={24} color={COLORS.textLight} />
-                                <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>
-                                    Đăng xuất
-                                </Text>
-                            </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                LAYOUT.row,
+                                LAYOUT.itemsCenter,
+                                LAYOUT.absolute,
+                                LAYOUT.bottom(250)
+                            ]}
+                            onPress={() => setAlert(true)}
+                        >
+                            <Ionicons name="log-out-outline" size={24} color={COLORS.textLight} />
+                            <Text style={[TEXT.text, LAYOUT.ml(14), { color: COLORS.textLight }]}>
+                                Đăng xuất
+                            </Text>
+                        </TouchableOpacity>
 
-                            <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert} />
+                        <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Chắc chắn đăng xuất"} content={contentLogout} visible={alert} />
+                    </View>
+                    ) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
+                        <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                            Đăng nhập để thêm giỏ hàng
+                        </Text>
+                    </View>) : dataCart.length === 0 ? (<View style={[LAYOUT.pt(12)]}>
+                        <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
+                            Giỏ hàng trống!
+                        </Text>
+                    </View>) : (<View style={[LAYOUT.pt(12)]}>
+                        <Text style={[TEXT.paragraph, LAYOUT.mt(10), { color: COLORS.textLight }]}>
+                            {dataCart.length} món
+                        </Text>
 
-                        </View>) : (<View style={[LAYOUT.pt(12)]}>
+                        <FlatList
+                            style={[LAYOUT.h("65%")]}
+                            data={dataCart}
+                            extraData={dataCart}
+                            keyExtractor={(item) => item.order_items.orderItemId.toString()}
+                            renderItem={({ item }) => (
+                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pb(20), LAYOUT.pt(12), { borderStyle: "dashed" }]}>
+                                    <Image
+                                        source={formatImage(item.dishes.imageUrl)}
+                                        style={[LAYOUT.w(80), LAYOUT.h(80), LAYOUT.rounded(20)]}
+                                    />
 
-                            {notifyList.length === 0 ? (
-                                <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                                    Thông báo trống!
-                                </Text>
-                            ) : (
-                                <FlatList
-                                    data={notifyList}
-                                    keyExtractor={(item, index) => index.toString()}
-                                    style={[LAYOUT.h("80%")]}
-                                    renderItem={({ item }) => (
-                                        <View
-                                            style={[
-                                                LAYOUT.row,
-                                                LAYOUT.justifyBetween,
-                                                LAYOUT.borderb(1, COLORS.background3),
-                                                LAYOUT.py(12)
-                                            ]}
-                                        >
-                                            <Ionicons
-                                                name="notifications-outline"
-                                                size={24}
-                                                color={COLORS.textLight}
-                                            />
-
-                                            <View style={[LAYOUT.w("80%")]}>
-                                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>
-                                                    Đã có {item.count} người đặt món {item.dishName}
-                                                </Text>
-                                            </View>
+                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.w("68%")]}>
+                                        <View style={[LAYOUT.w("60%")]}>
+                                            <Text style={[TEXT.text, { color: COLORS.textLight }]} numberOfLines={1}>
+                                                {item.dishes.dishName}
+                                            </Text>
+                                            <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>
+                                                {formatPrice(item.dishes.price)}
+                                            </Text>
                                         </View>
-                                    )}
-                                />
-                            )}
 
-                        </View>
-                        ) : (!isLogin ? (<View style={[LAYOUT.pt(12)]}>
-                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                                Đăng nhập để thêm giỏ hàng
-                            </Text>
-                        </View>) : dataCart.length === 0 ? (<View style={[LAYOUT.pt(12)]}>
-                            <Text style={[TEXT.paragraph, TEXT.center, { color: COLORS.textLight }]}>
-                                Giỏ hàng trống!
-                            </Text>
-                        </View>) : (<View style={[LAYOUT.pt(12)]}>
-                            <Text style={[TEXT.paragraph, LAYOUT.mt(10), { color: COLORS.textLight }]}>
-                                {dataCart.length} món
-                            </Text>
+                                        <View style={[LAYOUT.justifyBetween, { alignItems: "flex-end" }]}>
+                                            <Text style={[TEXT.subText, TEXT.size(14), { color: COLORS.textLight }]}>
+                                                {formatPrice(item.dishes.price * item.order_items.quantity)}
+                                            </Text>
 
-                            <FlatList
-                                style={[LAYOUT.h("65%")]}
-                                data={dataCart}
-                                extraData={dataCart}
-                                keyExtractor={(item) => item.order_items.orderItemId.toString()}
-                                renderItem={({ item }) => (
-                                    <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.borderb(1, COLORS.background2), LAYOUT.pb(20), LAYOUT.pt(12), { borderStyle: "dashed" }]}>
-                                        <Image
-                                            source={formatImage(item.dishes.imageUrl)}
-                                            style={[LAYOUT.w(80), LAYOUT.h(80), LAYOUT.rounded(20)]}
-                                        />
+                                            <View style={[LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
+                                                <TouchableOpacity
+                                                    style={[LAYOUT.rounded(20), { backgroundColor: COLORS.textLight }]}
+                                                    onPress={() => item.order_items.quantity > 1 && updateQuantity(item.order_items.orderItemId, item.order_items.quantity - 1)}
+                                                >
+                                                    <Ionicons size={20} color={COLORS.button} name="remove-outline" />
+                                                </TouchableOpacity>
 
-                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.w("68%")]}>
-                                            <View style={[LAYOUT.w("60%")]}>
-                                                <Text style={[TEXT.text, { color: COLORS.textLight }]} numberOfLines={1}>
-                                                    {item.dishes.dishName}
-                                                </Text>
-                                                <Text style={[TEXT.paragraph, { color: COLORS.textLight }]}>
-                                                    {formatPrice(item.dishes.price)}
-                                                </Text>
-                                            </View>
-
-                                            <View style={[LAYOUT.justifyBetween, { alignItems: "flex-end" }]}>
-                                                <Text style={[TEXT.subText, TEXT.size(14), { color: COLORS.textLight }]}>
-                                                    {formatPrice(item.dishes.price * item.order_items.quantity)}
+                                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>
+                                                    {item.order_items.quantity}
                                                 </Text>
 
-                                                <View style={[LAYOUT.row, LAYOUT.itemsCenter, { gap: 6 }]}>
-                                                    <TouchableOpacity
-                                                        style={[LAYOUT.rounded(20), { backgroundColor: COLORS.textLight }]}
-                                                        onPress={() => item.order_items.quantity > 1 && updateQuantity(item.order_items.orderItemId, item.order_items.quantity - 1)}
-                                                    >
-                                                        <Ionicons size={20} color={COLORS.button} name="remove-outline" />
-                                                    </TouchableOpacity>
-
-                                                    <Text style={[TEXT.text, { color: COLORS.textLight }]}>
-                                                        {item.order_items.quantity}
-                                                    </Text>
-
-                                                    <TouchableOpacity
-                                                        style={[LAYOUT.rounded(20), { backgroundColor: COLORS.textLight }]}
-                                                        onPress={() => updateQuantity(item.order_items.orderItemId, item.order_items.quantity + 1)}
-                                                    >
-                                                        <Ionicons size={20} color={COLORS.button} name="add-outline" />
-                                                    </TouchableOpacity>
-                                                </View>
+                                                <TouchableOpacity
+                                                    style={[LAYOUT.rounded(20), { backgroundColor: COLORS.textLight }]}
+                                                    onPress={() => updateQuantity(item.order_items.orderItemId, item.order_items.quantity + 1)}
+                                                >
+                                                    <Ionicons size={20} color={COLORS.button} name="add-outline" />
+                                                </TouchableOpacity>
                                             </View>
                                         </View>
                                     </View>
-                                )}
-                            />
+                                </View>
+                            )}
+                        />
 
-                            <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.bordert(1, COLORS.background4), LAYOUT.pt(12), LAYOUT.mb(40)]}>
-                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>Tổng đơn</Text>
-                                <Text style={[TEXT.text, { color: COLORS.textLight }]}>{formatPrice(totalCart)} đ</Text>
-                            </View>
+                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.bordert(1, COLORS.background4), LAYOUT.pt(12), LAYOUT.mb(40)]}>
+                            <Text style={[TEXT.text, { color: COLORS.textLight }]}>Tổng đơn</Text>
+                            <Text style={[TEXT.text, { color: COLORS.textLight }]}>{formatPrice(totalCart)} đ</Text>
+                        </View>
 
-                            <TouchableOpacity onPress={() => router.push("../checkout/")} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
-                                <Text style={[TEXT.text, TEXT.size(24), TEXT.center, { color: COLORS.heading }]}>Thanh toán</Text>
-                            </TouchableOpacity>
-                        </View>))
+                        <TouchableOpacity onPress={() => router.push("../checkout/")} style={[LAYOUT.rounded(30), LAYOUT.py(12), { backgroundColor: COLORS.background1 }]}>
+                            <Text style={[TEXT.text, TEXT.size(24), TEXT.center, { color: COLORS.heading }]}>Thanh toán</Text>
+                        </TouchableOpacity>
+                    </View>))
                     }
                 </View>
-            </Animated.View>
-        </View>
+            </Animated.View >
+        </View >
     );
 }

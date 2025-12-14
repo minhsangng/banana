@@ -195,7 +195,7 @@ export const LAYOUT = StyleSheet.create({
   gap: (c) => ({
     gap: c,
   }),
-  overflowHidde: {
+  overflowHidden: {
     overflow: "hidden",
   },
   overflowScroll: {
