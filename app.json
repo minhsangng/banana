@@ -56,7 +56,8 @@
         "expo-build-properties",
         {
           "android": {
-            "enablePngCrunchInReleaseBuilds": false
+            "enablePngCrunchInReleaseBuilds": false,
+            "buildType": "apk"
           }
         }
       ]
