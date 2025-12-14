@@ -222,7 +222,7 @@ export default function HomeScreen() {
             <View style={[LAYOUT.container]}>
                 <NavBar isLogin={isLogin} heading={"Trang chủ"} />
                 <View style={[LAYOUT.main, LAYOUT.h(height * 0.77), { overflow: "hidden" }]}>
-                    {!role ? (<ImageBackground source={require("../../../assets/images/background-dashboard.png")} style={[LAYOUT.w(width), LAYOUT.h(height)]} />) : loading ? <LoadingSpinner />
+                    {!role ? (<ImageBackground source={require("../../../assets/images/background_dashboard.png")} style={[LAYOUT.w(width), LAYOUT.h(height)]} />) : loading ? <LoadingSpinner />
                         : (
                             <ScrollView style={[LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.mt(44)]}
                                 showsVerticalScrollIndicator={false}

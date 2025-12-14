@@ -4,32 +4,32 @@
     "slug": "banana",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/main-logo.png",
+    "icon": "./assets/images/main_logo.png",
     "scheme": "banana",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/main-logo.png",
+        "foregroundImage": "./assets/images/main_logo.png",
         "backgroundColor": "#F4DA1F"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.minhsangg.banana"
+      "package": "com.minhsangg.banana",
+      "permissions": ["INTERNET", "ACCESS_FINE_LOCATION", "POST_NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/main-logo.png"
+      "favicon": "./assets/images/main_logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/main-logo.png",
+          "image": "./assets/images/main_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#F4DA1F"
@@ -38,7 +38,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/main-logo.png"
+          "icon": "./assets/images/main_logo.png"
         }
       ],
       [
@@ -51,7 +51,15 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enablePngCrunchInReleaseBuilds": false
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

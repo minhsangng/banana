@@ -14,7 +14,7 @@ export function formatPrice(price) {
 };
 
 export function formatImage(uri) {
-  const defaultSource = require("../assets/images/background-default.png");
+  const defaultSource = require("../assets/images/background_default.png");
 
   if (!uri) return defaultSource;
 

@@ -60,7 +60,7 @@ export default function Splash() {
 
   return (
     <View style={[LAYOUT.container, LAYOUT.bg(COLORS.background1), LAYOUT.justifyCenter, LAYOUT.itemsCenter]}>
-      <Image source={require("../assets/images/main-logo.png")} />
+      <Image source={require("../assets/images/main_logo.png")} />
     </View>
   );
 }
