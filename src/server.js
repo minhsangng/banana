@@ -14,6 +14,7 @@ import {
   userPushTokens,
   rooms,
   employees,
+  reviews,
 } from "./db/schema.js";
 import {
   eq,
@@ -21,10 +22,11 @@ import {
   sql,
   and,
   ilike,
+  or,
+  isNull,
   desc,
   between,
   inArray,
-  notInArray,
 } from "drizzle-orm";
 import job from "./config/cron.js";
 import jobCancel from "./config/cronCancelOrder.js";
@@ -39,11 +41,12 @@ const PORT = ENV.PORT || 5001;
 
 const expo = new Expo();
 
-/* if (ENV.NODE_ENV === "production") */
-job.start();
-jobCancel.start();
-jobGroup.start();
-jobOrder.start();
+if (ENV.NODE_ENV === "production") {
+  job.start();
+  jobCancel.start();
+  jobGroup.start();
+  jobOrder.start();
+}
 
 app.use(
   cors({
@@ -114,6 +117,41 @@ app.get("/api/healthz", (req, res) => {
   res.status(200).json({ success: true });
 });
 
+async function generateOrderCode() {
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+  );
+
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+
+  const datePart = `${yy}${mm}${dd}`;
+
+  const todayPrefix = `DHB_${datePart}_`;
+
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(ilike(orders.orderCode, `${todayPrefix}%`));
+
+  const lastIndex =
+    rows.length > 0
+      ? Math.max(
+          ...rows.map((r) => {
+            const code = r.orderCode;
+            if (!code) return 0;
+            const m = String(code).match(/_(\d+)$/);
+            return m ? Number(m[1]) : 0;
+          })
+        )
+      : 0;
+
+  const newIndex = lastIndex + 1;
+
+  return `${todayPrefix}${newIndex.toString().padStart(3, "0")}`;
+}
+
 /* DISH API */
 /* Insert dishes */
 app.post("/api/dishes", async (req, res) => {
@@ -163,8 +201,9 @@ app.get("/api/search/:query", async (req, res) => {
     const q = `%${query}%`;
 
     const resultsSearch = await db
-      .select()
+      .select({ ...dishes, storeName: stores.storeName })
       .from(dishes)
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
       .where(and(ilike(dishes.dishName, q), eq(dishes.status, "Active")));
 
     res.status(200).json(resultsSearch);
@@ -199,39 +238,51 @@ app.get("/api/dishes/:categoryId", async (req, res) => {
 /* Select dish detail */
 app.get("/api/dish/:dishId/:userId", async (req, res) => {
   try {
-    const { dishId, userId } = req.params;
+    const dishId = Number(req.params.dishId);
+    const userId = Number(req.params.userId);
 
-    let results = [];
-    const userFavorites = await db
-      .select()
-      .from(favorites)
-      .where(
-        and(
-          eq(favorites.userId, parseInt(userId)),
-          eq(favorites.dishId, parseInt(dishId))
-        )
-      );
+    const results = await db
+      .select({
+        ...dishes,
 
-    if (userFavorites.length === 0) {
-      results = await db
-        .select()
-        .from(dishes)
-        .where(
-          and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
-        );
-    } else {
-      results = await db
-        .select({ ...dishes, favoriteId: favorites.favoriteId })
-        .from(dishes)
-        .innerJoin(favorites, eq(favorites.userId, parseInt(userId)))
-        .where(
-          and(eq(dishes.dishId, parseInt(dishId)), eq(dishes.status, "Active"))
-        );
-    }
+        avgRate: sql`
+          COALESCE(AVG(${reviews.rate}), 0)
+        `,
 
-    res.status(200).json(results);
+        reviews: sql`
+          COALESCE(
+            JSON_AGG(
+              DISTINCT JSONB_BUILD_OBJECT(
+                'reviewId', ${reviews.reviewId},
+                'userName', ${users.fullName},
+                'rate', ${reviews.rate},
+                'content', ${reviews.content}
+              )
+            ) FILTER (WHERE ${reviews.reviewId} IS NOT NULL),
+            '[]'
+          )
+        `,
+
+        isFavorite: sql`
+          CASE 
+            WHEN ${favorites.favoriteId} IS NULL THEN false
+            ELSE true
+          END
+        `,
+      })
+      .from(dishes)
+      .leftJoin(reviews, eq(reviews.dishId, dishes.dishId))
+      .leftJoin(users, eq(users.userId, reviews.userId))
+      .leftJoin(
+        favorites,
+        and(eq(favorites.dishId, dishes.dishId), eq(favorites.userId, userId))
+      )
+      .where(and(eq(dishes.dishId, dishId), eq(dishes.status, "Active")))
+      .groupBy(dishes.dishId, favorites.favoriteId);
+
+    res.status(200).json(results[0] ?? null);
   } catch (error) {
-    console.log("Error fetching the dishes", error);
+    console.log("Error fetching the dish", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
@@ -300,6 +351,30 @@ app.get("/api/ownerupdatestatusdish/:dishId/:status", async (req, res) => {
       message:
         (status === "Active" ? "Mở" : "Khóa") +
         " món " +
+        (results.rowsAffected !== 0 ? "thành công" : "thất bại"),
+    });
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/ownerupdatestatusemployee/:userId/:status", async (req, res) => {
+  try {
+    const { userId, status } = req.params;
+
+    const results = await db
+      .update(users)
+      .set({ status })
+      .where(eq(users.userId, parseInt(userId)));
+
+    res.json({
+      success: results.rowsAffected !== 0 ? true : false,
+      message:
+        (status === "Active" ? "Mở" : "Khóa") +
+        " nhân viên " +
         (results.rowsAffected !== 0 ? "thành công" : "thất bại"),
     });
 
@@ -475,6 +550,7 @@ app.get("/api/paymentinfo/:orderId/:userId/:role", async (req, res) => {
     if (role === "Owner") {
       const results = await db
         .select({
+          orderCode: orders.orderCode,
           totalAmount: orders.totalAmount,
           bankName: stores.bankName,
           bankNumber: stores.bankNumber,
@@ -603,34 +679,6 @@ app.get("/api/favorites/:userId", async (req, res) => {
 });
 
 /* ORDER API */
-/* Select revenue in limit range */
-app.get("/api/orders/:start/:end", async (req, res) => {
-  try {
-    const { start, end } = req.params;
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    if (isNaN(startDate) || isNaN(endDate)) {
-      return res.status(400).json({ error: "Ngày không hợp lệ" });
-    }
-
-    const results = await db
-      .select()
-      .from(orders)
-      .where(
-        and(
-          eq(orders.status, "Hoàn thành"),
-          between(orders.orderDate, startDate, endDate)
-        )
-      );
-
-    res.status(200).json(results);
-  } catch (error) {
-    console.log("Error fetching the orders", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
-
 /* Select all order */
 app.get("/api/orders/:userId", async (req, res) => {
   try {
@@ -694,20 +742,32 @@ app.get("/api/orderdetail/:orderId", async (req, res) => {
     const rows = await db
       .select({
         orderId: orders.orderId,
+        orderCode: orders.orderCode,
         orderStatus: orders.status,
         orderDate: orders.orderDate,
         totalAmount: orders.totalAmount,
         deliveryAddress: orders.deliveryAddress,
+
         orderItemId: orderItems.orderItemId,
         quantity: orderItems.quantity,
+
         dishId: dishes.dishId,
         dishName: dishes.dishName,
         dishPrice: dishes.price,
         dishImage: dishes.imageUrl,
+
+        reviewId: reviews.reviewId,
       })
       .from(orders)
       .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
       .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .leftJoin(
+        reviews,
+        and(
+          eq(reviews.dishId, orderItems.dishId),
+          eq(reviews.orderId, orders.orderId)
+        )
+      )
       .where(eq(orders.orderId, parseInt(orderId)));
 
     const grouped = {};
@@ -715,6 +775,7 @@ app.get("/api/orderdetail/:orderId", async (req, res) => {
       if (!grouped[row.orderId]) {
         grouped[row.orderId] = {
           orderId: row.orderId,
+          orderCode: row.orderCode,
           orderStatus: row.orderStatus,
           orderDate: row.orderDate,
           totalAmount: row.totalAmount,
@@ -730,6 +791,7 @@ app.get("/api/orderdetail/:orderId", async (req, res) => {
         dishName: row.dishName,
         dishPrice: row.dishPrice,
         dishImage: row.dishImage,
+        isReviewed: !!row.reviewId,
       });
     });
 
@@ -762,6 +824,7 @@ app.get("/api/currentorder/:userId", async (req, res) => {
       .where(
         and(
           eq(orders.userId, parseInt(userId)),
+          ne(orders.status, "Bị hủy"),
           ne(orders.status, "Hoàn thành"),
           ne(orders.status, "Giỏ hàng")
         )
@@ -802,6 +865,7 @@ app.get("/api/passorder/:userId", async (req, res) => {
     const rows = await db
       .select({
         orderId: orders.orderId,
+        orderCode: orders.orderCode,
         orderStatus: orders.status,
         totalAmount: orders.totalAmount,
         deliveryAddress: orders.deliveryAddress,
@@ -818,7 +882,7 @@ app.get("/api/passorder/:userId", async (req, res) => {
       .where(
         and(
           eq(orders.userId, parseInt(userId)),
-          notInArray(orders.status, ["Giỏ hàng", "Hoàn thành", "Bị hủy"])
+          inArray(orders.status, ["Hoàn thành", "Bị hủy"])
         )
       );
 
@@ -827,6 +891,7 @@ app.get("/api/passorder/:userId", async (req, res) => {
       if (!grouped[row.orderId]) {
         grouped[row.orderId] = {
           orderId: row.orderId,
+          orderCode: row.orderCode,
           orderStatus: row.orderStatus,
           totalAmount: row.totalAmount,
           deliveryAddress: row.deliveryAddress,
@@ -865,14 +930,20 @@ app.get("/api/ordersowner/:userId/:status", async (req, res) => {
       )
       .innerJoin(orders, eq(orders.orderId, groupOrderItems.orderId))
       .innerJoin(stores, eq(stores.storeId, groupOrders.storeId))
-      .innerJoin(users, eq(users.userId, parseInt(userId)))
+      .innerJoin(users, eq(users.userId, stores.userId))
       .where(
         and(
           status === "1"
-            ? inArray(orders.status, ["Đang chờ", "Đang giao", "Đang chuẩn bị"])
+            ? inArray(orders.status, [
+                "Đang chờ",
+                "Đang chuẩn bị",
+                "Đang giao",
+                "Đã đến",
+              ])
             : status === "2"
             ? eq(orders.status, "Hoàn thành")
-            : eq(orders.status, "Bị hủy")
+            : eq(orders.status, "Bị hủy"),
+          eq(stores.userId, parseInt(userId))
         )
       );
 
@@ -885,6 +956,7 @@ app.get("/api/ordersowner/:userId/:status", async (req, res) => {
     const rows = await db
       .select({
         orderId: orders.orderId,
+        orderCode: orders.orderCode,
         orderStatus: orders.status,
         orderDate: orders.orderDate,
         deliveryAddress: orders.deliveryAddress,
@@ -907,6 +979,7 @@ app.get("/api/ordersowner/:userId/:status", async (req, res) => {
       if (!grouped[row.orderId]) {
         grouped[row.orderId] = {
           orderId: row.orderId,
+          orderCode: row.orderCode,
           orderStatus: row.orderStatus,
           orderDate: row.orderDate,
           deliveryAddress: row.deliveryAddress,
@@ -939,30 +1012,29 @@ app.get("/api/employees/:ownerId", async (req, res) => {
     const results = await db
       .select({ ...employees })
       .from(stores)
-      .innerJoin(users, eq(users.userId, parseInt(ownerId)))
-      .innerJoin(employees, eq(employees.storeId, stores.storeId));
+      .innerJoin(users, eq(users.userId, stores.userId))
+      .innerJoin(employees, eq(employees.storeId, stores.storeId))
+      .where(eq(stores.userId, parseInt(ownerId)));
 
     if (results.length === 0) res.json([]);
-    else {
-      const employeeResults = await db
-        .select({
-          ...employees,
-          fullName: users.fullName,
-          email: users.email,
-          phoneNumber: users.phoneNumber,
-          status: users.status,
-        })
-        .from(employees)
-        .innerJoin(users, eq(users.userId, employees.userId))
-        .where(
-          inArray(
-            employees.employeeId,
-            results.map((r) => r.employeeId)
-          )
-        );
+    const employeeResults = await db
+      .select({
+        ...employees,
+        fullName: users.fullName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        status: users.status,
+      })
+      .from(employees)
+      .innerJoin(users, eq(users.userId, employees.userId))
+      .where(
+        inArray(
+          employees.employeeId,
+          results.map((r) => r.employeeId)
+        )
+      );
 
-      res.json(employeeResults);
-    }
+    res.json(employeeResults);
   } catch (error) {
     console.log(error);
   }
@@ -970,33 +1042,39 @@ app.get("/api/employees/:ownerId", async (req, res) => {
 
 app.post("/api/employee/add", async (req, res) => {
   try {
-    const { ownerId, fullName, email, phoneNumber, password } = req.body;
-    const nowDate = new Date(new Date() + 7 * 60 * 60 * 1000);
-    const storeId = await db
+    const { ownerId } = req.body;
+
+    const results = await db
       .select({ storeId: stores.storeId })
       .from(stores)
-      .innerJoin(users, eq(users.userId, parseInt(ownerId)))
-      .innerJoin(employees, eq(employees.storeId, stores.storeId))
-      .limit(1)[0];
+      .innerJoin(users, eq(users.userId, stores.userId))
+      .where(eq(stores.userId, parseInt(ownerId)));
 
-    let userId;
-    await db
-      .insert(users)
-      .values({
-        fullName,
-        email,
-        phoneNumber,
-        password,
-        createdAt: nowDate,
-        role: "Employee",
-      })
-      .returning({ userId: users.userId });
+    if (results.length === 0) res.json([]);
 
-    await db.insert(employees).values({ storeId, userId });
+    const storeId = results[0].storeId;
+
+    const lastUser = await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.userId))
+      .limit(1);
+
+    if (lastUser.length === 0) {
+      return res.json({ success: false, message: "Không tìm thấy user mới." });
+    }
+
+    const lastUserId = lastUser[0].userId;
+
+    await db.insert(employees).values({
+      storeId,
+      userId: lastUserId,
+    });
 
     res.json({ success: true, message: "Thêm nhân viên thành công" });
   } catch (error) {
     console.log(error);
+    res.json({ success: false, message: "Thêm nhân viên thất bại" });
   }
 });
 
@@ -1005,6 +1083,7 @@ const orderStatus = [
   "Đang chờ",
   "Đang chuẩn bị",
   "Đang giao",
+  "Đã đến",
   "Hoàn thành",
   "Bị hủy",
 ];
@@ -1025,6 +1104,27 @@ app.post("/api/updateorderowner", async (req, res) => {
         success: false,
         message: "Cập nhật trạng thái đơn hàng thất bại",
       });
+
+    if (newStatus === "Hoàn thành") {
+      const results = await db
+        .select({
+          dishId: orderItems.dishId,
+          quantity: orderItems.quantity,
+        })
+        .from(orders)
+        .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+        .where(eq(orders.orderId, parseInt(orderId)));
+
+      for (const item of results) {
+        await db
+          .update(dishes)
+          .set({
+            selled: sql`${dishes.selled} + ${item.quantity}`,
+          })
+          .where(eq(dishes.dishId, item.dishId));
+      }
+    }
+
     res.json({
       success: true,
       message: "Cập nhật trạng thái đơn hàng thành công",
@@ -1089,7 +1189,7 @@ app.post("/api/cart/add", async (req, res) => {
     }
 
     if (!targetOrderId) {
-      const orderDate = new Date(Date.now() + 7 * 3600 * 1000);
+      const orderDate = new Date(Date.now() + 7 * 60 * 60 * 1000);
       const newOrder = await db
         .insert(orders)
         .values({
@@ -1322,6 +1422,7 @@ app.get("/api/orderbeingprocessed/:userId", async (req, res) => {
       .where(
         and(
           eq(orders.userId, parseInt(userId)),
+          ne(orders.status, "Bị hủy"),
           ne(orders.status, "Hoàn thành"),
           ne(orders.status, "Giỏ hàng")
         )
@@ -1445,11 +1546,19 @@ app.post("/api/checkout", async (req, res) => {
         message: "Không có đơn giỏ hàng nào để thanh toán",
       });
     } else {
-      const orderDate = new Date(Date.now() + 7 * 3600 * 1000);
+      const orderCode = await generateOrderCode();
+      const orderDate = new Date(Date.now() + 7 * 60 * 60 * 1000);
       for (const cart of carts) {
         await db
           .update(orders)
-          .set({ status: "Đang chờ", orderDate, deliveryAddress: address, timer, note })
+          .set({
+            orderCode,
+            orderDate,
+            deliveryAddress: address,
+            timer,
+            note,
+            status: "Đang chờ",
+          })
           .where(eq(orders.orderId, parseInt(cart.orderId)));
       }
     }
@@ -1545,6 +1654,217 @@ app.get("/api/favorite/remove/:userId/:dishId", async (req, res) => {
     res.json({ success: true, message: "Xóa món yêu thích thành công" });
   } catch (error) {
     res.status(500).json(error);
+  }
+});
+
+app.post("/api/revenue", async (req, res) => {
+  try {
+    const { userId, start, end } = req.body;
+
+    const startDate = new Date(`${start}T00:00:00+07:00`);
+    const endDate = new Date(`${end}T23:59:59+07:00`);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return res.status(400).json({ error: "Ngày không hợp lệ" });
+    }
+
+    const results = await db
+      .select({ date: orders.orderDate, revenue: orders.totalAmount })
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
+      .where(
+        and(
+          eq(orders.status, "Hoàn thành"),
+          between(orders.orderDate, startDate, endDate),
+          eq(stores.userId, parseInt(userId))
+        )
+      );
+
+    const summary = {};
+
+    results.forEach((item) => {
+      const day = item.date.toISOString().split("T")[0];
+
+      if (!summary[day]) {
+        summary[day] = {
+          date: day,
+          totalRevenue: 0,
+          totalOrders: 0,
+        };
+      }
+
+      summary[day].totalRevenue += Number(item.revenue);
+      summary[day].totalOrders += 1;
+    });
+
+    res.status(200).json(Object.values(summary));
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/api/topdishes", async (req, res) => {
+  try {
+    const { userId, start, end } = req.body;
+
+    const startDate = new Date(`${start}T00:00:00+07:00`);
+    const endDate = new Date(`${end}T23:59:59+07:00`);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return res.status(400).json({ error: "Ngày không hợp lệ" });
+    }
+
+    // Lấy các món thuộc đơn hàng hoàn thành
+    const results = await db
+      .select({
+        dishId: dishes.dishId,
+        dishName: dishes.dishName,
+        totalQuantity: orderItems.quantity,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orders.orderId, orderItems.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
+      .where(
+        and(
+          eq(orders.status, "Hoàn thành"),
+          between(orders.orderDate, startDate, endDate),
+          eq(stores.userId, Number(userId))
+        )
+      );
+
+    // Gom nhóm theo món ăn
+    const summary = {};
+
+    results.forEach((item) => {
+      if (!summary[item.dishId]) {
+        summary[item.dishId] = {
+          dishId: item.dishId,
+          dishName: item.dishName,
+          quantity: 0,
+        };
+      }
+      summary[item.dishId].quantity += item.totalQuantity;
+    });
+
+    // Chuyển sang array và sắp xếp
+    const topDishes = Object.values(summary)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 10);
+
+    res.status(200).json(topDishes);
+  } catch (error) {
+    console.error("Error fetching top dishes:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi lấy top món" });
+  }
+});
+
+app.post("/api/topcategories", async (req, res) => {
+  try {
+    const { userId, start, end } = req.body;
+
+    const startDate = new Date(`${start}T00:00:00+07:00`);
+    const endDate = new Date(`${end}T23:59:59+07:00`);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return res.status(400).json({ error: "Ngày không hợp lệ" });
+    }
+
+    const results = await db
+      .select({
+        categoryId: categories.categoryId,
+        categoryName: categories.categoryName,
+        quantity: sql`COALESCE(SUM(${orderItems.quantity}), 0)`,
+      })
+      .from(categories)
+      .leftJoin(dishes, eq(dishes.categoryId, categories.categoryId))
+      .leftJoin(
+        stores,
+        and(
+          eq(stores.storeId, dishes.storeId),
+          eq(stores.userId, parseInt(userId))
+        )
+      )
+      .leftJoin(orderItems, eq(orderItems.dishId, dishes.dishId))
+      .leftJoin(
+        orders,
+        and(
+          eq(orders.orderId, orderItems.orderId),
+          eq(orders.status, "Hoàn thành"),
+          between(orders.orderDate, startDate, endDate)
+        )
+      )
+      .groupBy(categories.categoryId)
+      .orderBy(categories.categoryId);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching top categories", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/api/addreview", async (req, res) => {
+  try {
+    const reviewsPayload = req.body;
+
+    if (!Array.isArray(reviewsPayload) || reviewsPayload.length === 0) {
+      return res.json({
+        success: false,
+        message: "Payload không hợp lệ",
+      });
+    }
+
+    const values = reviewsPayload.map((item) => {
+      if (!item.userId || !item.dishId || !item.rating || !item.orderId) {
+        throw new Error("Thiếu dữ liệu review");
+      }
+
+      return {
+        userId: item.userId,
+        dishId: item.dishId,
+        orderId: Number(item.orderId),
+        rate: item.rating,
+        content: item.content || "",
+      };
+    });
+
+    // 1. Insert review
+    await db.insert(reviews).values(values);
+
+    // 2. Lấy danh sách dishId cần update
+    const dishIds = [...new Set(values.map((v) => v.dishId))];
+
+    // 3. Update rateStar cho từng món
+    for (const dishId of dishIds) {
+      const avgResult = await db
+        .select({
+          avgRate: sql`COALESCE(AVG(${reviews.rate}), 0)`,
+        })
+        .from(reviews)
+        .where(eq(reviews.dishId, dishId));
+
+      const avgRate = Number(avgResult[0]?.avgRate || 0).toFixed(1);
+
+      await db
+        .update(dishes)
+        .set({ rateStar: avgRate })
+        .where(eq(dishes.dishId, dishId));
+    }
+
+    res.json({
+      success: true,
+      message: "Thêm đánh giá thành công",
+    });
+  } catch (error) {
+    console.error("Add review error:", error);
+    res.json({
+      success: false,
+      message: "Thêm đánh giá thất bại",
+    });
   }
 });
 

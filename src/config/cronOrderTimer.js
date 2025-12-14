@@ -1,9 +1,13 @@
 import cron from "cron";
 import { db } from "../config/db.js";
 import {
-  orders
+  orders,
+  userPushTokens
 } from "../db/schema.js";
-import { eq, ne, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { Expo } from "expo-server-sdk";
+
+const expo = new Expo();
 
 function getVietnamTimeHHMM() {
   const dateVN = new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" });
@@ -22,9 +26,7 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
     const results = await db
       .select()
       .from(orders)
-      .where(
-          eq(orders.status, "Hẹn giao")
-      );
+      .where(eq(orders.status, "Hẹn giao"));
 
     if (results.length === 0) {
       console.log("Không có đơn Hẹn giao.");
@@ -43,6 +45,41 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
           .update(orders)
           .set({ status: "Đang chờ" })
           .where(eq(orders.orderId, order.orderId));
+
+        // ============================================
+        // GỬI THÔNG BÁO CHO KHÁCH HÀNG
+        // ============================================
+        try {
+          const tokenRow = await db
+            .select()
+            .from(userPushTokens)
+            .where(eq(userPushTokens.userId, Number(order.userId)));
+
+          if (!tokenRow || tokenRow.length === 0) continue;
+
+          const token = tokenRow[0].token;
+          if (!Expo.isExpoPushToken(token)) continue;
+
+          const message = {
+            to: token,
+            sound: "default",
+            title: "Thông báo giao hàng",
+            body: `Đơn hàng #DH2640${order.orderId} đã đến giờ giao.`,
+            data: {
+              screen: "detail-order",
+              orderId: order.orderId
+            }
+          };
+
+          const chunks = expo.chunkPushNotifications([message]);
+          for (const chunk of chunks) {
+            await expo.sendPushNotificationsAsync(chunk);
+          }
+
+          console.log(`Đã gửi thông báo cho đơn ${order.orderId}`);
+        } catch (e) {
+          console.error("Lỗi gửi thông báo:", e);
+        }
       }
     }
   } catch (err) {

@@ -1,5 +1,5 @@
 {
-  "id": "83423ee0-e1e2-4d72-a69e-22fee2a6b1a0",
+  "id": "98d9ab26-4f8e-4741-b99b-618205d421e8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -307,6 +307,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "order_code": {
+          "name": "order_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "order_date": {
           "name": "order_date",
           "type": "timestamp",
@@ -415,6 +421,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "otp": {
+          "name": "otp",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -429,6 +441,55 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reviews": {
+      "name": "reviews",
+      "schema": "",
+      "columns": {
+        "review_id": {
+          "name": "review_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dish_id": {
+          "name": "dish_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rate": {
+          "name": "rate",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -516,13 +577,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "rate_star": {
-          "name": "rate_star",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 5
         },
         "user_id": {
           "name": "user_id",

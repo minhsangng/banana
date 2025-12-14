@@ -1,8 +1,9 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { db } from "./config/db.js";
-import { users, refreshTokens } from "./db/schema.js";
+import { users, refreshTokens, userPushTokens } from "./db/schema.js";
 import { eq } from "drizzle-orm";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -87,19 +88,24 @@ router.post("/register", async (req, res) => {
   try {
     let { fullName, email, phoneNumber, password, role } = req.body;
 
-    if (!role || role !== "") role = "Customer";
-
     if (!fullName || !email || !phoneNumber || !password) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing fields" });
+        .json({ success: false, message: "Nhập đầy đủ thông tin đăng ký" });
     }
+
+    role = role && role.trim() !== "" ? role : "Customer";
 
     email = email.trim().toLowerCase();
 
-    const exist = await db.select().from(users).where(eq(users.email, email));
-    if (exist.length > 0) {
-      return res.status(409).json({ success: false, message: "Email exists" });
+    const existEmail = await db.select().from(users).where(eq(users.email, email));
+    if (existEmail.length > 0) {
+      return res.json({ success: false, message: "Email này đã được đăng ký" });
+    }
+    
+    const existPhone = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
+    if (existPhone.length > 0) {
+      return res.json({ success: false, message: "Số điện thoại này đã được đăng ký" });
     }
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
@@ -120,14 +126,23 @@ router.post("/register", async (req, res) => {
 
     const user = inserted[0];
 
+    // Tạo JWT
+    const accessToken = signAccessToken(user);
+
+    // Tạo refresh token
+    const refreshJti = uuidv4();
+    const refreshToken = signRefreshToken(user, refreshJti);
+
     const refreshExpiryDate = new Date(
       Date.now() + parseRefreshExpiryToMs(REFRESH_EXPIRES)
     );
-
+    
+    // Lưu refresh token vào DB
     await saveRefreshTokenToDB(refreshToken, user.userId, refreshExpiryDate);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
+      message: "Đăng ký tài khoản thành công",
       user: {
         userId: user.userId,
         fullName: user.fullName,
@@ -138,26 +153,26 @@ router.post("/register", async (req, res) => {
     });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Đăng ký tài khoản thất bại" });
   }
 });
 
 /* ---------------- LOGIN ------------------ */
 router.post("/login", async (req, res) => {
   try {
-    let { email, password } = req.body;
-    if (!email || !password) {
+    let { phoneNumber, password } = req.body;
+    if (!phoneNumber || !password) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing fields" });
+        .json({ success: false, message: "Chưa nhập số điện thoại hoặc mật khẩu" });
     }
-    email = email.trim().toLowerCase();
+    phoneNumber = phoneNumber.trim().toLowerCase();
 
-    const results = await db.select().from(users).where(eq(users.email, email));
+    const results = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
     if (results.length === 0) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid credentials" });
+        .json({ success: false, message: "Thông tin đăng nhập chưa chính xác" });
     }
 
     const user = results[0];
@@ -166,7 +181,7 @@ router.post("/login", async (req, res) => {
     if (!isMatch) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid credentials" });
+        .json({ success: false, message: "Thông tin đăng nhập chưa chính xác" });
     }
 
     const accessToken = signAccessToken(user);
@@ -343,14 +358,14 @@ router.post("/change-password", protect, async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     const userRows = await db
       .select()
       .from(users)
       .where(eq(users.email, email.toLowerCase()));
 
-    if (!userRows.length) {
-      return res.json({ success: true }); 
+    if (userRows.length === 0) {
+      return res.json({ success: false, message: "Email chưa được đăng ký" });
     }
 
     const user = userRows[0];
@@ -362,83 +377,69 @@ router.post("/forgot-password", async (req, res) => {
     await db.insert(refreshTokens).values({
       userId: user.userId,
       token: resetToken,
-      expires
+      expiresAt: expires,
+      otp
     });
 
     await sendEmail(
       email,
       "Mã khôi phục mật khẩu",
-      `<h3>Mã OTP của bạn: <b>${otp}</b></h3>`
+      `<h3>Mã OTP của bạn: <b>${otp}</b></h3>
+      <p>Nhập mã này vào ứng dụng để đặt lại mật khẩu mới.</p> <br /> <br />
+      
+      <span>Trân trọng,</span> <br />
+      <b>BANANA</b>`
     );
 
     res.json({
       success: true,
-      message: "OTP đã được gửi đến email",
-      resetToken
+      message: "OTP đã đã gửi. Vui lòng kiểm tra hòm thư",
+      resetToken,
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Lỗi server" });
+    res.status(500).json({ success: false, message: "Khôi phục tài khoản thất bại" });
   }
 });
 
 router.post("/verify-otp", async (req, res) => {
-  const { otp, resetToken } = req.body;
+  const { otp } = req.body;
 
   const rows = await db
     .select()
     .from(refreshTokens)
-    .where(eq(refreshTokens.token, resetToken));
+    .where(eq(refreshTokens.otp, otp));
 
-  if (!rows.length)
-    return res.status(400).json({ success: false, message: "Token không hợp lệ" });
+  if (rows.length === 0)
+    return res
+      .status(400)
+      .json({ success: false, message: "Mã OTP không hợp lệ" });
 
   const reset = rows[0];
-
-  if (reset.otp !== otp)
-    return res.status(400).json({ success: false, message: "OTP sai" });
-
-  if (new Date(reset.expires) < new Date())
-    return res.status(400).json({ success: false, message: "OTP hết hạn" });
+  
+  await db.update(userPushTokens).set({otp: null}).where(eq(userPushTokens.otp, otp));
 
   res.json({
     success: true,
-    allowReset: true,
-    resetToken
+    userId: reset.userId
   });
 });
 
 router.post("/reset-password", async (req, res) => {
-  const { resetToken, newPassword } = req.body;
-
-  const rows = await db
-    .select()
-    .from(passwordResetsTable)
-    .where(eq(passwordResetsTable.token, resetToken));
-
-  if (!rows.length)
-    return res.status(400).json({ success: false, message: "Token không hợp lệ" });
-
-  const reset = rows[0];
-
-  if (new Date(reset.expires) < new Date())
-    return res.status(400).json({ success: false, message: "Token hết hạn" });
-
+  const { userId, newPassword } = req.body;
+  
+  console.log(userId);
+  console.log(newPassword);
   const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
   await db
     .update(users)
     .set({ password: hashed })
-    .where(eq(users.userId, reset.userId));
-
-  await db
-    .delete(passwordResetsTable)
-    .where(eq(passwordResetsTable.id, reset.id));
+    .where(eq(users.userId, parseInt(userId)));
 
   res.json({
     success: true,
-    message: "Đặt lại mật khẩu thành công"
+    message: "Đặt lại mật khẩu thành công",
   });
 });
 
@@ -454,12 +455,12 @@ export function protect(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     req.user = decoded;
     next();
   } catch (err) {
     console.log("JWT VERIFY ERROR:", err.message);
-  return res.status(401).json({ success: false, message: "Invalid token" });
+    return res.status(401).json({ success: false, message: "Invalid token" });
   }
 }
 

@@ -47,13 +47,13 @@ export const stores = pgTable("stores", {
   bankNumber: varchar("bank_number"),
   bankName: varchar("bank_name"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  rateStar: numeric("rate_star").notNull().default(5.0),
   userId: integer("user_id"),
   status: varchar("status").notNull().default("Active"),
 });
 
 export const orders = pgTable("orders", {
   orderId: integer("order_id").primaryKey(),
+  orderCode: varchar("order_code"),
   orderDate: timestamp("order_date").notNull().defaultNow(),
   userId: integer("user_id").notNull(),
   totalAmount: numeric("total_amount", { precision: 10, scale: 3 }).notNull(),
@@ -86,6 +86,7 @@ export const refreshTokens = pgTable("refresh_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at").notNull(),
   replacedBy: text("replaced_by"),
+  otp: varchar("otp"),
 });
 
 export const groupOrders = pgTable("group_orders", {
@@ -119,4 +120,13 @@ export const employees = pgTable("employees", {
   employeeId: integer("employee_id").primaryKey(),
   userId: integer("user_id").notNull(),
   storeId: integer("store_id").notNull(),
+});
+
+export const reviews = pgTable("reviews", {
+  reviewId: integer("review_id").primaryKey(),
+  userId: integer("user_id"),
+  dishId: integer("dish_id"),
+  rate: numeric("rate"),
+  content: varchar("content"),
+  orderId: integer("order_id"),
 });

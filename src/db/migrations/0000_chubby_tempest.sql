@@ -54,6 +54,7 @@ CREATE TABLE "order_items" (
 --> statement-breakpoint
 CREATE TABLE "orders" (
 	"order_id" integer PRIMARY KEY NOT NULL,
+	"order_code" varchar,
 	"order_date" timestamp DEFAULT now() NOT NULL,
 	"user_id" integer NOT NULL,
 	"total_amount" numeric(10, 3) NOT NULL,
@@ -72,7 +73,17 @@ CREATE TABLE "refresh_tokens" (
 	"created_at" timestamp DEFAULT now(),
 	"expires_at" timestamp NOT NULL,
 	"replaced_by" text,
+	"otp" varchar,
 	CONSTRAINT "refresh_tokens_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "reviews" (
+	"review_id" integer PRIMARY KEY NOT NULL,
+	"user_id" integer,
+	"dish_id" integer,
+	"rate" numeric,
+	"content" varchar,
+	"order_id" integer
 );
 --> statement-breakpoint
 CREATE TABLE "rooms" (
@@ -90,7 +101,6 @@ CREATE TABLE "stores" (
 	"bank_number" varchar,
 	"bank_name" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"rate_star" numeric DEFAULT 5 NOT NULL,
 	"user_id" integer,
 	"status" varchar DEFAULT 'Active' NOT NULL
 );
