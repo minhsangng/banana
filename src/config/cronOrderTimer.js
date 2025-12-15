@@ -63,11 +63,10 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
           const message = {
             to: token,
             sound: "default",
-            title: "Thông báo giao hàng",
+            title: "Banana - Hẹn giao",
             body: `Đơn hàng #DH2640${order.orderId} đã đến giờ giao.`,
             data: {
-              screen: "detail-order",
-              orderId: order.orderId
+              url: `banana://detailorder/${order.orderId}`
             }
           };
 

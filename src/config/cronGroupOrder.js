@@ -5,6 +5,7 @@ import {
   orderItems,
   dishes,
   stores,
+  employees,
   groupOrders,
   groupOrderItems,
   userPushTokens,
@@ -314,28 +315,63 @@ const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
         // Send notifications for newlyAdded (batch with expo.chunkPushNotifications)
         if (newlyAdded.length > 0) {
           const messages = [];
+
           for (const na of newlyAdded) {
-            const tokenRows = await db
-              .select()
-              .from(userPushTokens)
-              .where(eq(userPushTokens.userId, Number(na.userId)));
+            const notifyUserIds = new Set();
 
-            if (!tokenRows || tokenRows.length === 0) continue;
+            // 1. User đặt đơn
+            if (na.userId) {
+              notifyUserIds.add(Number(na.userId));
+            }
 
-            for (const row of tokenRows) {
-              const token = row.token;
-              if (!Expo.isExpoPushToken(token)) continue;
+            // 2. Lấy chủ quán
+            if (na.storeId) {
+              const store = await db
+                .select({ ownerId: stores.userId })
+                .from(stores)
+                .where(eq(stores.storeId, na.storeId))
+                .limit(1);
 
-              messages.push({
-                to: token,
-                sound: "default",
-                title: "Banana - Sẵn sàng giao",
-                body: `Đơn hàng ${na.orderCode} đã đủ điều kiện giao đi`,
-                data: {
-                  screen: "detail-order",
-                  orderId: na.orderId,
-                },
-              });
+              if (store.length > 0 && store[0].ownerId) {
+                notifyUserIds.add(Number(store[0].ownerId));
+              }
+
+              // 3. Lấy nhân viên
+              const staffRows = await db
+                .select({ userId: employees.userId })
+                .from(employees)
+                .where(eq(employees.storeId, na.storeId));
+
+              for (const staff of staffRows) {
+                if (staff.userId) {
+                  notifyUserIds.add(Number(staff.userId));
+                }
+              }
+            }
+
+            // 4. Gửi notification cho tất cả userId đã gom
+            for (const userId of notifyUserIds) {
+              const tokenRows = await db
+                .select()
+                .from(userPushTokens)
+                .where(eq(userPushTokens.userId, userId));
+
+              if (!tokenRows || tokenRows.length === 0) continue;
+
+              for (const row of tokenRows) {
+                const token = row.token;
+                if (!Expo.isExpoPushToken(token)) continue;
+
+                messages.push({
+                  to: token,
+                  sound: "default",
+                  title: "Banana - Sẵn sàng giao",
+                  body: `Đơn hàng ${na.orderCode} đã đủ điều kiện giao đi`,
+                  data: {
+                    url: `banana://detailorder/${na.orderId}`,
+                  },
+                });
+              }
             }
           }
 

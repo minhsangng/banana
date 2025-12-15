@@ -1,7 +1,10 @@
 import cron from "cron";
 import { db } from "../config/db.js";
-import { orders, groupOrders, groupOrderItems } from "../db/schema.js";
+import { orders, groupOrders, groupOrderItems, userPushTokens } from "../db/schema.js";
 import { lt, eq, and, sum } from "drizzle-orm";
+import { Expo } from "expo-server-sdk";
+
+const expo = new Expo();
 
 const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
   try {
@@ -13,10 +16,7 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
       .select()
       .from(orders)
       .where(
-        and(
-          eq(orders.status, "Đang chờ"),
-          lt(orders.orderDate, oneHourAgoVN)
-        )
+        and(eq(orders.status, "Đang chờ"), lt(orders.orderDate, oneHourAgoVN))
       );
 
     if (pendingOrders.length === 0) {
@@ -31,6 +31,34 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
         .update(orders)
         .set({ status: "Bị hủy" })
         .where(eq(orders.orderId, order.orderId));
+
+      const tokenRows = await db
+        .select()
+        .from(userPushTokens)
+        .where(eq(userPushTokens.userId, order.userId));
+
+      if (tokenRows.length === 0) return;
+
+      const messages = [];
+
+      for (const row of tokenRows) {
+        const token = row.token;
+        if (!Expo.isExpoPushToken(token)) continue;
+
+        messages.push({
+          to: token,
+          sound: "default",
+          title: "Banana - Đơn hàng bị hủy",
+          body: `Đơn hàng ${order.orderCode} đã bị hủy do quá thời gian chờ`,
+          data: {
+            url: `banana://detailorder/${order.orderId}`,
+          },
+        });
+      }
+
+      if (messages.length > 0) {
+        await expo.sendPushNotificationsAsync(messages);
+      }
 
       const item = await db
         .select()
@@ -58,9 +86,7 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
       if (sumQuantity === 0) {
         console.log(`GroupOrder ${groupId} trống → XÓA`);
 
-        await db
-          .delete(groupOrders)
-          .where(eq(groupOrders.id, groupId));
+        await db.delete(groupOrders).where(eq(groupOrders.id, groupId));
 
         await db
           .delete(groupOrderItems)

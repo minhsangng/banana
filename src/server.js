@@ -22,15 +22,14 @@ import {
   sql,
   and,
   ilike,
-  or,
-  isNull,
   desc,
   between,
   inArray,
+  notInArray,
 } from "drizzle-orm";
-import job from "./config/cron.js";
 import jobCancel from "./config/cronCancelOrder.js";
 import jobGroup from "./config/cronGroupOrder.js";
+import jobCleanup from "./config/cronCleanupOrder.js";
 import jobOrder from "./config/cronOrderTimer.js";
 import { Expo } from "expo-server-sdk";
 import cors from "cors";
@@ -42,10 +41,10 @@ const PORT = ENV.PORT || 5001;
 const expo = new Expo();
 
 if (ENV.NODE_ENV === "production") {
-  job.start();
   jobCancel.start();
   jobGroup.start();
   jobOrder.start();
+  jobCleanup.start();
 }
 
 app.use(
@@ -473,7 +472,7 @@ app.post("/api/owneradddish", async (req, res) => {
 });
 
 /* Select dish best seller in limit range */
-app.get("/api/dishes/bestseller/:limit", async (req, res) => {
+app.get("/api/bestseller/:limit", async (req, res) => {
   try {
     const limit = parseInt(req.params.limit);
 
@@ -493,6 +492,175 @@ app.get("/api/dishes/bestseller/:limit", async (req, res) => {
   } catch (error) {
     console.log("Error fetching the dishes", error);
     res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/bestsellerlogin/:userId/:limit", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const limit = parseInt(req.params.limit);
+
+    let query = db
+      .select({
+        ...dishes,
+        isFavorite: sql`
+              CASE 
+                WHEN ${favorites.dishId} IS NOT NULL THEN true
+                ELSE false
+              END
+            `.as("isFavorite"),
+      })
+      .from(dishes)
+      .leftJoin(
+        favorites,
+        and(eq(favorites.dishId, dishes.dishId), eq(favorites.userId, userId))
+      )
+      .where(eq(dishes.status, "Active"))
+      .orderBy(desc(dishes.selled));
+
+    if (limit !== 0) {
+      query = query.limit(limit);
+    }
+
+    const results = await query;
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.log("Error fetching the dishes", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/api/recommend/:limit", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const limit = parseInt(req.params.limit);
+
+    let dishIds = [];
+    let result = [];
+
+    if (userId) {
+      const personal = await db
+        .select({
+          dishId: orderItems.dishId,
+        })
+        .from(orders)
+        .innerJoin(orderItems, eq(orders.orderId, orderItems.orderId))
+        .where(eq(orders.userId, userId))
+        .groupBy(orderItems.dishId)
+        .orderBy(desc(sql`SUM(${orderItems.quantity})`))
+        .limit(limit);
+
+      dishIds = personal.map((p) => p.dishId).filter(Boolean);
+
+      if (dishIds.length > 0) {
+        const personalDishes = await db
+          .select()
+          .from(dishes)
+          .where(inArray(dishes.dishId, dishIds));
+
+        result.push(...personalDishes);
+      }
+    }
+
+    const remain = limit - result.length;
+
+    if (remain > 0) {
+      const moreDishes = await db
+        .select()
+        .from(dishes)
+        .where(
+          dishIds.length > 0 ? notInArray(dishes.dishId, dishIds) : undefined
+        )
+        .limit(remain);
+
+      result.push(...moreDishes);
+    }
+
+    res.json(result.slice(0, limit));
+  } catch (err) {
+    console.error("Lấy danh sách món đề xuất thất bại", err);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+});
+
+app.get("/api/recommendlogin/:userId/:limit", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const limit = parseInt(req.params.limit);
+
+    let dishIds = [];
+    let result = [];
+
+    if (userId) {
+      const personal = await db
+        .select({
+          dishId: orderItems.dishId,
+        })
+        .from(orders)
+        .innerJoin(orderItems, eq(orders.orderId, orderItems.orderId))
+        .where(eq(orders.userId, userId))
+        .groupBy(orderItems.dishId)
+        .orderBy(desc(sql`SUM(${orderItems.quantity})`))
+        .limit(limit);
+
+      dishIds = personal.map((p) => p.dishId).filter(Boolean);
+
+      if (dishIds.length > 0) {
+        const personalDishes = await db
+          .select({
+            ...dishes,
+            isFavorite: sql`
+              CASE 
+                WHEN ${favorites.dishId} IS NOT NULL THEN true
+                ELSE false
+              END
+            `.as("isFavorite"),
+          })
+          .from(dishes)
+          .leftJoin(
+            favorites,
+            and(
+              eq(favorites.dishId, dishes.dishId),
+              eq(favorites.userId, userId)
+            )
+          )
+          .where(inArray(dishes.dishId, dishIds));
+
+        result.push(...personalDishes);
+      }
+    }
+
+    const remain = limit - result.length;
+
+    if (remain > 0) {
+      const moreDishes = await db
+        .select({
+          ...dishes,
+          isFavorite: sql`
+              CASE 
+                WHEN ${favorites.dishId} IS NOT NULL THEN true
+                ELSE false
+              END
+            `.as("isFavorite"),
+        })
+        .from(dishes)
+        .leftJoin(
+          favorites,
+          and(eq(favorites.dishId, dishes.dishId), eq(favorites.userId, userId))
+        )
+        .where(
+          dishIds.length > 0 ? notInArray(dishes.dishId, dishIds) : undefined
+        )
+        .limit(remain);
+
+      result.push(...moreDishes);
+    }
+
+    res.json(result.slice(0, limit));
+  } catch (err) {
+    console.error("Lấy danh sách món đề xuất thất bại", err);
+    res.status(500).json({ error: "Lỗi server" });
   }
 });
 
@@ -1706,6 +1874,34 @@ app.post("/api/revenue", async (req, res) => {
   }
 });
 
+app.post("/api/detailrevenue", async (req, res) => {
+  try {
+    const { userId, start, end } = req.body;
+
+    const startDate = new Date(`${start}T00:00:00+07:00`);
+    const endDate = new Date(`${end}T23:59:59+07:00`);
+    
+    const results = await db
+      .select({...orders})
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
+      .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
+      .innerJoin(stores, eq(stores.storeId, dishes.storeId))
+      .where(
+        and(
+          eq(orders.status, "Hoàn thành"),
+          between(orders.orderDate, startDate, endDate),
+          eq(stores.userId, parseInt(userId))
+        )
+      );
+
+    res.json(results);
+  } catch (error) {
+    console.log("Error fetching the orders", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 app.post("/api/topdishes", async (req, res) => {
   try {
     const { userId, start, end } = req.body;
@@ -1769,6 +1965,8 @@ app.post("/api/topcategories", async (req, res) => {
     const startDate = new Date(`${start}T00:00:00+07:00`);
     const endDate = new Date(`${end}T23:59:59+07:00`);
 
+    console.log(startDate);
+
     if (isNaN(startDate) || isNaN(endDate)) {
       return res.status(400).json({ error: "Ngày không hợp lệ" });
     }
@@ -1788,13 +1986,19 @@ app.post("/api/topcategories", async (req, res) => {
           eq(stores.userId, parseInt(userId))
         )
       )
-      .leftJoin(orderItems, eq(orderItems.dishId, dishes.dishId))
       .leftJoin(
         orders,
         and(
-          eq(orders.orderId, orderItems.orderId),
+          eq(orders.userId, stores.userId),
           eq(orders.status, "Hoàn thành"),
           between(orders.orderDate, startDate, endDate)
+        )
+      )
+      .leftJoin(
+        orderItems,
+        and(
+          eq(orderItems.orderId, orders.orderId),
+          eq(orderItems.dishId, dishes.dishId)
         )
       )
       .groupBy(categories.categoryId)
