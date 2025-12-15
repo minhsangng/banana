@@ -9,7 +9,6 @@ import { API_URL } from "../../constants/api";
 import { formatImage } from "../../constants/format";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import * as Notifications from "expo-notifications";
 
 import SlideBanner from "../../components/SlideBanner";
 import Categories from "../../components/Categories";
@@ -25,78 +24,14 @@ const HomeScreen = () => {
   const [recommends, setRecommends] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const notifycation = async () => {
-    try {
-      const userStr = await SecureStore.getItemAsync("userInfo");
-      if (userStr) {
-        const uid = JSON.parse(userStr).userId;
-        const { data } = await axios.get(`${API_URL}/notifycation/${uid}`);
-        return data;
-      } else return;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    const safeStringify = (data) => {
-      try {
-        return JSON.stringify(data ?? {});
-      } catch (e) {
-        console.log("JSON stringify failed:", e);
-        return JSON.stringify({ error: "unserializable" });
-      }
-    };
-
-    const checkAndNotify = async () => {
-      try {
-        const newData = await notifycation();
-
-        const newString = safeStringify(newData);
-
-        const lastString = (await SecureStore.getItemAsync("lastData")) ?? "";
-
-        if (newString !== lastString) {
-          sendLocalNotification(newData);
-
-          await SecureStore.setItemAsync("lastData", newString);
-        }
-      } catch (e) {
-        console.log("Error:", e);
-      }
-    };
-
-    checkAndNotify();
-
-    const interval = setInterval(checkAndNotify, 1 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const sendLocalNotification = async (data) => {
-    if (!data || data.length === 0) return;
-
-    const text = data
-      .map(item => `Đã có ${item.count} người đặt món ${item.dishName}`)
-      .join("; ");
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Thông báo mới",
-        body: text,
-      },
-      trigger: null,
-    });
-  };
-
   const loadBestSeller = async () => {
-    const { data } = await axios.get(`${API_URL}/dishes/bestseller/4`);
+    const { data } = await axios.get(`${API_URL}/bestseller/4`);
     setDataBS(data);
     return data;
   }
 
   const loadRecommend = async () => {
-    const { data } = await axios.get(`${API_URL}/dishes/bestseller/2`);
+    const { data } = await axios.get(`${API_URL}/recommend/2`);
     setRecommends(data);
     return data;
   }
@@ -112,7 +47,7 @@ const HomeScreen = () => {
 
       setLoading(false);
     } catch (error) {
-      console.log("Error loading the data", error);
+      console.log("Lấy dữ liệu thấy bại: ", error);
     }
   }
 

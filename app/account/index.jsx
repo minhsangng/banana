@@ -29,6 +29,8 @@ export default function AccountScreen() {
     const [errorEmail, setErrorEmail] = useState("");
     const [errorPhone, setErrorPhone] = useState("");
 
+    const [originalUser, setOriginalUser] = useState(null);
+
     const [alert, setAlert] = useState(false);
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
@@ -46,17 +48,22 @@ export default function AccountScreen() {
 
             const { data } = await axios.get(`${API_URL}/accountuser/${uid}/${role}`);
 
-            if (data) {
-                setFullName(data[0].fullName);
-                setEmail(data[0].email);
-                setPhoneNumber(data[0].phoneNumber);
+            if (data && data[0]) {
+                const u = data[0];
+
+                setFullName(u.fullName || "");
+                setEmail(u.email || "");
+                setPhoneNumber(u.phoneNumber || "");
 
                 if (role === "Owner") {
-                    setStoreName(data[0].storeName);
-                    setLocation(data[0].location);
-                    setBankName(data[0].bankName);
-                    setBankNumber(data[0].bankNumber);
+                    setStoreName(u.storeName || "");
+                    setLocation(u.location || "");
+                    setBankName(u.bankName || "");
+                    setBankNumber(u.bankNumber || "");
                 }
+
+                setUser(u);
+                setOriginalUser(u);
             }
 
             setUser(data[0]);
@@ -64,6 +71,23 @@ export default function AccountScreen() {
         } catch (error) {
             console.log("Lấy thông tin người dùng thất bại: ", error);
         }
+    };
+
+    const isAccountChanged = () => {
+        if (!originalUser) return false;
+
+        if (fullName !== (originalUser.fullName || "")) return true;
+        if (email !== (originalUser.email || "")) return true;
+        if (phoneNumber !== (originalUser.phoneNumber || "")) return true;
+
+        if (originalUser.role === "Owner") {
+            if (storeName !== (originalUser.storeName || "")) return true;
+            if (location !== (originalUser.location || "")) return true;
+            if (bankName !== (originalUser.bankName || "")) return true;
+            if (bankNumber !== (originalUser.bankNumber || "")) return true;
+        }
+
+        return false;
     };
 
     const validate = () => {
@@ -92,7 +116,15 @@ export default function AccountScreen() {
 
     const updateInfo = async () => {
         if (!validate()) return;
-    
+
+        if (!isAccountChanged()) {
+            setIcon("warning");
+            setTitle("Chưa có thay đổi thông tin");
+            setAlert(true);
+            setTimeout(() => setAlert(false), 1100);
+            return;
+        }
+        
         try {
             const userStr = await SecureStore.getItemAsync("userInfo");
             const uid = JSON.parse(userStr).userId;

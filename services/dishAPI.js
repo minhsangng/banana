@@ -14,7 +14,7 @@ export const DishAPI = {
   },
   getAllBestSeller: async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/dishes/bestseller/0`);
+      const { data } = await axios.get(`${API_URL}/bestseller/0`);
       return data;
     } catch (error) {
       console.error("Tải món best seller thất bại: ", error);

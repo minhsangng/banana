@@ -39,7 +39,9 @@ export default function EmployeeScreen() {
         try {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
-            if (userStr) setIsLogin(true);
+            if (!userStr) return;
+
+            setIsLogin(true);
             const user = JSON.parse(userStr);
 
             if (user.role === "Employee") {
@@ -206,9 +208,9 @@ export default function EmployeeScreen() {
                                 <Ionicons name="add-outline" color={COLORS.button} size={16}></Ionicons>
                                 <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Thêm nhân viên</Text>
                             </TouchableOpacity>
-                            {employees.length === 0 && <Text style={[TEXT.paragraph, TEXT.center]}>Danh sách nhân viên đang trống</Text>}
+                            {employees && employees.length === 0 && <Text style={[TEXT.paragraph, TEXT.center]}>Danh sách nhân viên đang trống</Text>}
                             <FlatList
-                                data={employees}
+                                data={employees || []}
                                 keyExtractor={(item) => item.employeeId.toString()}
                                 numColumns={1}
                                 showsVerticalScrollIndicator={false}

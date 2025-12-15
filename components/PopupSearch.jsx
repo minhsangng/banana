@@ -53,8 +53,11 @@ export default function PopupSearch({ visible, query, onClose }) {
 
   const contentAlert = () => {
     return (
-      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
-        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("50%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyBetween, LAYOUT.mt(16)]}>
+        <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
+          <Text style={[TEXT.text, TEXT.center, { color: COLORS.heading }]}>Bỏ qua</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
           <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Đăng nhập</Text>
         </TouchableOpacity>
       </View>
@@ -87,7 +90,7 @@ export default function PopupSearch({ visible, query, onClose }) {
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={[styles.popupWrapper, { width: width, maxHeight: height * 0.92 }]} onPress={(e) => e.stopPropagation()}>
           <View style={[LAYOUT.w(width - 60), LAYOUT.h("100%"), LAYOUT.mx(), LAYOUT.mt(12)]}>
-            <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(5)]}>
+            <Text style={[TEXT.text, LAYOUT.borderb(1, COLORS.background3), LAYOUT.pb(6)]}>
               Kết quả tìm kiếm cho: <Text style={[TEXT.underline]}>{query}</Text>
             </Text>
 
@@ -124,7 +127,7 @@ export default function PopupSearch({ visible, query, onClose }) {
                         <View style={{ flex: 1 }}>
                           <Text style={[TEXT.text]} numberOfLines={1} ellipsizeMode="tail"><Ionicons name="shield-checkmark" size={16} style={{ color: COLORS.background4 }}></Ionicons> {d.storeName}</Text>
                           <Text style={[TEXT.text, TEXT.size(14)]}>{d.dishName}</Text>
-                          <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>Đã mua {d.selled}</Text>
+                          <Text style={[TEXT.subText, { color: COLORS.paragraph }]}>{d.selled} lượt mua</Text>
                           <Text style={[TEXT.text, { color: COLORS.heading }]}>{formatPrice(d.price)} đ</Text>
                         </View>
 

@@ -1,4 +1,4 @@
-import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView, FlatList } from "react-native";
+import { View, Text, Dimensions, TextInput, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +20,7 @@ const OrderDishScreen = () => {
   const [dish, setDish] = useState(null);
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [title, setTitle] = useState("");
   const [alert, setAlert] = useState(false);
   const [addToCart, setAddToCart] = useState(false);
   const [note, setNote] = useState("");
@@ -56,6 +57,7 @@ const OrderDishScreen = () => {
         if (data.success)
           setQuantity(1);
       } else {
+        setTitle("Đăng nhập để thêm giỏ hàng");
         setAlert(true);
       }
     } catch (error) {
@@ -71,6 +73,7 @@ const OrderDishScreen = () => {
 
         await axios.get(`${API_URL}/favorite/${newStatus ? "add" : "remove"}/${userId}/${dishId}`);
       } else {
+        setTitle("Đăng nhập để thêm yêu thích");
         setAlert(true);
       }
     } catch (error) {
@@ -80,8 +83,11 @@ const OrderDishScreen = () => {
 
   const contentAlert = () => {
     return (
-      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyCenter, LAYOUT.mt(16)]}>
-        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("50%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
+      <View style={[LAYOUT.row, LAYOUT.wFull, LAYOUT.justifyBetween, LAYOUT.mt(16)]}>
+        <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.background3 }]}>
+          <Text style={[TEXT.text, TEXT.center, { color: COLORS.heading }]}>Bỏ qua</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.replace("../(auth)/sign-in")} style={[LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(20), { backgroundColor: COLORS.button }]}>
           <Text style={[TEXT.text, TEXT.center, { color: COLORS.textLight }]}>Đăng nhập</Text>
         </TouchableOpacity>
       </View>
@@ -117,7 +123,7 @@ const OrderDishScreen = () => {
           <TouchableOpacity onPress={addFavorite}>
             <Ionicons
               name={isFavorite ? "heart" : "heart-outline"}
-              size={20}
+              size={24}
               color={COLORS.light}
               style={[
                 LAYOUT.rounded(20),
@@ -139,7 +145,7 @@ const OrderDishScreen = () => {
           <View
             style={[
               LAYOUT.w(width - 60),
-              LAYOUT.h(240),
+              LAYOUT.h(300),
               LAYOUT.mx(),
               LAYOUT.rounded(28),
               { overflow: "hidden" },
@@ -267,7 +273,7 @@ const OrderDishScreen = () => {
         </View>
       </ScrollView>
 
-      <ToastModal width={"auto"} height={"auto"} status={"warning"} title={"Đăng nhập để thêm giỏ hàng!"} content={contentAlert} visible={alert} />
+      <ToastModal width={"auto"} height={"auto"} status={"warning"} title={title} content={contentAlert} visible={alert} />
     </View>
   );
 };

@@ -65,3 +65,8 @@ npm i @react-native-community/datetimepicker
 ```bash
 npx expo
 ```
+
+Build
+```bash
+eas build --platform android
+```

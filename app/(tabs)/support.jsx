@@ -17,9 +17,7 @@ export default function SupportScreen() {
             {/* Body */}
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx()]}>
-                    <TextInput placeholder="Nhập từ khóa" style={[LAYOUT.wFull, LAYOUT.px(18), LAYOUT.py(8), LAYOUT.rounded(12), TEXT.paragraph, { backgroundColor: COLORS.background3 }]}></TextInput>
-
-                    <Text style={[TEXT.text, TEXT.size(22), LAYOUT.pt(30), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>Tra cứu nhanh</Text>
+                    <Text style={[TEXT.text, TEXT.size(22), LAYOUT.pb(12), LAYOUT.borderb(1, COLORS.background3)]}>Tra cứu nhanh</Text>
                     <View style={[LAYOUT.mt(20), LAYOUT.pb(16), { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}>
                         <Text style={[TEXT.text]}>Về đơn hàng</Text>
                         <TouchableOpacity style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mb(3)]} >

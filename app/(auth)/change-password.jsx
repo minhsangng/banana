@@ -41,14 +41,14 @@ export default function ChangePwScreen() {
         }
 
         if (newPassword.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
-            setIcon("error");
+            setIcon("warning");
             setTitle("Mật khẩu mới phải ít nhất 8 ký tự và có 1 ký tự đặc biệt");
             setAlert(true);
             setTimeout(() => setAlert(false), 1100);
             return false;
         }
         if (newPassword !== reNewPassword) {
-            setIcon("error");
+            setIcon("warning");
             setTitle("Nhập lại mật khẩu chưa chính xác");
             setAlert(true);
             setTimeout(() => setAlert(false), 1100);

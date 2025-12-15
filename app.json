@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "banana",
+    "name": "Banana",
     "slug": "banana",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,7 +31,7 @@
         {
           "image": "./assets/images/main_logo.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
+          "resizeMode": "cover",
           "backgroundColor": "#F4DA1F"
         }
       ],

@@ -26,7 +26,6 @@ const OrderScreen = () => {
     const [content, setContent] = useState(null);
     const [alert, setAlert] = useState(false);
 
-    // ===== LOAD API =====
     const loadOrders = async () => {
         try {
             setLoading(true);
@@ -63,6 +62,9 @@ const OrderScreen = () => {
     };
 
     const cancelOrder = (orderId) => {
+        setIcon("warning");
+        setTitle("Xác nhận hủy đơn hàng");
+        setContent(contentCancelAlert);
         setAlert(true);
         setDeleteId(orderId);
     }
@@ -86,8 +88,11 @@ const OrderScreen = () => {
             setTitle(data.success ? "Hủy đơn thành công" : "Hủy đơn thất bại");
             setContent(null);
             setAlert(true);
-
-            loadOrders();
+            
+            setTimeout(() => {
+                setAlert(false);    
+                loadOrders();
+            }, 1100);
         } catch (error) {
             console.error(error);
         }

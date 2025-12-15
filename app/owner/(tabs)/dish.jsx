@@ -40,12 +40,16 @@ const DishesScreen = () => {
     const [addDescription, setAddDescription] = useState("");
     const [addImage, setAddImage] = useState(null);
 
-    const [errorMsg, setErrorMsg] = useState("");
+    const [errorName, setErrorName] = useState("");
+    const [errorCate, setErrorCate] = useState("");
+    const [errorPrice, setErrorPrice] = useState("");
 
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
     const [role, setRole] = useState(true);
+
+    const [originalDish, setOriginalDish] = useState(null);
 
     const loadDishes = async () => {
         try {
@@ -104,12 +108,14 @@ const DishesScreen = () => {
 
             setIcon("edit");
             if (data) {
+                setOriginalDish(data[0]);
+
                 setDetailDish(data[0]);
                 setEditName(data[0].dishName);
                 setEditCategory(data[0].categoryId);
                 setEditPrice(data[0].price.toString());
                 setEditDescription(data[0].description);
-                setEditImage(null);
+                setEditImage(data[0].imageUrl);
                 setTitle("Cập nhật thông tin món");
             } else {
                 setIcon("error");
@@ -119,6 +125,19 @@ const DishesScreen = () => {
         } catch (error) {
             console.log("Lấy chi tiết món thất bại: ", error);
         }
+    };
+
+    const isDishChanged = () => {
+        if (!originalDish) return false;
+
+        if (editName !== originalDish.dishName) return true;
+        if (Number(editCategory) !== Number(originalDish.categoryId)) return true;
+        if (Number(editPrice) !== Number(originalDish.price)) return true;
+        if ((editDescription || "") !== (originalDish.description || "")) return true;
+
+        if (typeof editImage === "object") return true;
+
+        return false;
     };
 
     const contentEdit = () => {
@@ -143,7 +162,14 @@ const DishesScreen = () => {
                     <TouchableOpacity onPress={() => pickFile("edit")} style={[LAYOUT.w(100), LAYOUT.border(1, COLORS.border), LAYOUT.bg("rgba(0,0,0,0.1)"), LAYOUT.py(4), LAYOUT.rounded(12)]}>
                         <Text style={[TEXT.paragraph, TEXT.center, TEXT.itemsCenter]}>Chọn ảnh mới</Text>
                     </TouchableOpacity>
-                    <Text style={[TEXT.paragraph, TEXT.size(14)]} numberOfLines={1}>{editImage ? editImage.name : ""}</Text>
+                    <Image source={
+                        typeof editImage === "string"
+                            ? formatImage(editImage)
+                            : editImage?.uri
+                                ? { uri: editImage.uri }
+                                : null
+                    } style={[LAYOUT.w(50), LAYOUT.h(50)]} />
+                    {editImage && <Text style={[TEXT.paragraph, TEXT.size(14)]} numberOfLines={1}>{editImage ? editImage.name : ""}</Text>}
                 </View>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Trạng thái</Text>
@@ -166,7 +192,9 @@ const DishesScreen = () => {
     const addDish = async () => {
         try {
             if (addName.trim() === "" || addCategory === null || addCategory === undefined || addPrice === null || addPrice === undefined) {
-                setErrorMsg("* Chưa nhập đầy đủ thông tin món ăn!");
+                setErrorName("Chưa nhập tên món ăn");
+                setErrorCate("Chưa chọn danh mục món ăn");
+                setErrorPrice("Chưa nhập giá bán món ăn");
             } else {
                 let base64Image = null;
 
@@ -213,12 +241,15 @@ const DishesScreen = () => {
             <View style={[LAYOUT.wFull, LAYOUT.mt(12)]}>
                 <Text style={[TEXT.text, TEXT.size(16)]}>Tên món ăn <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
                 <TextInput value={addName} onChangeText={setAddName} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.color(COLORS.heading), LAYOUT.mb(4)]}>{errorName}</Text>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Danh mục <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
                 <PickerSelect options={options} value={addCategory} setValue={setAddCategory} />
+                <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.color(COLORS.heading), LAYOUT.mb(4)]}>{errorCate}</Text>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Giá bán <Text style={[LAYOUT.color(COLORS.heading)]}>*</Text></Text>
-                <TextInput value={addPrice} onChangeText={setAddPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={addPrice} onChangeText={setAddPrice} keyboardType="number-pad" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.color(COLORS.heading), LAYOUT.mb(4)]}>{errorPrice}</Text>
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Mô tả</Text>
                 <TextInput value={addDescription} onChangeText={setAddDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
@@ -230,8 +261,6 @@ const DishesScreen = () => {
                     </TouchableOpacity>
                     <Text style={[TEXT.paragraph, TEXT.size(14)]} numberOfLines={1}>{addImage ? addImage.name : ""}</Text>
                 </View>
-
-                <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.color(COLORS.heading), LAYOUT.mb(4)]}>{errorMsg !== "" ? errorMsg : ""}</Text>
 
                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.mt(20), LAYOUT.bordert(1, COLORS.background3), LAYOUT.pt(20), LAYOUT.mt(8)]}>
                     <TouchableOpacity style={[LAYOUT.w("48%"), LAYOUT.py(4), LAYOUT.rounded(12), LAYOUT.bg(COLORS.background2)]} onPress={clearForm}>
@@ -247,16 +276,27 @@ const DishesScreen = () => {
 
     const pickFile = async (type) => {
         const result = await DocumentPicker.getDocumentAsync({
-            type: "*/*"
+            type: ["image/*"],
+            copyToCacheDirectory: true
         });
 
-        if (result.type !== "cancel") {
-            if (type === "edit") setEditImage(result.assets[0]);
-            else setAddImage(result.assets[0]);
-        }
+        if (result.canceled) return;
+
+        const file = result.assets[0];
+
+        if (type === "edit") setEditImage(file);
+        else setAddImage(file);
     };
 
     const submitUpdate = async (dishId) => {
+        if (!isDishChanged()) {
+            setIcon("warning");
+            setTitle("Bạn chưa thay đổi thông tin nào");
+            setAlert(true);
+
+            setTimeout(() => setAlert(false), 1200);
+            return;
+        }
         try {
             let base64Image = null;
 
@@ -317,8 +357,6 @@ const DishesScreen = () => {
         setEditPrice(null);
         setEditDescription(null);
         setEditImage(null);
-
-        setErrorMsg("");
 
         setAlert(false);
     }

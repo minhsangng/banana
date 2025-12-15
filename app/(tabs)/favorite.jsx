@@ -24,7 +24,7 @@ const FavoriteScreen = () => {
         try {
             setLoading(true);
             const userStr = await SecureStore.getItemAsync("userInfo");
-            if (!userStr) return;
+            if (!userStr) { setLoading(false); return };
             setIsLogin(true);
 
             const userId = parseInt(JSON.parse(userStr).userId);
@@ -50,7 +50,7 @@ const FavoriteScreen = () => {
             console.error("Lỗi: ", error);
         }
     };
-    
+
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         loadFavorites().finally(() => setRefreshing(false));

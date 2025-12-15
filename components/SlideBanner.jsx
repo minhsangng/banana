@@ -15,19 +15,19 @@ export default function SlideBanner() {
             id: 0,
             storeId: 1,
             dishId: 1,
-            image: require("./../assets/images/ads_banner_1.png"),
+            image: require("./../assets/images/banner_1.png"),
         },
         {
             id: 1,
             storeId: 1,
             dishId: 1,
-            image: require("./../assets/images/ads_banner_2.png"),
+            image: require("./../assets/images/banner_2.png"),
         },
         {
             id: 2,
             storeId: 1,
             dishId: 1,
-            image: require("./../assets/images/ads_banner_2.png"),
+            image: require("./../assets/images/banner_3.png"),
         }
     ]
 

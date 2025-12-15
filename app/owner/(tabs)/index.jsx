@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ImageBackground, Dimensions, ScrollView, Text, RefreshControl, Pressable } from "react-native";
+import { View, TouchableOpacity, ImageBackground, Dimensions, ScrollView, Text, RefreshControl, Pressable, FlatList } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { LAYOUT, TEXT } from "../../../assets/styles/base.styles";
 import { COLORS } from "../../../constants/colors";
@@ -12,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import PushNotification from "../../../components/PushNotification";
 import NavBar from "../../../components/NavBar";
 import LoadingSpinner from "../../../components/LoadingSpinner";
+import ToastModal from "../../../components/ToastModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -81,6 +82,10 @@ export default function HomeScreen() {
     const [userId, setUserId] = useState(null);
     const [role, setRole] = useState(true);
 
+    const [icon, setIcon] = useState("");
+    const [title, setTitle] = useState("");
+    const [alert, setAlert] = useState(false);
+
     const { start, end } = getCurrentWeekRange();
 
     const [startDate, setStartDate] = useState(start);
@@ -91,6 +96,8 @@ export default function HomeScreen() {
 
     const [revenue, setRevenue] = useState(0);
     const [quantity, setQuantity] = useState(0);
+
+    const [detailRevenue, setDetailRevenue] = useState([]);
 
     const initData = async () => {
         const userStr = await SecureStore.getItemAsync("userInfo");
@@ -202,6 +209,49 @@ export default function HomeScreen() {
         });
     };
 
+    const showRevenue = async () => {
+        try {
+            setIcon("edit");
+            setTitle(`Thống kê doanh thu từ ${formatDate(startDate)} đến ${formatDate(endDate)}`);
+
+            const res = await axios.post(`${API_URL}/detailrevenue`, {
+                userId,
+                start: formatDate(startDate),
+                end: formatDate(endDate),
+            });
+
+            setDetailRevenue(res.data);
+            setAlert(true);
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const contentRevenue = (
+        <View style={[LAYOUT.mt(28), LAYOUT.h(280)]}>
+            <FlatList
+                style={[LAYOUT.w(width - 60), LAYOUT.mx()]}
+                data={detailRevenue}
+                keyExtractor={(item) => item.orderId.toString()}
+                renderItem={({ item }) => (
+                    <View style={[LAYOUT.borderb(1, COLORS.border), LAYOUT.pb(6), LAYOUT.mb(14)]}>
+                        <View style={[LAYOUT.row, LAYOUT.justifyBetween]}>
+                            <Text style={[TEXT.subText, TEXT.size(16)]}>{item.orderCode}</Text>
+                            <Text style={[TEXT.subText, TEXT.size(16)]}>{item.orderDate.slice(0, 10)}</Text>
+                        </View>
+                        <View style={[LAYOUT.mt(4)]}>
+                            <Text style={[TEXT.subText, TEXT.size(16), TEXT.right, LAYOUT.color(COLORS.heading)]}>{formatPrice(item.totalAmount)} đ</Text>
+                        </View>
+                    </View>
+                )}
+            />
+
+            <TouchableOpacity onPress={() => setAlert(false)} style={[LAYOUT.bg(COLORS.background3), LAYOUT.w(200), LAYOUT.mx(), LAYOUT.rounded(20), LAYOUT.py(8)]}>
+                <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Thoát</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
     useEffect(() => {
         initData();
     }, []);
@@ -269,7 +319,7 @@ export default function HomeScreen() {
 
                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}>
                                     <Text style={[TEXT.text, LAYOUT.color(COLORS.heading), LAYOUT.mb(8)]}>Doanh thu bán hàng</Text>
-                                    <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter]}>
+                                    <TouchableOpacity style={[LAYOUT.row, LAYOUT.itemsCenter]} onPress={showRevenue}>
                                         <Text style={[TEXT.subText, LAYOUT.color(COLORS.paragraph)]}>Xem chi tiết</Text>
                                         <Ionicons name="chevron-forward-outline" color={COLORS.paragraph}></Ionicons>
                                     </TouchableOpacity>
@@ -325,6 +375,8 @@ export default function HomeScreen() {
                             </ScrollView>
                         )}
                 </View>
+
+                <ToastModal status={icon} title={title} content={contentRevenue} visible={alert} />
             </View>
         </PushNotification>
     );

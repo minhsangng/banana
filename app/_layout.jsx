@@ -1,30 +1,37 @@
 import { useEffect } from "react";
-import { Slot, useRouter } from "expo-router";
+import { Slot } from "expo-router";
 import { useFonts } from "expo-font";
 import { Provider as PaperProvider } from "react-native-paper";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
+import * as Linking from "expo-linking";
+
 export default function RootLayout() {
-  const [fontLoader] = useFonts({
-    "Modak": require("../assets/fonts/DFVN-Modak.ttf"),
-    "GochiHand": require("../assets/fonts/DFVN-GochiHand.ttf"),
+  const [fontsLoaded] = useFonts({
+    Modak: require("../assets/fonts/DFVN-Modak.ttf"),
+    GochiHand: require("../assets/fonts/DFVN-GochiHand.ttf"),
   });
-  const router = useRouter();
 
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
+    const sub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        const data = response.notification.request.content.data;
-
-        if (data?.screen === "detail-order" && data?.orderId) {
-          router.push(`/detailorder/${data.orderId}`);
+        const url = response.notification.request.content.data?.url;
+        if (url) {
+          Linking.openURL(url);
         }
       }
     );
 
-    return () => subscription.remove();
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      const url = response?.notification.request.content.data?.url;
+      if (url) {
+        Linking.openURL(url);
+      }
+    });
+
+    return () => sub.remove();
   }, []);
 
-  if (!fontLoader) return null;
+  if (!fontsLoaded) return null;
 
   return (
     <PaperProvider>
