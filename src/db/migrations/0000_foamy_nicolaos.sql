@@ -1,11 +1,11 @@
 CREATE TABLE "categories" (
-	"category_id" integer PRIMARY KEY NOT NULL,
+	"category_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "categories_category_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"category_name" varchar NOT NULL,
 	"category_icon" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "dishes" (
-	"dish_id" integer PRIMARY KEY NOT NULL,
+	"dish_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "dishes_dish_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"dish_name" varchar NOT NULL,
 	"store_id" integer NOT NULL,
 	"category_id" integer NOT NULL,
@@ -19,33 +19,33 @@ CREATE TABLE "dishes" (
 );
 --> statement-breakpoint
 CREATE TABLE "employees" (
-	"employee_id" integer PRIMARY KEY NOT NULL,
+	"employee_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "employees_employee_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" integer NOT NULL,
 	"store_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "favorites" (
-	"favorite_id" integer PRIMARY KEY NOT NULL,
+	"favorite_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "favorites_favorite_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"dish_id" integer NOT NULL,
 	"user_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "group_order_items" (
-	"group_order_item_id" integer PRIMARY KEY NOT NULL,
+	"group_order_item_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "group_order_items_group_order_item_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"group_order_id" integer NOT NULL,
 	"order_id" integer NOT NULL,
 	"user_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "group_orders" (
-	"group_order_id" integer PRIMARY KEY NOT NULL,
+	"group_order_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "group_orders_group_order_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"store_id" integer NOT NULL,
 	"sum_of_quantity" integer NOT NULL,
 	"delivery_area" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
-	"order_item_id" integer PRIMARY KEY NOT NULL,
+	"order_item_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "order_items_order_item_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"order_id" integer NOT NULL,
 	"dish_id" integer NOT NULL,
 	"quantity" integer DEFAULT 1 NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE "order_items" (
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (
-	"order_id" integer PRIMARY KEY NOT NULL,
+	"order_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "orders_order_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"order_code" varchar,
 	"order_date" timestamp DEFAULT now() NOT NULL,
 	"user_id" integer NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE "orders" (
 );
 --> statement-breakpoint
 CREATE TABLE "refresh_tokens" (
-	"refresh_id" integer PRIMARY KEY NOT NULL,
+	"refresh_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "refresh_tokens_refresh_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"token" text NOT NULL,
 	"user_id" integer NOT NULL,
 	"revoked" boolean DEFAULT false NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE "refresh_tokens" (
 );
 --> statement-breakpoint
 CREATE TABLE "reviews" (
-	"review_id" integer PRIMARY KEY NOT NULL,
+	"review_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "reviews_review_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" integer,
 	"dish_id" integer,
 	"rate" numeric,
@@ -87,14 +87,14 @@ CREATE TABLE "reviews" (
 );
 --> statement-breakpoint
 CREATE TABLE "rooms" (
-	"room_id" integer PRIMARY KEY NOT NULL,
+	"room_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "rooms_room_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"building" varchar,
 	"floor" varchar,
 	"room" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "stores" (
-	"store_id" integer PRIMARY KEY NOT NULL,
+	"store_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "stores_store_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"store_name" varchar NOT NULL,
 	"location" varchar NOT NULL,
 	"logo_url" varchar,
@@ -106,13 +106,13 @@ CREATE TABLE "stores" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_push_tokens" (
-	"user_push_token_id" integer PRIMARY KEY NOT NULL,
+	"user_push_token_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "user_push_tokens_user_push_token_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" integer NOT NULL,
 	"token" varchar NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"user_id" integer PRIMARY KEY NOT NULL,
+	"user_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_user_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"full_name" varchar NOT NULL,
 	"email" varchar NOT NULL,
 	"phone_number" varchar NOT NULL,

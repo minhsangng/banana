@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const dishes = pgTable("dishes", {
-  dishId: integer("dish_id").primaryKey(),
+  dishId: integer("dish_id").primaryKey().generatedAlwaysAsIdentity(),
   dishName: varchar("dish_name").notNull(),
   storeId: integer("store_id").notNull(),
   categoryId: integer("category_id").notNull(),
@@ -23,13 +23,13 @@ export const dishes = pgTable("dishes", {
 });
 
 export const categories = pgTable("categories", {
-  categoryId: integer("category_id").primaryKey(),
+  categoryId: integer("category_id").primaryKey().generatedAlwaysAsIdentity(),
   categoryName: varchar("category_name").notNull(),
   categoryIcon: varchar("category_icon"),
 });
 
 export const users = pgTable("users", {
-  userId: integer("user_id").primaryKey(),
+  userId: integer("user_id").primaryKey().generatedAlwaysAsIdentity(),
   fullName: varchar("full_name").notNull(),
   email: varchar("email").notNull().unique(),
   phoneNumber: varchar("phone_number").notNull().unique(),
@@ -40,7 +40,7 @@ export const users = pgTable("users", {
 });
 
 export const stores = pgTable("stores", {
-  storeId: integer("store_id").primaryKey(),
+  storeId: integer("store_id").primaryKey().generatedAlwaysAsIdentity(),
   storeName: varchar("store_name").notNull(),
   location: varchar("location").notNull(),
   logoUrl: varchar("logo_url"),
@@ -52,7 +52,7 @@ export const stores = pgTable("stores", {
 });
 
 export const orders = pgTable("orders", {
-  orderId: integer("order_id").primaryKey(),
+  orderId: integer("order_id").primaryKey().generatedAlwaysAsIdentity(),
   orderCode: varchar("order_code"),
   orderDate: timestamp("order_date").notNull().defaultNow(),
   userId: integer("user_id").notNull(),
@@ -65,7 +65,7 @@ export const orders = pgTable("orders", {
 });
 
 export const orderItems = pgTable("order_items", {
-  orderItemId: integer("order_item_id").primaryKey(),
+  orderItemId: integer("order_item_id").primaryKey().generatedAlwaysAsIdentity(),
   orderId: integer("order_id").notNull(),
   dishId: integer("dish_id").notNull(),
   quantity: integer("quantity").notNull().default(1),
@@ -73,13 +73,13 @@ export const orderItems = pgTable("order_items", {
 });
 
 export const favorites = pgTable("favorites", {
-  favoriteId: integer("favorite_id").primaryKey(),
+  favoriteId: integer("favorite_id").primaryKey().generatedAlwaysAsIdentity(),
   dishId: integer("dish_id").notNull(),
   userId: integer("user_id").notNull(),
 });
 
 export const refreshTokens = pgTable("refresh_tokens", {
-  refreshId: integer("refresh_id").primaryKey(),
+  refreshId: integer("refresh_id").primaryKey().generatedAlwaysAsIdentity(),
   token: text("token").notNull().unique(),
   userId: integer("user_id").notNull(),
   revoked: boolean("revoked").notNull().default(false),
@@ -90,40 +90,40 @@ export const refreshTokens = pgTable("refresh_tokens", {
 });
 
 export const groupOrders = pgTable("group_orders", {
-  groupOrderId: integer("group_order_id").primaryKey(),
+  groupOrderId: integer("group_order_id").primaryKey().generatedAlwaysAsIdentity(),
   storeId: integer("store_id").notNull(),
   sumOfQuantity: integer("sum_of_quantity").notNull(),
   deliveryArea: varchar("delivery_area"),
 });
 
 export const groupOrderItems = pgTable("group_order_items", {
-  groupOrderItemId: integer("group_order_item_id").primaryKey(),
+  groupOrderItemId: integer("group_order_item_id").primaryKey().generatedAlwaysAsIdentity(),
   groupOrderId: integer("group_order_id").notNull(),
   orderId: integer("order_id").notNull(),
   userId: integer("user_id").notNull(),
 });
 
 export const userPushTokens = pgTable("user_push_tokens", {
-  userPushTokenId: integer("user_push_token_id").primaryKey(),
+  userPushTokenId: integer("user_push_token_id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull(),
   token: varchar("token").notNull(),
 });
 
 export const rooms = pgTable("rooms", {
-  room_id: integer("room_id").primaryKey(),
+  room_id: integer("room_id").primaryKey().generatedAlwaysAsIdentity(),
   building: varchar("building"),
   floor: varchar("floor"),
   room: varchar("room"),
 });
 
 export const employees = pgTable("employees", {
-  employeeId: integer("employee_id").primaryKey(),
+  employeeId: integer("employee_id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull(),
   storeId: integer("store_id").notNull(),
 });
 
 export const reviews = pgTable("reviews", {
-  reviewId: integer("review_id").primaryKey(),
+  reviewId: integer("review_id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id"),
   dishId: integer("dish_id"),
   rate: numeric("rate"),

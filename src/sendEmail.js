@@ -2,8 +2,6 @@ import nodemailer from "nodemailer";
 import "dotenv/config";
 
 export async function sendEmail(to, subject, html) {
-  console.log(process.env.EMAIL_USER);
-  console.log(process.env.EMAIL_PASS);
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -13,7 +11,7 @@ export async function sendEmail(to, subject, html) {
   });
 
   return await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: "BANANA Food Delivery",
     to,
     subject,
     html

@@ -358,7 +358,7 @@ router.post("/change-password", protect, async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-
+    
     const userRows = await db
       .select()
       .from(users)
@@ -367,7 +367,7 @@ router.post("/forgot-password", async (req, res) => {
     if (userRows.length === 0) {
       return res.json({ success: false, message: "Email chưa được đăng ký" });
     }
-
+    
     const user = userRows[0];
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -383,9 +383,9 @@ router.post("/forgot-password", async (req, res) => {
 
     await sendEmail(
       email,
-      "Mã khôi phục mật khẩu",
-      `<h3>Mã OTP của bạn: <b>${otp}</b></h3>
-      <p>Nhập mã này vào ứng dụng để đặt lại mật khẩu mới.</p> <br /> <br />
+      "Khôi phục mật khẩu",
+      `<h3>Mã khôi phục của bạn là: <b>${otp}</b></h3>
+      <p>Nhập mã này vào ứng dụng để đặt lại mật khẩu mới. Đừng chia sẻ mã này cho bất kỳ ai!</p> <br /> <br />
       
       <span>Trân trọng,</span> <br />
       <b>BANANA</b>`

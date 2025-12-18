@@ -27,6 +27,7 @@ import {
   inArray,
   notInArray,
 } from "drizzle-orm";
+import job from "./config/cron.js";
 import jobCancel from "./config/cronCancelOrder.js";
 import jobGroup from "./config/cronGroupOrder.js";
 import jobCleanup from "./config/cronCleanupOrder.js";
@@ -34,6 +35,11 @@ import jobOrder from "./config/cronOrderTimer.js";
 import { Expo } from "expo-server-sdk";
 import cors from "cors";
 import authRouter from "./auth.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = ENV.PORT || 5001;
@@ -41,11 +47,14 @@ const PORT = ENV.PORT || 5001;
 const expo = new Expo();
 
 if (ENV.NODE_ENV === "production") {
+  job.start();
   jobCancel.start();
   jobGroup.start();
   jobOrder.start();
   jobCleanup.start();
 }
+
+app.use("/images", express.static(path.join(__dirname, "../images")));
 
 app.use(
   cors({
@@ -477,7 +486,7 @@ app.get("/api/bestseller/:limit", async (req, res) => {
     const limit = parseInt(req.params.limit);
 
     let query = db
-      .select()
+      .select({...dishes, image: path.join(__dirname, `../images/${dishes.imageUrl})`)})
       .from(dishes)
       .where(eq(dishes.status, "Active"))
       .orderBy(desc(dishes.selled));
@@ -668,7 +677,10 @@ app.get("/api/recommendlogin/:userId/:limit", async (req, res) => {
 /* Select all categories */
 app.get("/api/categories", async (req, res) => {
   try {
-    const results = await db.select().from(categories);
+    const results = await db
+      .select()
+      .from(categories)
+      .orderBy(asc(categories.categoryId));
 
     res.status(200).json(results);
   } catch (error) {
@@ -1880,9 +1892,9 @@ app.post("/api/detailrevenue", async (req, res) => {
 
     const startDate = new Date(`${start}T00:00:00+07:00`);
     const endDate = new Date(`${end}T23:59:59+07:00`);
-    
+
     const results = await db
-      .select({...orders})
+      .select({ ...orders })
       .from(orders)
       .innerJoin(orderItems, eq(orderItems.orderId, orders.orderId))
       .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
