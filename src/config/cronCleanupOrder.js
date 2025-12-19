@@ -5,8 +5,6 @@ import { lt, inArray } from "drizzle-orm";
 
 const jobCleanupOrders = new cron.CronJob("0 5 * * *", async () => {
   try {
-    console.log("Cron cleanup orders bắt đầu");
-
     // Giờ VN
     const nowVN = new Date(Date.now() + 7 * 60 * 60 * 1000);
 
@@ -23,13 +21,10 @@ const jobCleanupOrders = new cron.CronJob("0 5 * * *", async () => {
       .where(lt(orders.orderDate, threeMonthsAgo));
 
     if (oldOrders.length === 0) {
-      console.log("Không có orders quá 3 tháng");
       return;
     }
 
     const orderIds = oldOrders.map((o) => o.orderId);
-
-    console.log(`Xóa ${orderIds.length} orders quá hạn`);
 
     // 1. Xóa orderItems trước
     await db
@@ -40,10 +35,8 @@ const jobCleanupOrders = new cron.CronJob("0 5 * * *", async () => {
     await db
       .delete(orders)
       .where(inArray(orders.orderId, orderIds));
-
-    console.log("Cleanup orders hoàn tất");
   } catch (err) {
-    console.error("Cron cleanup error:", err);
+    console.log("Cron cleanup error:", err);
   }
 });
 

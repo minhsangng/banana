@@ -10,7 +10,7 @@ import {
   groupOrderItems,
   userPushTokens,
 } from "../db/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import { Expo } from "expo-server-sdk";
 
 const expo = new Expo();
@@ -75,6 +75,20 @@ async function getGroupQuantity(groupId) {
   return rows.reduce((s, r) => s + (r.q || 0), 0);
 }
 
+const buildMessageByRole = (role, na) => {
+  if (role === "customer") {
+    return {
+      title: "Banana - Đơn hàng sắp được giao",
+      body: `Đơn hàng ${na.orderCode} đã đủ điều kiện giao. Chờ quán chuẩn bị nhé!`,
+    };
+  } else {
+    return {
+      title: "Banana - Đơn hàng mới",
+      body: `Bạn có 1 đơn hàng mới. Vui lòng kiểm tra ngay!`,
+    };
+  }
+};
+
 /**
  * Lấy hoặc tạo group phù hợp cho storeId + area (tower)
  * Nguyên tắc: ưu tiên group có sumOfQuantity < 3, nếu không có thì tạo mới.
@@ -113,10 +127,12 @@ async function getOrCreateOpenGroup(storeId, area) {
 
 const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
   try {
-    console.log("[Cron] grouping orders...");
-
     // 1) Lấy các order_items của orders có status "Đang chờ"
     // Note: join trả về 1 row cho mỗi order_item. Ta sẽ aggregate per orderId
+    const nowVN = new Date(Date.now() + 7 * 60 * 60 * 1000);
+
+    const oneHourAgoVN = new Date(nowVN.getTime() - 60 * 60 * 1000);
+
     const rows = await db
       .select({
         orderId: orders.orderId,
@@ -130,10 +146,11 @@ const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
       .innerJoin(orderItems, eq(orders.orderId, orderItems.orderId))
       .innerJoin(dishes, eq(dishes.dishId, orderItems.dishId))
       .innerJoin(stores, eq(stores.storeId, dishes.storeId))
-      .where(eq(orders.status, "Đang chờ"));
+      .where(
+        and(eq(orders.status, "Đang chờ"), gt(orders.orderDate, oneHourAgoVN))
+      );
 
     if (!rows || rows.length === 0) {
-      console.log("[Cron] no pending orders");
       return;
     }
 
@@ -317,14 +334,18 @@ const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
           const messages = [];
 
           for (const na of newlyAdded) {
-            const notifyUserIds = new Set();
+            const receivers = {
+              customer: new Set(),
+              owner: new Set(),
+              staff: new Set(),
+            };
 
-            // 1. User đặt đơn
+            // 1. Khách hàng
             if (na.userId) {
-              notifyUserIds.add(Number(na.userId));
+              receivers.customer.add(Number(na.userId));
             }
 
-            // 2. Lấy chủ quán
+            // 2. Chủ quán
             if (na.storeId) {
               const store = await db
                 .select({ ownerId: stores.userId })
@@ -333,10 +354,10 @@ const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
                 .limit(1);
 
               if (store.length > 0 && store[0].ownerId) {
-                notifyUserIds.add(Number(store[0].ownerId));
+                receivers.owner.add(Number(store[0].ownerId));
               }
 
-              // 3. Lấy nhân viên
+              // 3. Nhân viên
               const staffRows = await db
                 .select({ userId: employees.userId })
                 .from(employees)
@@ -344,33 +365,38 @@ const jobGroup = new cron.CronJob("*/1 * * * *", async () => {
 
               for (const staff of staffRows) {
                 if (staff.userId) {
-                  notifyUserIds.add(Number(staff.userId));
+                  receivers.staff.add(Number(staff.userId));
                 }
               }
             }
 
             // 4. Gửi notification cho tất cả userId đã gom
-            for (const userId of notifyUserIds) {
-              const tokenRows = await db
-                .select()
-                .from(userPushTokens)
-                .where(eq(userPushTokens.userId, userId));
+            for (const [role, userSet] of Object.entries(receivers)) {
+              for (const userId of userSet) {
+                const tokenRows = await db
+                  .select()
+                  .from(userPushTokens)
+                  .where(eq(userPushTokens.userId, userId));
 
-              if (!tokenRows || tokenRows.length === 0) continue;
+                if (!tokenRows || tokenRows.length === 0) continue;
 
-              for (const row of tokenRows) {
-                const token = row.token;
-                if (!Expo.isExpoPushToken(token)) continue;
+                // GỌI Ở ĐÂY
+                const content = buildMessageByRole(role, na);
 
-                messages.push({
-                  to: token,
-                  sound: "default",
-                  title: "Banana - Sẵn sàng giao",
-                  body: `Đơn hàng ${na.orderCode} đã đủ điều kiện giao đi`,
-                  data: {
-                    url: `banana://detailorder/${na.orderId}`,
-                  },
-                });
+                for (const row of tokenRows) {
+                  if (!Expo.isExpoPushToken(row.token)) continue;
+
+                  messages.push({
+                    to: row.token,
+                    sound: "default",
+                    title: content.title,
+                    body: content.body,
+                    data: {
+                      url: `banana://detailorder/${na.orderId}`,
+                      role: role,
+                    },
+                  });
+                }
               }
             }
           }

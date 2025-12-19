@@ -29,7 +29,6 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
       .where(eq(orders.status, "Hẹn giao"));
 
     if (results.length === 0) {
-      console.log("Không có đơn Hẹn giao.");
       return;
     }
 
@@ -39,7 +38,6 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
       const deliveryTime = order.timer.trim();
 
       if (deliveryTime <= currentTime) {
-        console.log(`Cập nhật đơn ID ${order.orderId} sang 'Đang chờ'`);
 
         await db
           .update(orders)
@@ -64,7 +62,7 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
             to: token,
             sound: "default",
             title: "Banana - Hẹn giao",
-            body: `Đơn hàng #DH2640${order.orderId} đã đến giờ giao.`,
+            body: `Đơn hàng #${order.orderCode} đến giờ xử lý. Quán sẽ giao khi đủ 3 món`,
             data: {
               url: `banana://detailorder/${order.orderId}`
             }
@@ -74,8 +72,6 @@ const jobOrder = new cron.CronJob("*/1 * * * *", async () => {
           for (const chunk of chunks) {
             await expo.sendPushNotificationsAsync(chunk);
           }
-
-          console.log(`Đã gửi thông báo cho đơn ${order.orderId}`);
         } catch (e) {
           console.error("Lỗi gửi thông báo:", e);
         }

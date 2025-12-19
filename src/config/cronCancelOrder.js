@@ -1,7 +1,16 @@
 import cron from "cron";
 import { db } from "../config/db.js";
-import { orders, groupOrders, groupOrderItems, userPushTokens } from "../db/schema.js";
-import { lt, eq, and, sum } from "drizzle-orm";
+import {
+  dishes,
+  orders,
+  orderItems,
+  groupOrders,
+  groupOrderItems,
+  userPushTokens,
+  employees,
+  stores,
+} from "../db/schema.js";
+import { lt, eq, and, sum, inArray } from "drizzle-orm";
 import { Expo } from "expo-server-sdk";
 
 const expo = new Expo();
@@ -20,22 +29,38 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
       );
 
     if (pendingOrders.length === 0) {
-      console.log("Không có đơn cần hủy");
       return;
     }
 
     for (const order of pendingOrders) {
-      console.log(`Hủy đơn ${order.orderId}`);
-
       await db
         .update(orders)
         .set({ status: "Bị hủy" })
         .where(eq(orders.orderId, order.orderId));
 
+      const userId = await db
+        .select({
+          ownerId: stores.userId,
+          employeeId: employees.userId,
+          orderCode: orders.orderCode,
+        })
+        .from(stores)
+        .innerJoin(dishes, eq(dishes.storeId, stores.storeId))
+        .innerJoin(orderItems, eq(orderItems.dishId, dishes.dishId))
+        .innerJoin(orders, eq(orders.orderId, orderItems.orderId))
+        .innerJoin(employees, eq(stores.storeId, employees.storeId))
+        .where(eq(orders.orderId, parseInt(order.orderId)));
+
       const tokenRows = await db
         .select()
         .from(userPushTokens)
-        .where(eq(userPushTokens.userId, order.userId));
+        .where(
+          inArray(userPushTokens.userId, [
+            order.userId,
+            userId[0].ownerId,
+            userId[0].employeeId,
+          ])
+        );
 
       if (tokenRows.length === 0) return;
 
@@ -48,8 +73,8 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
         messages.push({
           to: token,
           sound: "default",
-          title: "Banana - Đơn hàng bị hủy",
-          body: `Đơn hàng ${order.orderCode} đã bị hủy do quá thời gian chờ`,
+          title: "Banana - Hủy đơn hàng",
+          body: `Đơn hàng ${order.orderCode} của bạn đã bị hủy bởi hệ thống do quá thời gian chờ`,
           data: {
             url: `banana://detailorder/${order.orderId}`,
           },
@@ -84,8 +109,6 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
       const sumQuantity = remaining[0].total ?? 0;
 
       if (sumQuantity === 0) {
-        console.log(`GroupOrder ${groupId} trống → XÓA`);
-
         await db.delete(groupOrders).where(eq(groupOrders.id, groupId));
 
         await db
@@ -96,14 +119,10 @@ const jobCancel = new cron.CronJob("*/1 * * * *", async () => {
           .update(groupOrders)
           .set({ sumOfQuantity: sumQuantity })
           .where(eq(groupOrders.id, groupId));
-
-        console.log(
-          `Cập nhật GroupOrder ${groupId}: sumOfQuantity = ${sumQuantity}`
-        );
       }
     }
   } catch (err) {
-    console.error("Cron error:", err);
+    console.log("Cron error:", err);
   }
 });
 

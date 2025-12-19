@@ -4,7 +4,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { db } from "./config/db.js";
 import { users, refreshTokens, userPushTokens } from "./db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { sendEmail } from "./sendEmail.js";
@@ -168,7 +168,7 @@ router.post("/login", async (req, res) => {
     }
     phoneNumber = phoneNumber.trim().toLowerCase();
 
-    const results = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
+    const results = await db.select().from(users).where(and(eq(users.phoneNumber, phoneNumber), eq(users.status, "Active")));
     if (results.length === 0) {
       return res
         .status(401)
