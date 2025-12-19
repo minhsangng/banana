@@ -91,7 +91,7 @@ const HomeScreen = () => {
                   <TouchableOpacity key={d.dishId} onPress={() => router.push(`../detaildish/${d.dishId}`)} style={[LAYOUT.border(1, COLORS.border), LAYOUT.rounded(20), LAYOUT.w("23%"), LAYOUT.h(110), { overflow: "hidden" }]}>
                     <Image
                       style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]}
-                      source={formatImage(d.image)}
+                      source={formatImage(d.imageUrl)}
                     ></Image>
                     <Text
                       style={[
@@ -122,7 +122,7 @@ const HomeScreen = () => {
               {recommends.length === 0 ? (<View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter]}><Text style={[TEXT.paragraph]}>Chưa có dữ liệu</Text></View>)
                 : recommends.map((data) => (
                   <TouchableOpacity key={data.dishId} onPress={() => router.push(`../detaildish/${data.dishId}`)} style={[LAYOUT.w("48%"), LAYOUT.h(160), LAYOUT.border(1, COLORS.border), LAYOUT.rounded(8), { overflow: "hidden" }]}>
-                    <Image style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={formatImage(data.image)}></Image>
+                    <Image style={[LAYOUT.wFull, LAYOUT.hFull, LAYOUT.relative]} source={formatImage(data.imageUrl)}></Image>
                     <View style={[LAYOUT.absolute, LAYOUT.top(5), LAYOUT.left(5)]}>
                       <View style={[LAYOUT.row, LAYOUT.justifyCenter, LAYOUT.rounded(30), LAYOUT.border(0.5, COLORS.border), LAYOUT.px(6), LAYOUT.py(2), LAYOUT.bg(COLORS.button), homeStyles.rateContainer]}>
                         <Text style={[TEXT.subText, LAYOUT.color(COLORS.textLight)]}>{data.rateStar}</Text>
