@@ -4,7 +4,6 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    SafeAreaView,
     Dimensions,
     StyleSheet
 } from "react-native";
@@ -100,7 +99,7 @@ export default function SignInScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
                     <TouchableOpacity onPress={() => router.replace("/(tabs)")}>
@@ -168,7 +167,7 @@ export default function SignInScreen() {
             </View>
 
             <ToastModal status={icon} title={title} content={null} visible={alert} />
-        </SafeAreaView>
+        </View>
     );
 }
 

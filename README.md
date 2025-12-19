@@ -68,5 +68,5 @@ npx expo
 
 Build
 ```bash
-eas build --platform android
+npx eas build -p android
 ```

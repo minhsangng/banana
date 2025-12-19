@@ -23,7 +23,7 @@ export default function NavBar({ isLogin, heading }) {
                         onPress={() =>
                             isLogin
                                 ? (setType("person"), setMenuVisible(true))
-                                : router.replace("../../(auth)/sign-in")
+                                : router.replace("../(auth)/sign-in")
                         }
                     />
                 </View>

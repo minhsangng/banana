@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, RefreshControl } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, RefreshControl, ScrollView } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -32,10 +32,10 @@ const FavoriteScreen = () => {
 
             if (data)
                 setFavorites(data);
-
-            setLoading(false);
         } catch (error) {
             console.log("Lỗi không thể kết nối API ", error);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -47,7 +47,7 @@ const FavoriteScreen = () => {
                 setFavorites((prev) => prev.filter(item => item.dishId !== dishId));
             }
         } catch (error) {
-            console.error("Lỗi: ", error);
+            console.log("Lấy danh sách yêu thích thất bại: ", error);
         }
     };
 
@@ -60,8 +60,6 @@ const FavoriteScreen = () => {
         loadFavorites();
     }, []);
 
-    if (loading) return <LoadingSpinner />;
-
     return (
         <View style={[LAYOUT.container]}>
             <View style={[LAYOUT.header]}>
@@ -71,8 +69,12 @@ const FavoriteScreen = () => {
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
-                    {!isLogin ? (<Text style={[TEXT.text, TEXT.center]}>Đăng nhập để thêm món yêu thích</Text>) :
-                        (favorites.length === 0 ? (<Text style={[TEXT.text, TEXT.center]}>Danh sách trống</Text>) : (
+                    {loading ? (<LoadingSpinner />) : !isLogin ? (<ScrollView refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }><Text style={[TEXT.text, TEXT.center]}>Đăng nhập để thêm món yêu thích</Text></ScrollView>) :
+                        (favorites.length === 0 ? (<ScrollView refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }><Text style={[TEXT.text, TEXT.center]}>Danh sách trống</Text></ScrollView>) : (
                             <FlatList
                                 data={favorites}
                                 keyExtractor={(item) => item.dishId}
@@ -90,7 +92,7 @@ const FavoriteScreen = () => {
                                             style={[LAYOUT.wFull, LAYOUT.h(150), LAYOUT.rounded(20), LAYOUT.border(1, COLORS.border), { overflow: "hidden" }]}
                                         />
                                         <TouchableOpacity onPress={() => removeFavorite(item.dishId)} style={[LAYOUT.absolute, LAYOUT.top(10), LAYOUT.left(10)]}>
-                                            <Ionicons name="heart" size={16} color={COLORS.button} style={[LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), { backgroundColor: COLORS.light }]}></Ionicons>
+                                            <Ionicons name="trash-outline" size={22} color={COLORS.button} style={[LAYOUT.rounded(30), LAYOUT.border(1, COLORS.border), LAYOUT.px(4), LAYOUT.py(3), { backgroundColor: COLORS.light }]}></Ionicons>
                                         </TouchableOpacity>
                                         <Text style={[TEXT.text, TEXT.size(16), LAYOUT.absolute, LAYOUT.right(0), LAYOUT.bottom(50), LAYOUT.px(6), LAYOUT.roundedtl(22), LAYOUT.roundedbl(22), { color: COLORS.textLight, backgroundColor: COLORS.button }]}>{formatPrice(item.price)} đ</Text>
                                         <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>

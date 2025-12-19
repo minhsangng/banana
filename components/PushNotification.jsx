@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
+import React, { useEffect } from "react";
+import { Platform } from "react-native";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import * as Linking from "expo-linking";
+import Constants from "expo-constants";
 import { API_URL } from "../constants/api";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -90,8 +91,10 @@ const PushNotification = ({ children }) => {
         // Notification tap listener
         const responseSubscription = Notifications.addNotificationResponseReceivedListener(
             (response) => {
-                const data = response.notification.request.content.data;
-                console.log('Notification Tapped:', data);
+                const url = response.notification.request.content.data?.url;
+                if (url) {
+                    Linking.openURL(url);
+                }
             }
         );
 

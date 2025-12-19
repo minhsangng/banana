@@ -63,9 +63,8 @@ export default function Header() {
 
             setOrders(Object.values(grouped));
             setCurrentIndex(0);
-
         } catch (error) {
-            console.error("ORDER LOAD ERROR: ", error);
+            console.log("Không có đơn đang làm: ", error);
         }
     };
 

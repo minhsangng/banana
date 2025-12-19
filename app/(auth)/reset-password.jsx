@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, SafeAreaView, TextInput, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
@@ -7,18 +7,19 @@ import { Ionicons } from "@expo/vector-icons";
 import ToastModal from "../../components/ToastModal";
 import { API_URL } from "../../constants/api";
 import axios from "axios";
-
+import LoadingSpinner from "../../components/LoadingSpinner";
 const { height } = Dimensions.get("window");
 
 export default function ForgotPassScreen() {
     const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [icon, setIcon] = useState("");
     const [title, setTitle] = useState("");
     const [alert, setAlert] = useState(false);
-    
+
     const [errorEmail, setErrorEmail] = useState("");
-    
+
     const validate = () => {
         let isValid = true;
 
@@ -42,20 +43,21 @@ export default function ForgotPassScreen() {
 
     const handleForgot = async () => {
         if (!validate()) return;
-        
+
         try {
+            setLoading(true);
             const { data } = await axios.post(`${API_URL}/auth/forgot-password`, { email });
             if (data.success) {
                 setIcon("success");
                 setTitle(data.message);
                 setAlert(true);
-                
+
                 setTimeout(() => router.push("./verify"), 1100);
             } else {
                 setIcon("error");
                 setTitle(data.message);
                 setAlert(true);
-                
+
                 setTimeout(() => setAlert(false), 1100);
             }
         } catch (err) {
@@ -64,11 +66,13 @@ export default function ForgotPassScreen() {
             setAlert(true);
 
             setTimeout(() => setAlert(false), 1100);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <SafeAreaView style={LAYOUT.container}>
+        <View style={LAYOUT.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
                     <TouchableOpacity onPress={() => router.back()}>
@@ -79,23 +83,25 @@ export default function ForgotPassScreen() {
                 </View>
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.82), LAYOUT.pt(32), LAYOUT.px(24)]}>
-                <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Email khôi phục</Text>
-                <TextInput keyboardType="email-address"
-                    placeholder="Nhập email"
-                    value={email}
-                    onChangeText={setEmail}
-                    style={[LAYOUT.rounded(12), LAYOUT.py(14), LAYOUT.px(18), LAYOUT.bg(COLORS.background3), LAYOUT.color(COLORS.paragraph), TEXT.subText, TEXT.size(16)]}
-                />
-                {errorEmail !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorEmail}</Text>}
-                
-                <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.mt(8)]}>* Mã khôi phục mật khẩu sẽ được gửi qua email của bạn. Đừng quên kiểm tra trong mục spam nếu bạn chưa nhận được!</Text>
+                {loading ? (<LoadingSpinner />) : (<>
+                    <Text style={[TEXT.text, TEXT.size(18), LAYOUT.mb(8)]}>Email khôi phục</Text>
+                    <TextInput keyboardType="email-address"
+                        placeholder="Nhập email"
+                        value={email}
+                        onChangeText={setEmail}
+                        style={[LAYOUT.rounded(12), LAYOUT.py(14), LAYOUT.px(18), LAYOUT.bg(COLORS.background3), LAYOUT.color(COLORS.paragraph), TEXT.subText, TEXT.size(16)]}
+                    />
+                    {errorEmail !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorEmail}</Text>}
 
-                <TouchableOpacity onPress={handleForgot} style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.mt(44), LAYOUT.rounded(20)]}>
-                    <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Nhận mã khôi phục</Text>
-                </TouchableOpacity>
+                    <Text style={[TEXT.paragraph, TEXT.size(12), LAYOUT.mt(8)]}>* Mã khôi phục mật khẩu sẽ được gửi qua email của bạn. Đừng quên kiểm tra trong mục spam nếu bạn chưa nhận được!</Text>
+
+                    <TouchableOpacity onPress={handleForgot} style={[LAYOUT.bg(COLORS.button), LAYOUT.py(14), LAYOUT.mt(44), LAYOUT.rounded(20)]}>
+                        <Text style={[TEXT.text, TEXT.size(22), TEXT.center, LAYOUT.color(COLORS.textLight)]}>Nhận mã khôi phục</Text>
+                    </TouchableOpacity>
+                </>)}
             </View>
 
             <ToastModal status={icon} title={title} content={null} visible={alert} />
-        </SafeAreaView>
+        </View>
     );
 }

@@ -70,14 +70,14 @@ const OrderDishScreen = () => {
       if (userId !== 0) {
         const newStatus = !isFavorite;
         setIsFavorite(newStatus);
-
+        
         await axios.get(`${API_URL}/favorite/${newStatus ? "add" : "remove"}/${userId}/${dishId}`);
       } else {
         setTitle("Đăng nhập để thêm yêu thích");
         setAlert(true);
       }
     } catch (error) {
-      console.error("Lỗi: ", error);
+      console.log("Lỗi thêm yêu thích: ", error);
     }
   };
 
@@ -136,8 +136,8 @@ const OrderDishScreen = () => {
       </View>
 
       {/* MAIN */}
-      <ScrollView style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
-        <View style={[
+      <View style={[LAYOUT.main, LAYOUT.h(height * 0.85)]}>
+        <ScrollView showsVerticalScrollIndicator={false} style={[
           LAYOUT.w(width - 60),
           LAYOUT.mx(),
           LAYOUT.mt(44),
@@ -157,6 +157,8 @@ const OrderDishScreen = () => {
               resizeMode="cover"
             />
           </View>
+          
+          {dish.countBought !== '0' && <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(6), LAYOUT.mt(6)]}><Ionicons name="sparkles-outline" size={22} color={COLORS.background4}></Ionicons><Text style={[TEXT.paragraph]}>Đang có <Text style={[TEXT.size(22)]}>{dish.countBought??0}</Text> người đặt món này</Text></View>}
 
           <View
             style={[
@@ -270,8 +272,8 @@ const OrderDishScreen = () => {
               ))}
             </ScrollView>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       <ToastModal width={"auto"} height={"auto"} status={"warning"} title={title} content={contentAlert} visible={alert} />
     </View>

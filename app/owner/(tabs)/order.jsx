@@ -50,16 +50,18 @@ export default function OrderScreen() {
             const userStr = await SecureStore.getItemAsync("userInfo");
             if (!userStr) return;
             const uid = JSON.parse(userStr).userId;
+            const role = JSON.parse(userStr).role;
 
             setUserId(uid);
             setIsLogin(true);
 
-            const { data } = await axios.get(`${API_URL}/ordersowner/${uid}/${currentStatus}`);
+            const { data } = await axios.get(`${API_URL}/ordersowner/${uid}/${role}/${currentStatus}`);
 
             setOrders(data);
-            setLoading(false);
         } catch (error) {
             console.log("Lỗi API orders:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -87,7 +89,7 @@ export default function OrderScreen() {
                 }
             }
         } catch (error) {
-            console.error(error);
+            console.log(error);
         }
     }
 
@@ -105,7 +107,7 @@ export default function OrderScreen() {
             });
             loadOrders();
         } catch (error) {
-            console.error(error);
+            console.log(error);
         }
     };
 
@@ -150,7 +152,7 @@ export default function OrderScreen() {
                                     showsVerticalScrollIndicator={false}
                                     renderItem={({ item }) => {
                                         return (
-                                            <TouchableOpacity onPress={() => router.push(`../../detailorder/${item.orderId}`) }
+                                            <TouchableOpacity onPress={() => router.push(`../../detailorder/${item.orderId}`)}
                                                 style={[
                                                     LAYOUT.wFull,
                                                     LAYOUT.mb(20),

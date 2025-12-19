@@ -3,7 +3,6 @@ import {
     View,
     Text,
     TouchableOpacity,
-    SafeAreaView,
     TextInput,
     Dimensions,
 } from "react-native";
@@ -13,7 +12,6 @@ import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import apiClient from "../../constants/apiClient";
 import ToastModal from "../../components/ToastModal";
-import * as SecureStore from "expo-secure-store";
 
 const { height } = Dimensions.get("window");
 
@@ -89,7 +87,7 @@ export default function ChangePwScreen() {
     };
 
     return (
-        <SafeAreaView style={LAYOUT.container}>
+        <View style={LAYOUT.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
                     <TouchableOpacity onPress={() => router.back()}>
@@ -171,6 +169,6 @@ export default function ChangePwScreen() {
             </View>
 
             <ToastModal status={icon} title={title} content={null} visible={alert} />
-        </SafeAreaView>
+        </View>
     );
 }

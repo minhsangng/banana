@@ -20,6 +20,12 @@ export default function EmployeeScreen() {
     const [title, setTitle] = useState(false);
     const [alert, setAlert] = useState(false);
 
+    const [editName, setEditName] = useState("");
+    const [editEmail, setEditEmail] = useState("");
+    const [editPhone, setEditPhone] = useState("");
+
+    const [originalEmployee, setOriginalEmployee] = useState(null);
+
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -53,9 +59,10 @@ export default function EmployeeScreen() {
                 const { data } = await axios.get(`${API_URL}/employees/${user.userId}`);
                 setEmployees(data);
             }
-            setLoading(false);
         } catch (error) {
             console.log("Lỗi lấy danh sách nhân viên: ", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -188,6 +195,100 @@ export default function EmployeeScreen() {
         );
     }
 
+    const editEmployee = async (employeeId) => {
+        try {
+            setLoading(true);
+            const { data } = await axios.get(`${API_URL}/employeedetail/${employeeId}`);
+
+            console.log(data);
+            if (data) {
+                setIcon("edit");
+                setOriginalEmployee(data[0]);
+                
+                setEditName(data[0].fullName);
+                setEditEmail(data[0].email);
+                setEditPhone(data[0].phoneNumber);
+                setTitle("Cập nhật thông tin nhân viên");
+            } else {
+                setIcon("error");
+                setTitle(`Lấy thông tin nhân viên thất bại thất bại`);
+            }
+            setAlert(true);
+        } catch (error) {
+            console.log("Lấy chi tiết nhân viên thất bại: ", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const contentEdit = () => {
+        return (
+            <View style={[LAYOUT.wFull, LAYOUT.mt(12)]}>
+                <Text style={[TEXT.text, TEXT.size(16)]}>Họ tên</Text>
+                <TextInput style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={editName} onChangeText={setEditName} />
+                {errorName !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorName}</Text>}
+
+                <Text style={[TEXT.text, TEXT.size(16)]}>Email</Text>
+                <TextInput keyboardType="email-address" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={editEmail} onChangeText={setEditEmail} />
+                {errorEmail !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorEmail}</Text>}
+
+                <Text style={[TEXT.text, TEXT.size(16)]}>Liên hệ</Text>
+                <TextInput keyboardType="number-pad" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={editPhone} onChangeText={setEditPhone} />
+                {errorPhone !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPhone}</Text>}
+
+                {/* <Text style={[TEXT.text, TEXT.size(16)]}>Mật khẩu <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>*</Text></Text>
+                <TextInput keyboardType="visible-password" style={[TEXT.subText, LAYOUT.color(COLORS.paragraph), TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} value={password} onChangeText={setPassword} />
+                {errorPass !== "" && <Text style={[TEXT.paragraph, TEXT.size(14), LAYOUT.pb(2), LAYOUT.color(COLORS.heading)]}>{errorPass}</Text>} */}
+
+                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.gap(8), LAYOUT.mt(32)]}>
+                    <TouchableOpacity onPress={() => (setAlert(false), clearForm())} style={[LAYOUT.bg(COLORS.background3), LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(12)]}>
+                        <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.heading)]}>Hủy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => submitEdit(originalEmployee.userId)} style={[LAYOUT.bg(COLORS.button), LAYOUT.w("48%"), LAYOUT.py(6), LAYOUT.rounded(12)]}>
+                        <Text style={[TEXT.text, TEXT.center, LAYOUT.color(COLORS.textLight)]}>Thêm</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
+
+    const isDishChanged = () => {
+        if (!originalEmployee) return false;
+
+        if (editName !== originalEmployee.fullName) return true;
+        if (editEmail !== originalEmployee.email) return true;
+        if (editPhone !== originalEmployee.phoneNumber) return true;
+
+        return false;
+    };
+
+    const submitEdit = async (employeeId) => {
+        if (!isDishChanged()) {
+            setIcon("warning");
+            setTitle("Bạn chưa thay đổi thông tin nào");
+            setAlert(true);
+
+            setTimeout(() => setAlert(false), 1200);
+            return;
+        }
+
+        try {
+            console.log(employeeId);
+            const { data } = await axios.post(`${API_URL}/updateemployeeinfo`, { userId: employeeId, fullName: editName, email: editEmail, phoneNumber: editPhone });
+
+            setIcon(data.success ? "success" : "error");
+            setTitle(data.message);
+            setAlert(true);
+
+            setTimeout(() => {
+                setAlert(false);
+                loadEmployees();
+            }, 1100);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     useEffect(() => {
         loadEmployees();
     }, []);
@@ -219,7 +320,7 @@ export default function EmployeeScreen() {
                                 }
                                 renderItem={({ item }) => {
                                     return (
-                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.itemsCenter, LAYOUT.pb(6), LAYOUT.mb(12), LAYOUT.borderb(1, COLORS.background4), { borderStyle: "dashed" }]}>
+                                        <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.pb(6), LAYOUT.mb(12), LAYOUT.borderb(1, COLORS.background4), { borderStyle: "dashed" }]}>
                                             <View style={[LAYOUT.row, LAYOUT.gap(5)]}>
                                                 <Text style={[TEXT.text, LAYOUT.w(30)]}>#{item.employeeId}</Text>
                                                 <View>
@@ -228,13 +329,37 @@ export default function EmployeeScreen() {
                                                         <Ionicons name="ellipse" color={item.status === "Active" ? "#73AF6F" : COLORS.heading} size={10} style={[LAYOUT.ml(8), LAYOUT.mr(4)]}></Ionicons>
                                                         <Text style={[TEXT.subText]}>{item.status === "Active" ? "Đang làm việc" : "Đã nghỉ việc"}</Text>
                                                     </View>
-                                                    <Text style={[TEXT.paragraph, TEXT.size(16)]}>{item.phoneNumber}</Text>
+                                                    <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(6)]}>
+                                                        <Ionicons name="call-outline" size={14}></Ionicons>
+                                                        <Text style={[TEXT.paragraph, TEXT.size(16)]}>{item.phoneNumber}</Text>
+                                                    </View>
                                                 </View>
                                             </View>
-                                            <View>
+                                            <View style={[LAYOUT.gap(6)]}>
                                                 <TouchableOpacity onPress={() => updateStatus(item.userId, item.status)} style={[LAYOUT.bg(COLORS.background3), LAYOUT.rounded(12), LAYOUT.py(4), LAYOUT.px(10), LAYOUT.w(70), LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)]}>
                                                     <Text style={[TEXT.paragraph, TEXT.center, LAYOUT.color(COLORS.heading)]}>{item.status === "Active" ? "Khóa" : "Mở"}</Text>
                                                     <Ionicons name={item.status === "Active" ? "download-outline" : "share-outline"} size={14} color={COLORS.heading}></Ionicons>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => editEmployee(item.userId)}
+                                                    style={[
+                                                        LAYOUT.px(10), LAYOUT.py(4),
+                                                        LAYOUT.w(70),
+                                                        LAYOUT.rounded(22),
+                                                        LAYOUT.bg(COLORS.button),
+                                                        LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.justifyCenter, LAYOUT.gap(4)
+                                                    ]}
+                                                >
+                                                    <Text
+                                                        style={[
+                                                            TEXT.text,
+                                                            TEXT.size(16),
+                                                            TEXT.center,
+                                                            LAYOUT.color(COLORS.textLight)
+                                                        ]}
+                                                    >
+                                                        Sửa
+                                                    </Text>
+                                                    <Ionicons name="create-outline" size={14} color={COLORS.textLight}></Ionicons>
                                                 </TouchableOpacity>
                                             </View>
                                         </View>
@@ -245,7 +370,7 @@ export default function EmployeeScreen() {
                     )}
             </View>
 
-            <ToastModal status={icon} title={title} content={icon === "add" ? contentAdd : null} visible={alert} />
+            <ToastModal status={icon} title={title} content={icon === "add" ? contentAdd : icon === "edit" ? contentEdit : null} visible={alert} />
         </View>
     );
 }

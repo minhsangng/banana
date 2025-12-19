@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, SafeAreaView, TextInput, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { COLORS } from "../../constants/colors";
@@ -71,7 +71,7 @@ export default function VerifyPassScreen() {
     };
 
     return (
-        <SafeAreaView style={LAYOUT.container}>
+        <View style={LAYOUT.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
                     <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in")}>
@@ -106,6 +106,6 @@ export default function VerifyPassScreen() {
             </View>
 
             <ToastModal status={icon} title={title} content={null} visible={alert} />
-        </SafeAreaView>
+        </View>
     );
 }

@@ -137,7 +137,8 @@ export default function PopupSearch({ visible, query, onClose }) {
                       </View>
                     </TouchableOpacity>
                   ))}
-                  <Text style={[LAYOUT.pt(12), TEXT.subText, TEXT.center, { color: COLORS.paragraph }]}>Đã hiển thị tất cả kết quả</Text>
+                  
+                  {data.length !== 0 && <Text style={[LAYOUT.pt(12), TEXT.subText, TEXT.center, { color: COLORS.paragraph }]}>Đã hiển thị tất cả kết quả</Text>}
                 </ScrollView>)}
             </View>
           </View>

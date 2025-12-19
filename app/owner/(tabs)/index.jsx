@@ -154,32 +154,34 @@ export default function HomeScreen() {
         });
     };
 
-    const loadCategories = async () => {
+    /* const loadCategories = async () => {
         const { data } = await axios.post(`${API_URL}/topcategories`, {
             userId,
             start: formatDate(startDate),
             end: formatDate(endDate),
         });
 
-        const colors = ["#f39c12", "#3498db", "#27ae60", "#e74c3c"];
+        console.log("Categories API:", data);
 
-        setPieData(
-            data.map((item, index) => ({
-                name: item.categoryName,
-                population: Number(item.quantity) || 0,
-                color: colors[index] ?? "#000",
-                legendFontColor: "#333",
-                legendFontSize: 12
-            }))
-        );
-    };
+        const colors = ["#f39c12", "#e74c3c", "#27ae60", "#3498db"];
+
+        const newPieData = (data || []).map((item, index) => ({
+            name: item.categoryName || "",
+            population: Number(item.quantity) || 0,
+            color: colors[index] ?? "#000",
+            legendFontColor: "#333",
+            legendFontSize: 12
+        }));
+
+        setPieData([...newPieData]);
+    }; */
 
     const [lineData, setLineData] = useState({
         labels: ["Th2", "Th3", "Th4", "Th5", "Th6", "Th7", "CN"],
         datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }]
     });
 
-    const [pieData, setPieData] = useState([{ name: "", population: 0, color: "#f39c12", legendFontColor: "#333", legendFontSize: 12 }]);
+    /* const [pieData, setPieData] = useState([{ name: "", population: 0, color: "#f39c12", legendFontColor: "#333", legendFontSize: 12 }]); */
 
     const [barData, setBarData] = useState({
         labels: [],
@@ -203,7 +205,7 @@ export default function HomeScreen() {
         Promise.all([
             loadRevenue(),
             loadTopDishes(),
-            loadCategories()
+            /* loadCategories() */
         ]).finally(() => {
             setLoading(false);
         });
@@ -325,7 +327,7 @@ export default function HomeScreen() {
                                     </TouchableOpacity>
                                 </View>
 
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[LAYOUT.relative]}>
                                     <LineChart
                                         data={lineData}
                                         width={width}
@@ -336,13 +338,15 @@ export default function HomeScreen() {
                                         style={{ borderRadius: 12 }}
                                         fromZero
                                     />
+
+                                    {lineData.datasets[0].data.every(value => value === 0) && <Text style={[LAYOUT.absolute, LAYOUT.top(100), LAYOUT.left(150), TEXT.paragraph, LAYOUT.color(COLORS.textLight), LAYOUT.bg(COLORS.heading), LAYOUT.px(12), LAYOUT.py(3)]}>Không có dữ liệu</Text>}
                                 </ScrollView>
 
                                 <Text style={[TEXT.text, TEXT.right, LAYOUT.mb(24)]}>Tổng doanh thu: {formatPrice(revenue)} đ</Text>
 
                                 <Text style={[TEXT.text, LAYOUT.color(COLORS.heading), LAYOUT.mb(8)]}>Sản phẩm bán chạy</Text>
 
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[LAYOUT.relative]}>
                                     <BarChart
                                         data={barData}
                                         width={Math.max(width, barData.labels.length * 80)}
@@ -356,22 +360,28 @@ export default function HomeScreen() {
                                         fromZero
                                         showValuesOnTopOfBars
                                     />
+
+                                    {barData.datasets[0].data.every(value => value === 0) && <Text style={[LAYOUT.absolute, LAYOUT.top(100), LAYOUT.left(150), TEXT.paragraph, LAYOUT.color(COLORS.textLight), LAYOUT.bg(COLORS.heading), LAYOUT.px(12), LAYOUT.py(3)]}>Không có dữ liệu</Text>}
                                 </ScrollView>
 
                                 <Text style={[TEXT.text, TEXT.right, LAYOUT.mb(24)]}>Lượng bán ra: {quantity} món</Text>
 
-                                <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Danh mục bán chạy</Text>
+                                {/* <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]}>Danh mục bán chạy</Text>
 
-                                <PieChart
-                                    data={pieData}
-                                    width={width - 32}
-                                    height={220}
-                                    accessor="population"
-                                    backgroundColor="transparent"
-                                    paddingLeft="15"
-                                    chartConfig={chartConfig}
-                                    absolute
-                                />
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[LAYOUT.relative]}>
+                                    <PieChart
+                                        data={pieData}
+                                        width={width - 32}
+                                        height={220}
+                                        accessor="population"
+                                        backgroundColor="transparent"
+                                        paddingLeft="15"
+                                        chartConfig={chartConfig}
+                                        absolute
+                                    />
+
+                                    {pieData.every(item => item.population === 0 && item.name === "") && <Text style={[LAYOUT.absolute, LAYOUT.top(0), LAYOUT.left(0), TEXT.paragraph, LAYOUT.color(COLORS.textLight), LAYOUT.bg(COLORS.heading), LAYOUT.px(12), LAYOUT.py(3)]}>Không có dữ liệu</Text>}
+                                </ScrollView> */}
                             </ScrollView>
                         )}
                 </View>

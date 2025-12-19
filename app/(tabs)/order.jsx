@@ -1,14 +1,14 @@
-import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, RefreshControl } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, FlatList, RefreshControl, ScrollView } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
 import { LAYOUT, TEXT } from "../../assets/styles/base.styles";
 import { API_URL } from "../../constants/api";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ToastModal from "../../components/ToastModal";
-import { formatImage } from "../../constants/format";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,7 +38,6 @@ const OrderScreen = () => {
             const { data } = await axios.get(`${API_URL}/currentorder/${uid}`);
 
             setOrders(data);
-            setLoading(false);
         } catch (error) {
             console.log("Lấy danh sách đơn hàng thất bại: ", error);
         } finally {
@@ -67,34 +66,24 @@ const OrderScreen = () => {
         setContent(contentCancelAlert);
         setAlert(true);
         setDeleteId(orderId);
-    }
+    };
 
     const handleCancer = async () => {
         try {
             setAlert(false);
-
             const { data } = await axios.get(`${API_URL}/cancelorder/${deleteId}`);
 
-            if (data.success) {
-                await axios.post(`${API_URL}/pushnotification`, {
-                    userId: userId,
-                    title: "Banana - Hủy đơn",
-                    content: data.message,
-                    metadata: {}
-                });
-            }
-
             setIcon(data.success ? "success" : "error");
-            setTitle(data.success ? "Hủy đơn thành công" : "Hủy đơn thất bại");
+            setTitle(data.message);
             setContent(null);
             setAlert(true);
-            
+
             setTimeout(() => {
-                setAlert(false);    
+                setAlert(false);
                 loadOrders();
             }, 1100);
         } catch (error) {
-            console.error(error);
+            console.log(error);
         }
     };
 
@@ -107,8 +96,6 @@ const OrderScreen = () => {
         loadOrders();
     }, []);
 
-    if (loading) return <LoadingSpinner />;
-
     return (
         <View style={[LAYOUT.container]}>
             <View style={[LAYOUT.header]}>
@@ -118,19 +105,21 @@ const OrderScreen = () => {
             </View>
             <View style={[LAYOUT.main, LAYOUT.h(height * 0.75)]}>
                 <View style={[LAYOUT.mt(44), LAYOUT.w(width - 60), LAYOUT.mx(), LAYOUT.pb(80)]}>
-                    {!isLogin ? (<Text style={[TEXT.text, TEXT.center]}>Đăng nhập để đặt hàng ngay</Text>) : (
-                        orders.length === 0 ? <Text style={[TEXT.text, TEXT.center]}>Danh sách trống</Text> :
+                    {loading ? (<LoadingSpinner />) : !isLogin ? (<ScrollView refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }><Text style={[TEXT.text, TEXT.center]}>Đăng nhập để đặt hàng ngay</Text></ScrollView>) : (
+                        orders.length === 0 ? (<ScrollView refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }><Text style={[TEXT.text, TEXT.center]}>Danh sách trống</Text></ScrollView>) :
                             (<FlatList
                                 data={orders}
-                                keyExtractor={(item) => item.orderId.toString()}
+                                keyExtractor={(item) => item.orderId}
                                 numColumns={1}
                                 showsVerticalScrollIndicator={false}
                                 refreshControl={
                                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                                 }
                                 renderItem={({ item }) => {
-                                    const dishNames = item.items.map(d => d.dishName).join(" - ");
-
                                     return (
                                         <TouchableOpacity onPress={() => router.push(`../detailorder/${item.orderId}`)}
                                             style={[
@@ -139,40 +128,38 @@ const OrderScreen = () => {
                                                 LAYOUT.row,
                                                 LAYOUT.justifyBetween,
                                                 LAYOUT.pb(12),
-                                                LAYOUT.borderb(1, COLORS.background4)
+                                                LAYOUT.borderb(1, COLORS.background4),
+                                                { borderStyle: "dashed" }
                                             ]}
                                         >
-                                            <Image
-                                                source={formatImage(item.items[0].dishImage)}
-                                                style={[
-                                                    LAYOUT.w(80),
-                                                    LAYOUT.h(110),
-                                                    LAYOUT.rounded(20),
-                                                    LAYOUT.border(1, COLORS.border),
-                                                    { overflow: "hidden" }
-                                                ]}
-                                            />
-
-                                            <View style={[LAYOUT.ml(12)]}>
-                                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
-                                                    <Text style={[TEXT.text, LAYOUT.w("60%")]} numberOfLines={1}>
-                                                        {dishNames}
+                                            <View style={[LAYOUT.wFull]}>
+                                                <View style={[LAYOUT.mt(12)]}>
+                                                    <Text style={[TEXT.text]} numberOfLines={1}>
+                                                        #{item.orderCode}
                                                     </Text>
-                                                    <Text style={[TEXT.text, { color: COLORS.heading }]}>
+                                                </View>
+
+                                                <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(12)]}>
+                                                    <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(6)]}>
+                                                        <Ionicons size={20} color={COLORS.heading} name="storefront-outline"></Ionicons>
+                                                        <Text style={[TEXT.text, LAYOUT.color(COLORS.heading)]} numberOfLines={1}>{item.storeName}</Text>
+                                                    </View>
+                                                    <Text style={[TEXT.paragraph]}>
                                                         {item.items.length} món
                                                     </Text>
                                                 </View>
 
                                                 <View style={[LAYOUT.row, LAYOUT.justifyBetween, LAYOUT.mt(6)]}>
-                                                    <Text style={[TEXT.text, TEXT.size(16)]}>
+                                                    <View style={[LAYOUT.row, LAYOUT.itemsCenter, LAYOUT.gap(6)]}>
+                                                        <Ionicons size={18} color={COLORS.paragraph} name="location-outline"></Ionicons>
+                                                        <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(COLORS.paragraph)]}>{item.deliveryAddress}</Text>
+                                                    </View>
+                                                    <Text style={[TEXT.text, TEXT.size(16), LAYOUT.color(item.orderStatus === "Đang chờ" ? "orange" : "#67B2D8")]}>
                                                         {item.orderStatus}
-                                                    </Text>
-                                                    <Text style={[TEXT.text, TEXT.size(16)]}>
-                                                        {item.deliveryAddress}
                                                     </Text>
                                                 </View>
 
-                                                <View style={[LAYOUT.mt(12), { alignItems: "flex-end" }]}>
+                                                <View style={[LAYOUT.mt(12), LAYOUT.row, { justifyContent: "flex-end" }]}>
                                                     <TouchableOpacity onPress={() => cancelOrder(item.orderId)}
                                                         style={[
                                                             LAYOUT.px(10),

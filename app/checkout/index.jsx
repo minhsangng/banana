@@ -238,10 +238,11 @@ export default function CheckoutScreen() {
                 } else {
                     setDataOrder([]);
                 }
-                setLoading(false);
             } catch (error) {
                 console.error("Thanh toán thất bại: ", error);
                 setDataOrder([]);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -361,7 +362,7 @@ export default function CheckoutScreen() {
                         >
                             <TextInput
                                 ref={addressInputRef}
-                                placeholder="V6.02"
+                                placeholder="A1.01"
                                 value={address}
                                 selection={{
                                     start: address.length,
@@ -391,9 +392,9 @@ export default function CheckoutScreen() {
                                         <TouchableOpacity
                                             key={item}
                                             onPress={() => {
+                                                setSuggestions([]);
                                                 setAddress(item);
                                                 setQuery(item);
-                                                setSuggestions([]);
                                             }}
                                             style={[
                                                 LAYOUT.bg(COLORS.background4),

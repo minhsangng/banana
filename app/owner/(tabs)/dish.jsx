@@ -152,7 +152,7 @@ const DishesScreen = () => {
                 <PickerSelect options={options} value={editCategory} setValue={setEditCategory} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Giá bán</Text>
-                <TextInput value={formatPrice(editPrice)} onChangeText={setEditPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
+                <TextInput value={editPrice} onChangeText={setEditPrice} keyboardType="numeric" style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />
 
                 <Text style={[TEXT.text, TEXT.size(16)]}>Mô tả</Text>
                 <TextInput value={editDescription} onChangeText={setEditDescription} style={[TEXT.subText, TEXT.size(16), LAYOUT.wFull, LAYOUT.border(1, COLORS.border), LAYOUT.px(14), LAYOUT.py(10), LAYOUT.rounded(12), LAYOUT.mb(4)]} />

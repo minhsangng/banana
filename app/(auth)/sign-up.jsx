@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Dimensions, StyleSheet, Pressable } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Dimensions, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -107,7 +107,7 @@ export default function SignUpScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={[LAYOUT.header]}>
                 <View style={[LAYOUT.row, LAYOUT.h("fit-content"), LAYOUT.itemsCenter]}>
                     <TouchableOpacity onPress={() => router.replace("/(tabs)")}>
@@ -195,7 +195,7 @@ export default function SignUpScreen() {
             </View>
 
             <ToastModal status={icon} title={title} content={null} visible={alert} />
-        </SafeAreaView>
+        </View>
     );
 }
 
