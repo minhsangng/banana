@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { ENV } from "./config/env.js";
 import { db } from "./config/db.js";
 import {
@@ -38,12 +39,41 @@ import cors from "cors";
 import authRouter from "./auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = ENV.PORT || 5001;
+
+const UPLOAD_FOLDER = path.join(__dirname, "../images/foods");
+if (!fs.existsSync(UPLOAD_FOLDER)) {
+  fs.mkdirSync(UPLOAD_FOLDER, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOAD_FOLDER);
+  },
+  filename: function (req, file, cb) {
+    let customName = req.body.name || file.originalname;
+
+    customName = decodeURIComponent(customName);
+
+    customName = customName.replace(/\.[^/.]+$/, "");
+
+    customName = customName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    customName = customName.replace(/\s+/g, "_").replace(/[^\w\-]/g, "_");
+
+    const ext = path.extname(file.originalname);
+
+    cb(null, customName + ext);
+  },
+});
+
+const upload = multer({ storage });
 
 const expo = new Expo();
 
@@ -54,6 +84,14 @@ if (ENV.NODE_ENV === "production") {
   jobOrder.start();
   jobCleanup.start();
 }
+
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file)
+    return res.status(400).json({ success: false, message: "Không có file" });
+
+  const filePath = `../images/foods/${req.file.filename}`;
+  res.json({ success: true, path: filePath });
+});
 
 app.use("/images", express.static(path.join(__dirname, "../images")));
 
@@ -2116,7 +2154,7 @@ app.post("/api/topcategories", async (req, res) => {
 
     const startDate = new Date(`${start}T00:00:00+07:00`);
     const endDate = new Date(`${end}T23:59:59+07:00`);
-    
+
     if (isNaN(startDate) || isNaN(endDate)) {
       return res.status(400).json({ error: "Ngày không hợp lệ" });
     }
