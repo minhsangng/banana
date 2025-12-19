@@ -102,6 +102,24 @@ const DishesScreen = () => {
         }
     };
 
+    const uploadImage = async (image, dishName) => {
+        const formData = new FormData();
+
+        formData.append("file", {
+            uri: image.uri,
+            name: dishName.toLowerCase().replace(/\s+/g, "_") + ".png",
+            type: image.mimeType || "image/png"
+        });
+
+        formData.append("name", dishName.toLowerCase().replace(/\s+/g, "_"));
+
+        const res = await axios.post(`${API_URL.replace(/\/api\/?$/, "")}/upload`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+
+        return res.data.path;
+    };
+
     const editDishStatus = async (dishId) => {
         try {
             const { data } = await axios.get(`${API_URL}/ownerdishdetail/${dishId}`);
@@ -191,48 +209,32 @@ const DishesScreen = () => {
 
     const addDish = async () => {
         try {
-            if (addName.trim() === "" || addCategory === null || addCategory === undefined || addPrice === null || addPrice === undefined) {
-                setErrorName("Chưa nhập tên món ăn");
-                setErrorCate("Chưa chọn danh mục món ăn");
-                setErrorPrice("Chưa nhập giá bán món ăn");
-            } else {
-                let base64Image = null;
+            if (!addName || !addCategory || !addPrice) return;
 
-                if (addImage && addImage.uri) {
-                    const isPng = addImage.mimeType === "image/png";
-                    const format = isPng
-                        ? ImageManipulator.SaveFormat.PNG
-                        : ImageManipulator.SaveFormat.JPEG;
+            const userStr = await SecureStore.getItemAsync("userInfo");
+            const uid = parseInt(JSON.parse(userStr).userId);
 
-                    const manipulatedImage = await ImageManipulator.manipulateAsync(
-                        addImage.uri,
-                        [{ resize: { width: 400 } }],
-                        {
-                            compress: isPng ? 1 : 0.6,
-                            format: format,
-                            base64: true
-                        }
-                    );
-
-                    const prefix = isPng ? "data:image/png" : "data:image/jpeg";
-                    base64Image = `${prefix};base64,${manipulatedImage.base64}`;
-                }
-
-                const userStr = await SecureStore.getItemAsync("userInfo");
-
-                const uid = parseInt(JSON.parse(userStr).userId);
-                const { data } = await axios.post(`${API_URL}/owneradddish`, {
-                    dishName: addName, userId: uid, categoryId: addCategory, price: addPrice, description: addDescription, image: base64Image
-                });
-
-                setIcon(data.success ? "success" : "error");
-                setTitle(data.message);
-                setAlert(true);
-
-                setTimeout(() => setAlert(false), 1100);
+            let imagePath = null;
+            if (addImage) {
+                imagePath = await uploadImage(addImage, addName); // upload và lấy đường dẫn
             }
-        } catch (error) {
-            console.log("Thêm món thất bại: ", error);
+
+            const { data } = await axios.post(`${API_URL}/owneradddish`, {
+                dishName: addName,
+                userId: uid,
+                categoryId: addCategory,
+                price: addPrice,
+                description: addDescription,
+                image: imagePath
+            });
+
+            setIcon(data.success ? "success" : "error");
+            setTitle(data.message);
+            setAlert(true);
+            setTimeout(() => setAlert(false), 1100);
+            loadDishes();
+        } catch (e) {
+            console.log(e);
         }
     };
 
@@ -289,57 +291,30 @@ const DishesScreen = () => {
     };
 
     const submitUpdate = async (dishId) => {
-        if (!isDishChanged()) {
-            setIcon("warning");
-            setTitle("Bạn chưa thay đổi thông tin nào");
-            setAlert(true);
+        if (!isDishChanged()) return;
 
-            setTimeout(() => setAlert(false), 1200);
-            return;
-        }
         try {
-            let base64Image = null;
-
-            if (editImage && editImage.uri) {
-                const isPng = editImage.mimeType === "image/png";
-                const format = isPng
-                    ? ImageManipulator.SaveFormat.PNG
-                    : ImageManipulator.SaveFormat.JPEG;
-
-                const manipulatedImage = await ImageManipulator.manipulateAsync(
-                    editImage.uri,
-                    [{ resize: { width: 400 } }],
-                    {
-                        compress: isPng ? 1 : 0.6,
-                        format: format,
-                        base64: true
-                    }
-                );
-
-                const prefix = isPng ? "data:image/png" : "data:image/jpeg";
-                base64Image = `${prefix};base64,${manipulatedImage.base64}`;
+            let imagePath = detailDish.imageUrl; // giữ đường dẫn cũ nếu không đổi ảnh
+            if (typeof editImage !== "string") {
+                imagePath = await uploadImage(editImage, editName);
             }
 
-            const { data } = await axios.post(`${API_URL}/updatedishinfo`,
-                {
-                    dishId,
-                    dishName: editName,
-                    categoryId: editCategory,
-                    price: editPrice,
-                    description: editDescription,
-                    image: base64Image
-                }
-            );
+            const { data } = await axios.post(`${API_URL}/updatedishinfo`, {
+                dishId,
+                dishName: editName,
+                categoryId: editCategory,
+                price: editPrice,
+                description: editDescription,
+                image: imagePath
+            });
 
             setIcon(data.success ? "success" : "error");
             setTitle(data.message);
             setAlert(true);
-
             setTimeout(() => {
                 setAlert(false);
                 loadDishes();
             }, 1100);
-
         } catch (e) {
             console.log(e);
         }
